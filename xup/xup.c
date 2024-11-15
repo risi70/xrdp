@@ -191,6 +191,19 @@ lib_mod_connect(struct mod *mod)
     LOG(LOG_LEVEL_INFO, "XKB rules '%s' will be used by the module",
         mod->client_info.xkb_rules);
 
+    if (mod->client_info.h264_frame_interval <= 0)
+    {
+        mod->client_info.h264_frame_interval = H264_FRAME_INTERVAL;
+    }
+    if (mod->client_info.rfx_frame_interval <= 0)
+    {
+        mod->client_info.rfx_frame_interval = RFX_FRAME_INTERVAL;
+    }
+    if (mod->client_info.normal_frame_interval <= 0)
+    {
+        mod->client_info.normal_frame_interval = NORMAL_FRAME_INTERVAL;
+    }
+
     make_stream(s);
     g_sprintf(con_port, "%s", mod->port);
 
@@ -1886,6 +1899,18 @@ lib_mod_set_param(struct mod *mod, const char *name, const char *value)
     else if (g_strcasecmp(name, "keycode_set") == 0)
     {
         g_snprintf(mod->keycode_set, sizeof(mod->keycode_set), "%s", value);
+    }
+    else if (g_strcasecmp(name, "h264_frame_interval") == 0)
+    {
+        mod->client_info.h264_frame_interval = g_atoi(value);
+    }
+    else if (g_strcasecmp(name, "rfx_frame_interval") == 0)
+    {
+        mod->client_info.rfx_frame_interval = g_atoi(value);
+    }
+    else if (g_strcasecmp(name, "normal_frame_interval") == 0)
+    {
+        mod->client_info.normal_frame_interval = g_atoi(value);
     }
     else if (g_strcasecmp(name, "client_info") == 0)
     {
