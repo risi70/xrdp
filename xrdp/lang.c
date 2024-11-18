@@ -119,46 +119,6 @@ get_key_info_from_kbd_event(int keyboard_flags, int key_code, int *keys,
 }
 
 /*****************************************************************************/
-int
-get_keysym_from_kbd_event(int keyboard_flags, int key_code, int *keys,
-                          int caps_lock, int num_lock, int scroll_lock,
-                          struct xrdp_keymap *keymap)
-{
-    struct xrdp_key_info *ki;
-
-    ki = get_key_info_from_kbd_event(keyboard_flags, key_code, keys,
-                                     caps_lock, num_lock, scroll_lock,
-                                     keymap);
-
-    if (ki == 0)
-    {
-        return 0;
-    }
-
-    return ki->sym;
-}
-
-/*****************************************************************************/
-char32_t
-get_char_from_kbd_event(int keyboard_flags, int key_code, int *keys,
-                        int caps_lock, int num_lock, int scroll_lock,
-                        struct xrdp_keymap *keymap)
-{
-    struct xrdp_key_info *ki;
-
-    ki = get_key_info_from_kbd_event(keyboard_flags, key_code, keys,
-                                     caps_lock, num_lock, scroll_lock,
-                                     keymap);
-
-    if (ki == 0)
-    {
-        return 0;
-    }
-
-    return ki->chr;
-}
-
-/*****************************************************************************/
 /**
  * Converts a table key to a scancode index value
  *
