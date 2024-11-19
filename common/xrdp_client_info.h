@@ -206,6 +206,11 @@ struct xrdp_client_info
     int x11_keycode_num_lock;
     int x11_keycode_scroll_lock;
 
+    /* xorgxrdp: frame capture interval (milliseconds) */
+    int rfx_frame_interval;
+    int h264_frame_interval;
+    int normal_frame_interval;
+
     /* ==================================================================== */
     /* Private to xrdp below this line */
     /* ==================================================================== */
@@ -255,11 +260,6 @@ struct xrdp_client_info
 
     enum unicode_input_state unicode_input_support;
     enum xrdp_capture_code capture_code;
-
-    /* xorgxrdp: frame capture interval (milliseconds) */
-    int rfx_frame_interval;
-    int h264_frame_interval;
-    int normal_frame_interval;
 };
 
 enum xrdp_encoder_flags
