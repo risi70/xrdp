@@ -193,15 +193,15 @@ lib_mod_connect(struct mod *mod)
 
     if (mod->client_info.h264_frame_interval <= 0)
     {
-        mod->client_info.h264_frame_interval = H264_FRAME_INTERVAL;
+        mod->client_info.h264_frame_interval = DEFAULT_H264_FRAME_INTERVAL;
     }
     if (mod->client_info.rfx_frame_interval <= 0)
     {
-        mod->client_info.rfx_frame_interval = RFX_FRAME_INTERVAL;
+        mod->client_info.rfx_frame_interval = DEFAULT_RFX_FRAME_INTERVAL;
     }
     if (mod->client_info.normal_frame_interval <= 0)
     {
-        mod->client_info.normal_frame_interval = NORMAL_FRAME_INTERVAL;
+        mod->client_info.normal_frame_interval = DEFAULT_NORMAL_FRAME_INTERVAL;
     }
 
     make_stream(s);
