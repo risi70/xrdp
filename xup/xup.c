@@ -1836,12 +1836,12 @@ lib_mod_process_message(struct mod *mod, struct stream *s)
                     in_uint32_le(s, version);
                     if (version != CLIENT_INFO_CURRENT_VERSION)
                     {
-                        LOG(LOG_LEVEL_ERROR,
-                            "Xorg module has version %d, expected %d",
-                            version, CLIENT_INFO_CURRENT_VERSION);
-                        mod->server_msg(mod,
-                                        "Xorg module has wrong version number",
-                                        0);
+                        char msg[128];
+                        g_snprintf(msg, sizeof(msg),
+                                   "Xorg module has version %d, expected %d",
+                                   version, CLIENT_INFO_CURRENT_VERSION);
+                        LOG(LOG_LEVEL_ERROR, "%s", msg);
+                        mod->server_msg(mod, msg, 0);
                         mod->caps_processing_status = E_CAPS_NOT_OK;
                     }
                     break;
