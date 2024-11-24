@@ -24,9 +24,6 @@ typedef int (*xrdp_encoder_h264_encode_proc)(
     char *cdata, int *cdata_bytes,
     int connection_type, int *flags_ptr);
 
-/* h264_flags */
-#define ENC_FLAGS_PREFER_OPENH264_BIT   0
-
 /* for codec mode operations */
 struct xrdp_encoder
 {
@@ -59,7 +56,6 @@ struct xrdp_encoder
     int quant_idx_y;
     int quant_idx_u;
     int quant_idx_v;
-    int h264_flags;
     int pad0;
     xrdp_encoder_h264_create_proc xrdp_encoder_h264_create;
     xrdp_encoder_h264_delete_proc xrdp_encoder_h264_delete;

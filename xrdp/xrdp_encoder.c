@@ -314,44 +314,31 @@ xrdp_encoder_create(struct xrdp_mm *mm)
     self->frames_in_flight = MAX(self->frames_in_flight, 1);
 
 #if defined(XRDP_X264) && defined(XRDP_OPENH264)
-    if (self->h264_flags == 0)
+    struct xrdp_tconfig_gfx gfxconfig;
+    tconfig_load_gfx(GFX_CONF, &gfxconfig);
+
+    switch (gfxconfig.h264_encoder)
     {
-        char *env = g_getenv("XRDP_PREFER_OPENH264");
-        if (env != NULL)
-        {
-            LOG(LOG_LEVEL_INFO, "xrdp_encoder_create: found env var "
-                "XRDP_PREFER_OPENH264=%s", env);
-            if (g_text2bool(env))
-            {
-                ENC_SET_BIT(self->h264_flags, ENC_FLAGS_PREFER_OPENH264_BIT);
-            }
-        }
-        else
-        {
-            LOG(LOG_LEVEL_INFO, "xrdp_encoder_create: "
-                "XRDP_PREFER_OPENH264 not found");
-        }
-    }
-    if (ENC_IS_BIT_SET(self->h264_flags, ENC_FLAGS_PREFER_OPENH264_BIT))
-    {
-        LOG(LOG_LEVEL_INFO, "xrdp_encoder_create: using openh264 for "
-            "software encoder");
-        self->xrdp_encoder_h264_create = xrdp_encoder_openh264_create;
-        self->xrdp_encoder_h264_delete = xrdp_encoder_openh264_delete;
-        self->xrdp_encoder_h264_encode = xrdp_encoder_openh264_encode;
-    }
-    else
-    {
-        LOG(LOG_LEVEL_INFO, "xrdp_encoder_create: using x264 for "
-            "software encoder");
-        self->xrdp_encoder_h264_create = xrdp_encoder_x264_create;
-        self->xrdp_encoder_h264_delete = xrdp_encoder_x264_delete;
-        self->xrdp_encoder_h264_encode = xrdp_encoder_x264_encode;
+        case XTC_H264_OPENH264:
+            LOG(LOG_LEVEL_INFO, "xrdp_encoder_create: using OpenH264 for "
+                "software encoder");
+            self->xrdp_encoder_h264_create = xrdp_encoder_openh264_create;
+            self->xrdp_encoder_h264_delete = xrdp_encoder_openh264_delete;
+            self->xrdp_encoder_h264_encode = xrdp_encoder_openh264_encode;
+            break;
+        case XTC_H264_X264:
+        default:
+            /* x264 is the default H.264 software encoder */
+            LOG(LOG_LEVEL_INFO, "xrdp_encoder_create: using x264 for "
+                "software encoder");
+            self->xrdp_encoder_h264_create = xrdp_encoder_x264_create;
+            self->xrdp_encoder_h264_delete = xrdp_encoder_x264_delete;
+            self->xrdp_encoder_h264_encode = xrdp_encoder_x264_encode;
+            break;
     }
 #elif defined(XRDP_OPENH264)
-    LOG(LOG_LEVEL_INFO, "xrdp_encoder_create: using openh264 for "
+    LOG(LOG_LEVEL_INFO, "xrdp_encoder_create: using OpenH264 for "
         "software encoder");
-    self->h264_flags |= 1;
     self->xrdp_encoder_h264_create = xrdp_encoder_openh264_create;
     self->xrdp_encoder_h264_delete = xrdp_encoder_openh264_delete;
     self->xrdp_encoder_h264_encode = xrdp_encoder_openh264_encode;

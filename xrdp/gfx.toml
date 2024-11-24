@@ -1,6 +1,12 @@
 [codec]
 order = [ "H.264", "RFX" ]
 
+# Specify a preferred H.264 encoder, "x264" or "OpenH264".
+# This parameter takes effect only when more than one encoder is
+# enabled at compile time. If only one encoder is enabled, the encoder
+# will be used regardless the value of this parameter.
+h264_encoder = "OpenH264"
+
 [x264.default]
 preset = "ultrafast"
 tune = "zerolatency"
@@ -38,3 +44,9 @@ preset = "fast"
 tune = "zerolatency"
 vbv_max_bitrate = 1200
 vbv_buffer_size = 50
+
+[OpenH264.default]
+TargetBitrate = 0
+MaxBitrate = 0
+
+

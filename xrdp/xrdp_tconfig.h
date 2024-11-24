@@ -53,6 +53,12 @@ enum xrdp_tconfig_codecs
     XTC_RFX
 };
 
+enum xrdp_tconfig_h264_encoders
+{
+    XTC_H264_X264,
+    XTC_H264_OPENH264
+};
+
 struct xrdp_tconfig_gfx_codec_order
 {
     enum xrdp_tconfig_codecs codecs[2];
@@ -62,6 +68,7 @@ struct xrdp_tconfig_gfx_codec_order
 struct xrdp_tconfig_gfx
 {
     struct xrdp_tconfig_gfx_codec_order codec;
+    enum xrdp_tconfig_h264_encoders h264_encoder;
     /* store x264 parameters for each connection type */
     struct xrdp_tconfig_gfx_x264_param x264_param[NUM_CONNECTION_TYPES];
     struct xrdp_tconfig_gfx_openh264_param

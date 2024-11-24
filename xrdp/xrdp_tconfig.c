@@ -247,6 +247,49 @@ tconfig_load_gfx_x264_ct(toml_table_t *tfile, const int connection_type,
     return 0;
 }
 
+static int tconfig_load_gfx_h264_encoder(toml_table_t *tfile, struct xrdp_tconfig_gfx *config)
+{
+    TCLOG(LOG_LEVEL_TRACE, "[h264 encoder]");
+
+    toml_table_t *codec;
+    int valid_encoder_found = 0;
+
+    if ((codec = toml_table_in(tfile, "codec")) != NULL)
+    {
+        toml_datum_t h264_encoder = toml_string_in(codec, "h264_encoder");
+
+        if (h264_encoder.ok)
+        {
+            if (g_strcasecmp(h264_encoder.u.s, "x264") == 0)
+            {
+                TCLOG(LOG_LEVEL_DEBUG, "[h264 encoder] x264");
+                valid_encoder_found = 1;
+                config->h264_encoder = XTC_H264_X264;
+            }
+            if (g_strcasecmp(h264_encoder.u.s, "OpenH264") == 0)
+            {
+                TCLOG(LOG_LEVEL_DEBUG, "[h264 encoder] OpenH264");
+                valid_encoder_found = 1;
+                config->h264_encoder = XTC_H264_OPENH264;
+            }
+
+            free(h264_encoder.u.s);
+        }
+    }
+
+    if (valid_encoder_found == 0)
+    {
+        TCLOG(LOG_LEVEL_WARNING, "[h264 encoder] could not get valid H.264 encoder , "
+              "using default \"x264\"");
+
+        /* default to x264 */
+        config->h264_encoder = XTC_H264_X264;
+        return 1;
+    }
+
+    return 0;
+}
+
 static int tconfig_load_gfx_order(toml_table_t *tfile, struct xrdp_tconfig_gfx *config)
 {
     char buff[64];
@@ -393,6 +436,8 @@ tconfig_load_gfx(const char *filename, struct xrdp_tconfig_gfx *config)
 
     /* Load GFX codec order */
     tconfig_load_gfx_order(tfile, config);
+    /* Load H.264 encoder */
+    tconfig_load_gfx_h264_encoder(tfile, config);
 
     /* H.264 configuration */
     if (codec_enabled(&config->codec, XTC_H264))
