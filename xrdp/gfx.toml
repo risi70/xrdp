@@ -7,7 +7,11 @@ order = [ "H.264", "RFX" ]
 # will be used regardless the value of this parameter.
 h264_encoder = "OpenH264"
 
+#
+# Configurations for x264
+#
 [x264.default]
+# NOTE: x264 specifies bitrate in unit of kbps.
 preset = "ultrafast"
 tune = "zerolatency"
 profile = "main"     # profile is forced to baseline if preset == ultrafast
@@ -45,8 +49,40 @@ tune = "zerolatency"
 vbv_max_bitrate = 1200
 vbv_buffer_size = 50
 
+#
+# Configurations for OpenH264
+#
 [OpenH264.default]
-TargetBitrate = 0
-MaxBitrate = 0
+# NOTE: OpenH264 specifies bitrate in unit of bps, not kbps.
+EnableFrameSkip = false
+TargetBitrate = 20_000_000
+MaxBitrate =    0          # unspecified
+MaxFrameRate = 60.0
 
+[OpenH264.lan]
+# inherits default
+
+[OpenH264.wan]
+TargetBitrate = 10_000_000
+MaxBitrate =    12_000_000
+
+[OpenH264.broadband_high]
+EnableFrameSkip = true
+TargetBitrate = 8_000_000
+MaxBitrate =   10_000_000
+
+[OpenH264.satellite]
+EnableFrameSkip = true
+TargetBitrate = 4_000_000
+MaxBitrate =    6_000_000
+
+[OpenH264.broadband_low]
+EnableFrameSkip = true
+TargetBitrate = 1_600_000
+MaxBitrate =    1_800_000
+
+[OpenH264.modem]
+EnableFrameSkip = true
+TargetBitrate =   600_000
+MaxBitrate =    1_200_000
 

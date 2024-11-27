@@ -176,9 +176,13 @@ xrdp_encoder_openh264_encode(void *handle, int session, int left, int top,
                 encParamExt.iUsageType = CAMERA_VIDEO_REAL_TIME;
                 encParamExt.iPicWidth = (width + 15) & ~15;
                 encParamExt.iPicHeight = (height + 15) & ~15;
-                encParamExt.iRCMode = RC_OFF_MODE;
-                encParamExt.bEnableFrameSkip = 0;
+                encParamExt.iRCMode = RC_BITRATE_MODE;
                 encParamExt.iSpatialLayerNum = 1;
+                /* Set encode parameters from config */
+                encParamExt.bEnableFrameSkip = og->openh264_param[ct].EnableFrameSkip;
+                encParamExt.iTargetBitrate = og->openh264_param[ct].TargetBitrate;
+                encParamExt.iMaxBitrate = og->openh264_param[ct].MaxBitrate;
+                encParamExt.fMaxFrameRate = og->openh264_param[ct].MaxFrameRate;
                 /* defaults to INCREASING_ID, Mac client needs CONSTANT_ID */
                 encParamExt.eSpsPpsIdStrategy = CONSTANT_ID;
                 slc = encParamExt.sSpatialLayers + 0;

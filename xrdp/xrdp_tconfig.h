@@ -44,7 +44,10 @@ struct xrdp_tconfig_gfx_x264_param
 
 struct xrdp_tconfig_gfx_openh264_param
 {
-    int pad0;
+    bool_t EnableFrameSkip;
+    int TargetBitrate;
+    int MaxBitrate;
+    float MaxFrameRate;
 };
 
 enum xrdp_tconfig_codecs
