@@ -21,13 +21,18 @@ EXTRA_DIST = \
   test_not4_24bit.bmp \
   test1.jpg \
   test_alpha_blend.png \
-  gfx/gfx.toml\
-  gfx/gfx_codec_order_undefined.toml \
-  gfx/gfx_codec_h264_preferred.toml \
+  gfx/gfx.toml \
   gfx/gfx_codec_h264_only.toml \
-  gfx/gfx_codec_rfx_preferred.toml \
+  gfx/gfx_codec_h264_preferred.toml \
+  gfx/gfx_codec_order_undefined.toml \
+  gfx/gfx_codec_rfx_only.toml \
   gfx/gfx_codec_rfx_preferred_odd.toml \
-  gfx/gfx_codec_rfx_only.toml
+  gfx/gfx_codec_rfx_preferred.toml \
+  gfx/gfx_h264_encoder_invalid.toml \
+  gfx/gfx_h264_encoder_openh264.toml \
+  gfx/gfx_h264_encoder_undefined.toml \
+  gfx/gfx_h264_encoder_x264.toml \
+  gfx/gfx_missing_h264.toml
 
 TESTS = test_xrdp
 check_PROGRAMS = test_xrdp
