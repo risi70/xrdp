@@ -27,7 +27,7 @@ START_TEST(test_tconfig_gfx_x264_load_basic)
     ck_assert_str_eq(gfxconfig.x264_param[0].profile, "main");
     ck_assert_int_eq(gfxconfig.x264_param[0].vbv_max_bitrate, 0);
     ck_assert_int_eq(gfxconfig.x264_param[0].vbv_buffer_size, 0);
-    ck_assert_int_eq(gfxconfig.x264_param[0].fps_num, 24);
+    ck_assert_int_eq(gfxconfig.x264_param[0].fps_num, 60);
     ck_assert_int_eq(gfxconfig.x264_param[0].fps_den, 1);
 
 }

@@ -85,3 +85,10 @@ test_xrdp_LDADD += \
     $(top_builddir)/xrdp/xrdp_encoder_x264.o \
     $(XRDP_X264_LIBS)
 endif
+
+if XRDP_OPENH264
+AM_CPPFLAGS += -DXRDP_X264 $(XRDP_OPENH264_CFLAGS)
+test_xrdp_LDADD += \
+    $(top_builddir)/xrdp/xrdp_encoder_openh264.o \
+    $(XRDP_OPENH264_LIBS)
+endif

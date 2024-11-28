@@ -26,6 +26,8 @@
 #ifndef _XRDP_TCONFIG_H_
 #define _XRDP_TCONFIG_H_
 
+#include "arch.h"
+
 /* The number of connection types in MS-RDPBCGR 2.2.1.3.2 */
 #define NUM_CONNECTION_TYPES 7
 #define GFX_CONF XRDP_CFG_PATH "/gfx.toml"
