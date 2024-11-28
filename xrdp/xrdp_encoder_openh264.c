@@ -274,12 +274,12 @@ xrdp_encoder_openh264_encode(void *handle, int session, int left, int top,
                  &pic1, &info);
         if (status != 0)
         {
-            LOG(LOG_LEVEL_INFO, "Failed to encode frame");
+            LOG(LOG_LEVEL_TRACE, "OpenH264: Failed to encode frame");
             return 3;
         }
         if (info.eFrameType == videoFrameTypeSkip)
         {
-            LOG(LOG_LEVEL_INFO, "frame was skipped!");
+            LOG(LOG_LEVEL_TRACE, "OpenH264: frame was skipped!");
             return 4;
         }
         lcdata_bytes = 0;
