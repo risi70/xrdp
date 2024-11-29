@@ -442,14 +442,6 @@ get_key_info_from_kbd_event(int keyboard_flags, int key_code, int *keys,
                             int caps_lock, int num_lock, int scroll_lock,
                             struct xrdp_keymap *keymap);
 int
-get_keysym_from_kbd_event(int keyboard_flags, int key_code, int *keys,
-                          int caps_lock, int num_lock, int scroll_lock,
-                          struct xrdp_keymap *keymap);
-char32_t
-get_char_from_kbd_event(int keyboard_flags, int key_code, int *keys,
-                        int caps_lock, int num_lock, int scroll_lock,
-                        struct xrdp_keymap *keymap);
-int
 get_keymaps(int keylayout, struct xrdp_keymap *keymap);
 
 int

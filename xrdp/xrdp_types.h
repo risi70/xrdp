@@ -462,6 +462,9 @@ struct xrdp_key_info
 
 struct xrdp_keymap
 {
+    // Are the caps lock maps populated?
+    int caps_lock_supported;
+
     // These arrays are indexed by a return from scancode_to_index()
     struct xrdp_key_info keys_noshift[SCANCODE_MAX_INDEX + 1];
     struct xrdp_key_info keys_shift[SCANCODE_MAX_INDEX + 1];
