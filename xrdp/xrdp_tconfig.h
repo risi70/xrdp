@@ -42,6 +42,11 @@ struct xrdp_tconfig_gfx_x264_param
     int fps_den;
 };
 
+struct xrdp_tconfig_gfx_openh264_param
+{
+    int pad0;
+};
+
 enum xrdp_tconfig_codecs
 {
     XTC_H264,
@@ -59,6 +64,8 @@ struct xrdp_tconfig_gfx
     struct xrdp_tconfig_gfx_codec_order codec;
     /* store x264 parameters for each connection type */
     struct xrdp_tconfig_gfx_x264_param x264_param[NUM_CONNECTION_TYPES];
+    struct xrdp_tconfig_gfx_openh264_param
+        openh264_param[NUM_CONNECTION_TYPES];
 };
 
 static const char *const rdpbcgr_connection_type_names[] =

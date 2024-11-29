@@ -175,6 +175,10 @@ AC_ARG_ENABLE(x264, AS_HELP_STRING([--enable-x264],
               [Use x264 library (default: no)]),
               [], [enable_x264=no])
 AM_CONDITIONAL(XRDP_X264, [test x$enable_x264 = xyes])
+AC_ARG_ENABLE(openh264, AS_HELP_STRING([--enable-openh264],
+              [Use openh264 library (default: no)]),
+              [], [enable_openh264=no])
+AM_CONDITIONAL(XRDP_OPENH264, [test x$enable_openh264 = xyes])
 AC_ARG_ENABLE(painter, AS_HELP_STRING([--disable-painter],
               [Do not use included painter library (default: no)]),
               [], [enable_painter=yes])
@@ -493,6 +497,8 @@ AS_IF( [test "x$enable_pixman" = "xyes"] , [PKG_CHECK_MODULES(PIXMAN, pixman-1 >
 
 AS_IF( [test "x$enable_x264" = "xyes"] , [PKG_CHECK_MODULES(XRDP_X264, x264 >= 0.3.0)] )
 
+AS_IF( [test "x$enable_openh264" = "xyes"] , [PKG_CHECK_MODULES(XRDP_OPENH264, openh264 >= 2.0.0)] )
+
 # checking for TurboJPEG
 if test "x$enable_tjpeg" = "xyes"
 then
@@ -668,6 +674,7 @@ echo "  jpeg                    $enable_jpeg"
 echo "  turbo jpeg              $enable_tjpeg"
 echo "  rfxcodec                $enable_rfxcodec"
 echo "  x264                    $enable_x264"
+echo "  openh264                $enable_openh264"
 echo "  painter                 $enable_painter"
 echo "  pixman                  $enable_pixman"
 echo "  fuse                    $enable_fuse"
