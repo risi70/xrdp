@@ -674,7 +674,7 @@ session_start_wrapped(struct login_info *login_info,
                 sd->win_mgr = window_manager_pid;
                 sd->x_server = display_pid;
                 sd->chansrv = chansrv_pid;
-                sd->start_time = g_time1();
+                sd->start_time = time(NULL);
                 status = E_SCP_SCREATE_OK;
             }
         }
@@ -860,7 +860,7 @@ session_process_child_exit(struct session_data *sd,
     }
     else if (pid == sd->win_mgr)
     {
-        int wm_wait_time = g_time1() - sd->start_time;
+        int wm_wait_time = time(NULL) - sd->start_time;
 
         if (e->reason == E_PXR_STATUS_CODE && e->val == 0)
         {

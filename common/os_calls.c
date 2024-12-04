@@ -2045,18 +2045,6 @@ g_obj_wait(tintptr *read_objs, int rcount, tintptr *write_objs, int wcount,
 void
 g_random(char *data, int len)
 {
-#if defined(_WIN32)
-    int index;
-
-    srand(g_time1());
-
-    for (index = 0; index < len; index++)
-    {
-        data[index] = (char)rand(); /* rand returns a number between 0 and
-                                   RAND_MAX */
-    }
-
-#else
     int fd;
 
     memset(data, 0x44, len);
@@ -2075,8 +2063,6 @@ g_random(char *data, int len)
 
         close(fd);
     }
-
-#endif
 }
 
 /*****************************************************************************/
@@ -3776,21 +3762,6 @@ g_check_user_in_group(const char *username, int gid, int *ok)
 #endif
 }
 #endif // HAVE_GETGROUPLIST
-
-/*****************************************************************************/
-/* returns the time since the Epoch (00:00:00 UTC, January 1, 1970),
-   measured in seconds.
-   for windows, returns the number of seconds since the machine was
-   started. */
-int
-g_time1(void)
-{
-#if defined(_WIN32)
-    return GetTickCount() / 1000;
-#else
-    return time(0);
-#endif
-}
 
 /*****************************************************************************/
 /* returns the number of milliseconds since the machine was
