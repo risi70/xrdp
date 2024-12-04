@@ -53,6 +53,20 @@ struct openh264_global
         openh264_param[NUM_CONNECTION_TYPES];
 };
 
+/* The method invocations on ISVCEncoder are different for C and C++, as
+   ISVCEncoder is a true class in C++, but an emulated one in C */
+#ifdef __cplusplus /* compiling with g++  */
+#define ENC_GET_DEFAULT_PARAMS(obj, pParam) (obj)->GetDefaultParams(pParam)
+#define ENC_INITIALIZE_EXT(obj, pParam)     (obj)->InitializeExt(pParam)
+#define ENC_ENCODE_FRAME(obj, kpSrcPic, pBsInfo) \
+    (obj)->EncodeFrame(kpSrcPic, pBsInfo)
+#else
+#define ENC_GET_DEFAULT_PARAMS(obj, pParam) (*obj)->GetDefaultParams(obj, pParam)
+#define ENC_INITIALIZE_EXT(obj, pParam)     (*obj)->InitializeExt(obj, pParam)
+#define ENC_ENCODE_FRAME(obj, kpSrcPic, pBsInfo) \
+    (*obj)->EncodeFrame(obj, kpSrcPic, pBsInfo)
+#endif
+
 /*****************************************************************************/
 void *
 xrdp_encoder_openh264_create(void)
@@ -167,7 +181,7 @@ xrdp_encoder_openh264_encode(void *handle, int session, int left, int top,
             LOG(LOG_LEVEL_INFO, "xrdp_encoder_openh264_encode: "
                 "WelsCreateSVCEncoder rv %p for width %d height %d",
                 oe->openh264_enc_han, width, height);
-            status = (*oe->openh264_enc_han)->GetDefaultParams(
+            status = ENC_GET_DEFAULT_PARAMS(
                          oe->openh264_enc_han, &encParamExt);
             LOG(LOG_LEVEL_INFO, "xrdp_encoder_openh264_encode: "
                 "GetDefaultParams rv %d", status);
@@ -176,9 +190,13 @@ xrdp_encoder_openh264_encode(void *handle, int session, int left, int top,
                 encParamExt.iUsageType = CAMERA_VIDEO_REAL_TIME;
                 encParamExt.iPicWidth = (width + 15) & ~15;
                 encParamExt.iPicHeight = (height + 15) & ~15;
-                encParamExt.iRCMode = RC_OFF_MODE;
-                encParamExt.bEnableFrameSkip = 0;
+                encParamExt.iRCMode = RC_BITRATE_MODE;
                 encParamExt.iSpatialLayerNum = 1;
+                /* Set encode parameters from config */
+                encParamExt.bEnableFrameSkip = og->openh264_param[ct].EnableFrameSkip;
+                encParamExt.iTargetBitrate = og->openh264_param[ct].TargetBitrate;
+                encParamExt.iMaxBitrate = og->openh264_param[ct].MaxBitrate;
+                encParamExt.fMaxFrameRate = og->openh264_param[ct].MaxFrameRate;
                 /* defaults to INCREASING_ID, Mac client needs CONSTANT_ID */
                 encParamExt.eSpsPpsIdStrategy = CONSTANT_ID;
                 slc = encParamExt.sSpatialLayers + 0;
@@ -187,7 +205,7 @@ xrdp_encoder_openh264_encode(void *handle, int session, int left, int top,
                 slc->iVideoHeight = encParamExt.iPicHeight;
                 slc->iSpatialBitrate = encParamExt.iTargetBitrate;
                 slc->iMaxSpatialBitrate = encParamExt.iMaxBitrate;
-                status = (*oe->openh264_enc_han)->InitializeExt(
+                status = ENC_INITIALIZE_EXT(
                              oe->openh264_enc_han, &encParamExt);
                 LOG(LOG_LEVEL_INFO, "xrdp_encoder_openh264_encode: "
                     "InitializeExt rv %d", status);
@@ -266,16 +284,15 @@ xrdp_encoder_openh264_encode(void *handle, int session, int left, int top,
             }
         }
         g_memset(&info, 0, sizeof(info));
-        status = (*oe->openh264_enc_han)->EncodeFrame(oe->openh264_enc_han,
-                 &pic1, &info);
+        status = ENC_ENCODE_FRAME(oe->openh264_enc_han, &pic1, &info);
         if (status != 0)
         {
-            LOG(LOG_LEVEL_INFO, "Failed to encode frame");
+            LOG(LOG_LEVEL_TRACE, "OpenH264: Failed to encode frame");
             return 3;
         }
         if (info.eFrameType == videoFrameTypeSkip)
         {
-            LOG(LOG_LEVEL_INFO, "frame was skipped!");
+            LOG(LOG_LEVEL_TRACE, "OpenH264: frame was skipped!");
             return 4;
         }
         lcdata_bytes = 0;

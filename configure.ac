@@ -176,7 +176,7 @@ AC_ARG_ENABLE(x264, AS_HELP_STRING([--enable-x264],
               [], [enable_x264=no])
 AM_CONDITIONAL(XRDP_X264, [test x$enable_x264 = xyes])
 AC_ARG_ENABLE(openh264, AS_HELP_STRING([--enable-openh264],
-              [Use openh264 library (default: no)]),
+              [Use Cisco OpenH264 library (default: no)]),
               [], [enable_openh264=no])
 AM_CONDITIONAL(XRDP_OPENH264, [test x$enable_openh264 = xyes])
 AC_ARG_ENABLE(painter, AS_HELP_STRING([--disable-painter],

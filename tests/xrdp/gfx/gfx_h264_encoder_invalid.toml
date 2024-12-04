@@ -5,7 +5,7 @@ order = [ "H.264", "RFX" ]
 # This parameter takes effect only when more than one encoder is
 # enabled at compile time. If only one encoder is enabled, the encoder
 # will be used regardless the value of this parameter.
-h264_encoder = "x264"
+h264_encoder = "FreeH264"
 
 #
 # Configurations for x264

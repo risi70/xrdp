@@ -26,6 +26,8 @@
 #ifndef _XRDP_TCONFIG_H_
 #define _XRDP_TCONFIG_H_
 
+#include "arch.h"
+
 /* The number of connection types in MS-RDPBCGR 2.2.1.3.2 */
 #define NUM_CONNECTION_TYPES 7
 #define GFX_CONF XRDP_CFG_PATH "/gfx.toml"
@@ -44,13 +46,22 @@ struct xrdp_tconfig_gfx_x264_param
 
 struct xrdp_tconfig_gfx_openh264_param
 {
-    int pad0;
+    bool_t EnableFrameSkip;
+    int TargetBitrate;
+    int MaxBitrate;
+    float MaxFrameRate;
 };
 
 enum xrdp_tconfig_codecs
 {
     XTC_H264,
     XTC_RFX
+};
+
+enum xrdp_tconfig_h264_encoders
+{
+    XTC_H264_X264,
+    XTC_H264_OPENH264
 };
 
 struct xrdp_tconfig_gfx_codec_order
@@ -62,6 +73,7 @@ struct xrdp_tconfig_gfx_codec_order
 struct xrdp_tconfig_gfx
 {
     struct xrdp_tconfig_gfx_codec_order codec;
+    enum xrdp_tconfig_h264_encoders h264_encoder;
     /* store x264 parameters for each connection type */
     struct xrdp_tconfig_gfx_x264_param x264_param[NUM_CONNECTION_TYPES];
     struct xrdp_tconfig_gfx_openh264_param
