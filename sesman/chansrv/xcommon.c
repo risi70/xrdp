@@ -86,9 +86,7 @@ xcommon_fatal_handler(Display *dis)
 }
 
 /*****************************************************************************/
-/* returns time in milliseconds
-   this is like g_time2 in os_calls, but not milliseconds since machine was
-   up, something else
+/* returns time in milliseconds since a point in the past
    this is a time value similar to what the xserver uses */
 int
 xcommon_get_local_time(void)

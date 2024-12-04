@@ -3764,23 +3764,6 @@ g_check_user_in_group(const char *username, int gid, int *ok)
 #endif // HAVE_GETGROUPLIST
 
 /*****************************************************************************/
-/* returns the number of milliseconds since the machine was
-   started. */
-int
-g_time2(void)
-{
-#if defined(_WIN32)
-    return (int)GetTickCount();
-#else
-    struct tms tm;
-    clock_t num_ticks = 0;
-    g_memset(&tm, 0, sizeof(struct tms));
-    num_ticks = times(&tm);
-    return (int)(num_ticks * 10);
-#endif
-}
-
-/*****************************************************************************/
 /* returns time in milliseconds, uses gettimeofday
    does not work in win32 */
 int
