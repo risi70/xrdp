@@ -3764,19 +3764,21 @@ g_check_user_in_group(const char *username, int gid, int *ok)
 #endif // HAVE_GETGROUPLIST
 
 /*****************************************************************************/
-/* returns time in milliseconds, uses gettimeofday
-   does not work in win32 */
-int
-g_time3(void)
+unsigned int
+g_get_elapsed_ms(void)
 {
-#if defined(_WIN32)
-    return 0;
-#else
-    struct timeval tp;
+    unsigned int result = 0;
+    struct timespec tp;
 
-    gettimeofday(&tp, 0);
-    return (tp.tv_sec * 1000) + (tp.tv_usec / 1000);
-#endif
+    if (clock_gettime(CLOCK_MONOTONIC, &tp) == 0)
+    {
+        result = (unsigned int)tp.tv_sec * 1000;
+        // POSIX 1003.1-2004 specifies that tv_nsec is a long (i.e. a
+        // signed type), but can only contain [0..999,999,999]
+        result += tp.tv_nsec / 1000000;
+    }
+
+    return result;
 }
 
 /******************************************************************************/

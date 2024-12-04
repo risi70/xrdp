@@ -85,15 +85,6 @@ xcommon_fatal_handler(Display *dis)
     return 0;
 }
 
-/*****************************************************************************/
-/* returns time in milliseconds since a point in the past
-   this is a time value similar to what the xserver uses */
-int
-xcommon_get_local_time(void)
-{
-    return g_time3();
-}
-
 /******************************************************************************/
 /* this should be called first */
 int

@@ -489,8 +489,8 @@ struct display_control_monitor_layout_data
 {
     struct display_size_description description;
     enum display_resize_state state;
-    int last_state_update_timestamp;
-    int start_time;
+    unsigned int last_state_update_timestamp;
+    unsigned int start_time;
     /// This flag is set if the state machine needs to
     /// shutdown/startup EGFX
     int using_egfx;
