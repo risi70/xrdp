@@ -5,10 +5,12 @@
 #include <ctype.h>
 #include <sys/signal.h>
 #include <unistd.h>
+#include <limits.h>
 
 #include "config_ac.h"
 #include "os_calls.h"
 #include "string_calls.h"
+#include "xrdp_sockets.h"
 #include "xwait.h" // For return status codes
 
 #define ATTEMPTS 10
@@ -29,22 +31,32 @@ alarm_handler(int signal_num)
 
 /*****************************************************************************/
 /***
- * Checks whether display is local.
+ * Checks whether display can be reached via a Unix Domain Socket socket.
  *
- * Local displays are of the form ':n' or ':n.m' where 'n' and 'm'
+ * Local displays can be reached by a Unix Domain socket. The display
+ * string will be of the form ':n' or ':n.m' where 'n' and 'm'
  * are unsigned numbers
  *
  * @param display Display string
- * @return boolean
+ * @param[out] sock_name, or ""
+ * @param sock_name_len Length of sock_name
+ * @return !=0 if sock_name is not NULL
  */
 static int
-is_local_display(const char *display)
+get_display_sock_name(const char *display, char *sock_name,
+                      size_t sock_name_len)
 {
-    int result = 0;
+    int local = 0;
+    int dnum = 0;
     if (display != NULL && *display++ == ':' && isdigit(*display))
     {
         do
         {
+            if (dnum > (INT_MAX / 10 - 1))
+            {
+                break; // Avoid signed integer overflow
+            }
+            dnum = (dnum * 10) + (*display - '0');
             ++display;
         }
         while (isdigit(*display));
@@ -59,29 +71,89 @@ is_local_display(const char *display)
             while (isdigit(*display));
         }
 
-        result = (*display == '\0');
+        local = (*display == '\0');
     }
-    return result;
+
+    if (local)
+    {
+        snprintf(sock_name, sock_name_len, X11_UNIX_SOCKET_STR, dnum);
+    }
+    else
+    {
+        sock_name[0] = '\0';
+    }
+
+
+    return (sock_name[0] != '\0');
 }
 
 /*****************************************************************************/
 static Display *
 open_display(const char *display)
 {
+    char sock_name[XRDP_SOCKETS_MAXPATH];
+    int local_fd = -1;
     Display *dpy = NULL;
     unsigned int wait = ATTEMPTS;
     unsigned int n;
 
-    for (n = 1; n <= ATTEMPTS; ++n)
+    // If the display is local, we try to connect to the X11 socket for
+    // the display first. If we can't do this, we don't attempt to open
+    // the display.
+    //
+    // This is to ensure the display open code in libxcb doesn't attempt
+    // to connect to the X server over TCP. This can block if the network
+    // is configured in an unexpected way, which leads to use failing
+    // to detect the X server starting up shortly after.
+    //
+    // Some versions of libxcb support a 'unix:' prefix to the display
+    // string to allow a connection to be restricted to a local socket.
+    // This is not documented, and varies significantly between versions
+    // of libxcb. We can't use it here.
+    if (get_display_sock_name(display, sock_name, sizeof(sock_name)) != 0)
+    {
+        for (n = 1; n <= wait ; ++n)
+        {
+            printf("<D>Opening socket %s. Attempt %u of %u\n",
+                   sock_name, n, wait);
+            if ((local_fd = g_sck_local_socket()) >= 0)
+            {
+                if  (g_sck_local_connect(local_fd, sock_name) == 0)
+                {
+                    printf("<D>Socket '%s' open succeeded.\n", sock_name);
+                    break;
+                }
+                else
+                {
+                    printf("<D>Socket '%s' open failed [%s].\n",
+                           sock_name, g_get_strerror());
+                    g_file_close(local_fd);
+                    local_fd = -1;
+                }
+            }
+            g_sleep(1000);
+        }
+
+        // Subtract the wait time for this stage from the overall wait time
+        wait -= (n - 1);
+    }
+
+    for (n = 1; n <= wait; ++n)
     {
         printf("<D>Opening display '%s'. Attempt %u of %u\n", display, n, wait);
-        dpy = XOpenDisplay(display);
-        if (dpy != NULL)
+        if ((dpy = XOpenDisplay(display)) != NULL)
         {
             printf("<D>Opened display %s\n", display);
             break;
         }
         g_sleep(1000);
+    }
+
+    // Close the file after we try the display open, to prevent
+    // a display reset if our connect was the last client.
+    if (local_fd >= 0)
+    {
+        g_file_close(local_fd);
     }
 
     return dpy;
@@ -150,7 +222,6 @@ usage(const char *argv0, int status)
 int
 main(int argc, char **argv)
 {
-    char unix_display[64]; // Used for local (unix) displays only
     const char *display_name = NULL;
     int opt;
     int status = XW_STATUS_MISC_ERROR;
@@ -178,22 +249,6 @@ main(int argc, char **argv)
     }
 
     g_set_alarm(alarm_handler, ALARM_WAIT);
-
-    if (is_local_display(display_name))
-    {
-        // Don't use the raw display value, as this goes to the
-        // network if the X server port is not yet open. This can
-        // block if the network is configured in an unexpected way,
-        // which leads to use failing to detect the X server starting
-        // up shortly after.
-        //
-        // This code attempts to use a string such as "unix:10" to open
-        // the display. This is undocumented in the X11 man pages but
-        // is implemented in _xcb_open() from libxcb
-        // (which libX11 is now layered on).
-        snprintf(unix_display, sizeof(unix_display), "unix%s", display_name);
-        display_name = unix_display;
-    }
 
     dpy = open_display(display_name);
     if (!dpy)
