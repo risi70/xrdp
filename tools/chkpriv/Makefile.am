@@ -3,7 +3,7 @@ xrdppkgdatadir=$(datadir)/xrdp
 pkglibexec_PROGRAMS = \
   xrdp-droppriv
 
-dist_xrdppkgdata_SCRIPTS = \
+nodist_xrdppkgdata_SCRIPTS = \
   xrdp-chkpriv
 
 AM_LDFLAGS = 
@@ -11,7 +11,9 @@ AM_LDFLAGS =
 AM_CPPFLAGS = \
   -I$(top_srcdir)/common
 
-xrdp_droppriv_SOURCES = xrdp-droppriv.c
+xrdp_droppriv_SOURCES = \
+  xrdp-chkpriv.in \
+  xrdp-droppriv.c
 
 xrdp_droppriv_LDADD = \
   $(top_builddir)/common/libcommon.la \
@@ -29,5 +31,5 @@ SUFFIXES = .in
 .in:
 	$(subst_verbose)$(SUBST_VARS) $< > $@
 
-CLEANFILES = xrdp-chkpriv
+CLEANFILES = $(nodist_xrdppkgdata_SCRIPTS)
 
