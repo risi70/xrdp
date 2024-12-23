@@ -398,6 +398,18 @@ other values in the connection block.
 [Xorg only] Asks for the specified keycode set to be used by the X server.
 Normally "evdev" or "base". The default should be correct for your system.
 
+.TP
+\fBh264_frame_interval\fR=\fI<integer>\fR
+[Xorg only] Specify frame capture interval for H.264 captures in milliseconds.
+
+.TP
+\fBrfx_frame_interval\fR=\fI<integer>\fR
+[Xorg only] Specify frame capture interval for RemoteFX captures in milliseconds.
+
+.TP
+\fBnormal_frame_interval\fR=\fI<integer>\fR
+[Xorg only] Specify frame capture interval for normal captures in milliseconds.
+
 .SH "EXAMPLES"
 This is an example \fBxrdp.ini\fR:
 
@@ -414,6 +426,9 @@ password=ask
 ip=127.0.0.1
 port=-1
 code=20
+h264_frame_interval=16
+rfx_frame_interval=32
+normal_frame_interval=40
 
 [vnc-any]
 name=vnc-any
