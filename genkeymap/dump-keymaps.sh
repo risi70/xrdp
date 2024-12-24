@@ -68,6 +68,7 @@ if [ -z "$os" ]; then
     os="Unknown"
 fi
 
+kbgen 0405 "cs-CZ"        "$os" -model pc105 -layout cz
 kbgen 0406 "da-DK"        "$os" -model pc105 -layout dk
 kbgen 0407 "de-DE"        "$os" -model pc104 -layout de
 kbgen 0409 "en-US"        "$os" -model pc104 -layout us

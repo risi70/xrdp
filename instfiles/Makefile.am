@@ -29,6 +29,7 @@ SUFFIXES = .in
 startscriptdir=$(sysconfdir)/xrdp
 
 dist_startscript_DATA = \
+  km-00000405.toml \
   km-00000406.toml \
   km-00000407.toml \
   km-00000409.toml \
