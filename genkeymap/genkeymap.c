@@ -92,8 +92,8 @@ usage(const char *programname, int status)
 {
     fprintf(stderr, "Usage: %s [ -k keycode_set] [-c comment] [-c comment...]"
             " out_filename\n", programname);
-    fprintf(stderr, "Example: %s -r evdev -c \"en-US pc104 keyboard\" "
-            XRDP_CFG_PATH "/km-00000409.toml\n", programname);
+    fprintf(stderr, "Example: %s -r evdev -c \"en-US pc104 keyboard\" ", programname);
+    fprintf(stderr, XRDP_CFG_PATH "/km-00000409.toml\n");
     exit(status);
 }
 
