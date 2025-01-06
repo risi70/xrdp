@@ -589,7 +589,7 @@ struct xrdp_wm
     struct xrdp_tconfig_gfx *gfx_config;
 
     struct xrdp_region *screen_dirty_region;
-    int last_screen_draw_time;
+    unsigned int last_screen_draw_time;
 };
 
 /* rdp process */

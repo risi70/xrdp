@@ -2045,18 +2045,6 @@ g_obj_wait(tintptr *read_objs, int rcount, tintptr *write_objs, int wcount,
 void
 g_random(char *data, int len)
 {
-#if defined(_WIN32)
-    int index;
-
-    srand(g_time1());
-
-    for (index = 0; index < len; index++)
-    {
-        data[index] = (char)rand(); /* rand returns a number between 0 and
-                                   RAND_MAX */
-    }
-
-#else
     int fd;
 
     memset(data, 0x44, len);
@@ -2075,8 +2063,6 @@ g_random(char *data, int len)
 
         close(fd);
     }
-
-#endif
 }
 
 /*****************************************************************************/
@@ -3779,51 +3765,21 @@ g_check_user_in_group(const char *username, int gid, int *ok)
 #endif // HAVE_GETGROUPLIST
 
 /*****************************************************************************/
-/* returns the time since the Epoch (00:00:00 UTC, January 1, 1970),
-   measured in seconds.
-   for windows, returns the number of seconds since the machine was
-   started. */
-int
-g_time1(void)
+unsigned int
+g_get_elapsed_ms(void)
 {
-#if defined(_WIN32)
-    return GetTickCount() / 1000;
-#else
-    return time(0);
-#endif
-}
+    unsigned int result = 0;
+    struct timespec tp;
 
-/*****************************************************************************/
-/* returns the number of milliseconds since the machine was
-   started. */
-int
-g_time2(void)
-{
-#if defined(_WIN32)
-    return (int)GetTickCount();
-#else
-    struct tms tm;
-    clock_t num_ticks = 0;
-    g_memset(&tm, 0, sizeof(struct tms));
-    num_ticks = times(&tm);
-    return (int)(num_ticks * 10);
-#endif
-}
+    if (clock_gettime(CLOCK_MONOTONIC, &tp) == 0)
+    {
+        result = (unsigned int)tp.tv_sec * 1000;
+        // POSIX 1003.1-2004 specifies that tv_nsec is a long (i.e. a
+        // signed type), but can only contain [0..999,999,999]
+        result += tp.tv_nsec / 1000000;
+    }
 
-/*****************************************************************************/
-/* returns time in milliseconds, uses gettimeofday
-   does not work in win32 */
-int
-g_time3(void)
-{
-#if defined(_WIN32)
-    return 0;
-#else
-    struct timeval tp;
-
-    gettimeofday(&tp, 0);
-    return (tp.tv_sec * 1000) + (tp.tv_usec / 1000);
-#endif
+    return result;
 }
 
 /******************************************************************************/

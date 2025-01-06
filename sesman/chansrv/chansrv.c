@@ -132,7 +132,7 @@ add_timeout(int msoffset, void (*callback)(void *data), void *data)
     tui32 now;
 
     LOG_DEVEL(LOG_LEVEL_DEBUG, "add_timeout:");
-    now = g_time3();
+    now = g_get_elapsed_ms();
     tobj = g_new0(struct timeout_obj, 1);
     tobj->mstime = now + msoffset;
     tobj->callback = callback;
@@ -167,7 +167,7 @@ get_timeout(int *timeout)
     tobj = g_timeout_head;
     if (tobj != 0)
     {
-        now = g_time3();
+        now = g_get_elapsed_ms();
         while (tobj != 0)
         {
             LOG_DEVEL(LOG_LEVEL_DEBUG, "  now %u tobj->mstime %u", now, tobj->mstime);
@@ -215,7 +215,7 @@ check_timeout(void)
         while (tobj != 0)
         {
             count++;
-            now = g_time3();
+            now = g_get_elapsed_ms();
             if (now >= tobj->mstime)
             {
                 tobj->callback(tobj->data);
