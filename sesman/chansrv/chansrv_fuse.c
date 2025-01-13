@@ -1169,16 +1169,26 @@ void xfuse_devredir_cb_enum_dir_done(struct state_dirscan *fip,
         struct fuse_file_info *fi = &fip->fi;
         XFUSE_HANDLE *xhandle = xfuse_handle_create();
 
-        if (xhandle == NULL
-                || (xhandle->dir_handle = xfs_opendir(g_xfs, fip->pinum)) == NULL)
+        if (xhandle == NULL)
         {
-            xfuse_handle_delete(xhandle);
             fuse_reply_err(fip->req, ENOMEM);
         }
         else
         {
-            fi->fh = xfuse_handle_to_fuse_handle(xhandle);
-            fuse_reply_open(fip->req, &fip->fi);
+            // Coverity gets confused by xfuse_handle_to_fuse_handle(), and
+            // sees the dir_handle leaked
+            //coverity[RESOURCE_LEAK:FALSE]
+            xhandle->dir_handle = xfs_opendir(g_xfs, fip->pinum);
+            if (xhandle->dir_handle == NULL)
+            {
+                xfuse_handle_delete(xhandle);
+                fuse_reply_err(fip->req, ENOMEM);
+            }
+            else
+            {
+                fi->fh = xfuse_handle_to_fuse_handle(xhandle);
+                fuse_reply_open(fip->req, &fip->fi);
+            }
         }
     }
 
@@ -2687,7 +2697,11 @@ static void xfuse_cb_opendir(fuse_req_t req, fuse_ino_t ino,
         }
         else
         {
-            if ((xhandle->dir_handle = xfs_opendir(g_xfs, ino)) == NULL)
+            // Coverity gets confused by xfuse_handle_to_fuse_handle(), and
+            // sees the dir_handle leaked
+            //coverity[RESOURCE_LEAK:FALSE]
+            xhandle->dir_handle = xfs_opendir(g_xfs, ino);
+            if (xhandle->dir_handle == NULL)
             {
                 xfuse_handle_delete(xhandle);
                 fuse_reply_err(req, ENOMEM);
