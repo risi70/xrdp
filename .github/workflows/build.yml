@@ -134,9 +134,9 @@ jobs:
                   --enable-painter --enable-pixman --enable-utmp
                   --with-imlib2 --with-freetype2 --enable-tests --with-x264
                   --enable-openh264"
-      CONF_FLAGS_i386_max: "--enable-ibus --enable-ipv6 --enable-jpeg
+      CONF_FLAGS_i386_max: "--enable-ipv6 --enable-jpeg
                   --enable-mp3lame --enable-opus --enable-rfxcodec
-                  --enable-painter --disable-pixman --with-imlib2
+                  --enable-painter --disable-pixman
                   --with-freetype2 --host=i686-linux --enable-tests"
 
       PKG_CONFIG_PATH_i386: "/usr/lib/i386-linux-gnu/pkgconfig"
