@@ -71,25 +71,28 @@ g_tcp_socket_ok(int sck)
 static int
 main_loop(char *local_port, char *remote_ip, char *remote_port, int hexdump)
 {
-    int lis_sck;
-    int acc_sck;
-    int con_sck;
+    int lis_sck = -1;
+    int acc_sck = -1;
+    int con_sck = -1;
     int sel;
     int count;
     int sent;
     int error;
     int i;
-    int acc_to_con;
-    int con_to_acc;
-
-    acc_to_con = 0;
-    con_to_acc = 0;
-    acc_sck = 0;
+    int acc_to_con = 0;
+    int con_to_acc = 0;
 
     /* create the listening socket and setup options */
     lis_sck = g_tcp_socket();
-    g_tcp_set_non_blocking(lis_sck);
-    error = g_tcp_bind(lis_sck, local_port);
+    if (lis_sck < 0)
+    {
+        error = 1;
+    }
+    else
+    {
+        g_tcp_set_non_blocking(lis_sck);
+        error = g_tcp_bind(lis_sck, local_port);
+    }
 
     if (error != 0)
     {
@@ -135,7 +138,7 @@ main_loop(char *local_port, char *remote_ip, char *remote_port, int hexdump)
 
         /* stop listening */
         g_tcp_close(lis_sck);
-        lis_sck = 0;
+        lis_sck = -1;
 
         if (error == 0)
         {
@@ -144,13 +147,18 @@ main_loop(char *local_port, char *remote_ip, char *remote_port, int hexdump)
     }
 
     /* connect outgoing socket */
-    con_sck = 0;
-
     if (error == 0)
     {
         con_sck = g_tcp_socket();
-        g_tcp_set_non_blocking(con_sck);
-        error = g_tcp_connect(con_sck, remote_ip, remote_port);
+        if (con_sck < 0)
+        {
+            error = 1;
+        }
+        else
+        {
+            g_tcp_set_non_blocking(con_sck);
+            error = g_tcp_connect(con_sck, remote_ip, remote_port);
+        }
 
         if ((error == -1) && g_tcp_last_error_would_block(con_sck))
         {
@@ -280,9 +288,18 @@ main_loop(char *local_port, char *remote_ip, char *remote_port, int hexdump)
         }
     }
 
-    g_tcp_close(lis_sck);
-    g_tcp_close(con_sck);
-    g_tcp_close(acc_sck);
+    if (lis_sck >= 0)
+    {
+        g_tcp_close(lis_sck);
+    }
+    if (con_sck >= 0)
+    {
+        g_tcp_close(con_sck);
+    }
+    if (acc_sck >= 0)
+    {
+        g_tcp_close(acc_sck);
+    }
     LOG(LOG_LEVEL_INFO, "acc_to_con %d", acc_to_con);
     LOG(LOG_LEVEL_INFO, "con_to_acc %d", con_to_acc);
     return 0;
