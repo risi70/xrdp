@@ -275,7 +275,7 @@ main_loop(char *local_port, char *remote_ip, char *remote_port, int hexdump)
                             g_tcp_socket_ok(con_sck);
                         }
                     }
-                    else if (i < 1)
+                    else if (i < 1 || i > (count - sent))
                     {
                         error = 1;
                     }
