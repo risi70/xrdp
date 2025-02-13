@@ -15,6 +15,7 @@ jobs:
       CONF_FLAGS_amd64_max: "--enable-ipv6 --enable-jpeg --enable-fuse --enable-mp3lame
                   --enable-fdkaac --enable-opus --enable-rfxcodec --enable-painter
                   --enable-pixman --enable-utmp
+                  --enable-x264 --enable-openh264
                   --with-imlib2 --with-freetype2 --enable-tests"
     steps:
       - uses: actions/checkout@v4
