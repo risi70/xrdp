@@ -1,0 +1,167 @@
+# XRDP Extension Specification
+
+## 1. Purpose
+
+This document defines the smallest upstream-facing change set for BAF. It is
+normative about interfaces and behavior but does not prescribe implementation
+syntax.
+
+## 2. Requirements
+
+| ID | Requirement |
+|---|---|
+| EXT-001 | Broker authentication MUST be disabled at build and runtime by default. |
+| EXT-002 | Existing SCP/EICP password messages and state transitions MUST remain byte-compatible. |
+| EXT-003 | Assertions MUST use distinct broker-login messages and MUST NOT overload a trusted boolean. |
+| EXT-004 | `xrdp` and `xrdp-sesman` MUST transport the assertion opaquely and erase message buffers after use. |
+| EXT-005 | `xrdp-sesexec` MUST validate the assertion before constructing prevalidated login state. |
+| EXT-006 | Session launch MUST reuse existing `session_start()` and PAM lifecycle. |
+| EXT-007 | Provider-specific code MUST compile behind a stable generic interface. |
+| EXT-008 | Client-visible failures MUST not disclose whether a username exists. |
+
+## 3. Modules
+
+### 3.1 New modules
+
+| Module | Responsibility |
+|---|---|
+| `sesman/libsesman/auth_provider.[ch]` | Stable provider request/result operations. |
+| `sesman/libsesman/auth_provider_jwt.[ch]` | Generic BAF validation using libjwt/OpenSSL and Jansson strict parsing. |
+| `sesman/libsesman/replay_cache.[ch]` | Bounded atomic reserve/consume/release abstraction. |
+| `broker-auth/` | Schema, reference issuer, vectors, conformance tools; not linked into XRDP. |
+
+The current skeleton name `auth_provider_broker` SHOULD become
+`auth_provider_jwt` before API freeze, because “broker” describes the framework
+and JWT/JWS describes the implementation.
+
+### 3.2 Modified upstream modules
+
+| File | Required change |
+|---|---|
+| `configure.ac` | Optional JOSE dependency and `--enable-broker-auth`. |
+| `sesman/libsesman/Makefile.am` | Conditional provider/replay objects and libraries. |
+| `libipm/scp_application_types.[ch]` | Broker login message and status enums. |
+| `libipm/scp.[ch]` | Send/parse broker request; secret-buffer erasure. |
+| `libipm/eicp.[ch]` | sesman-to-sesexec broker request/response. |
+| `xrdp/xrdp_mm.c` | Select broker state machine and send opaque assertion. |
+| `sesman/scp_process.c` | Route broker request to a new sesexec; no validation. |
+| `sesman/sesexec/eicp_server.c` | Invoke provider and broker login construction. |
+| `sesman/sesexec/login_info.[ch]` | NSS canonicalization and prevalidated login. |
+| `sesman/libsesman/sesman_auth.h` | Explicit prevalidated account entry. |
+| `verify_user_pam.c` | Skip only `pam_authenticate`; retain account/session. |
+| `verify_user.c`, `verify_user_bsd.c` | Build-compatible prevalidated semantics. |
+| `sesman/libsesman/sesman_config.[ch]` | Parse immutable broker policy. |
+
+`sesman/sesexec/session.c` SHOULD NOT change.
+
+## 4. Provider interface
+
+The provider accepts:
+
+- assertion byte string and length;
+- client address;
+- immutable validated configuration;
+- expected audience and local target;
+- current time from a testable clock abstraction.
+
+On success it returns an opaque capability containing canonical assertion
+fields needed by sesman: issuer, subject, preferred username, broker session
+ID, JTI digest, expiry, and client address. Accessors expose immutable values.
+Only the validator can construct a successful capability. The capability owns
+no PAM or session resources and is securely freed after login state is built.
+
+Providers return structured status, never partial success. Future providers may
+validate a different signed assertion format but must meet the same identity,
+target, time, and replay contract.
+
+## 5. Authentication state machine
+
+```mermaid
+stateDiagram-v2
+  [*] --> ModeSelected
+  ModeSelected --> PasswordLogin: classic
+  ModeSelected --> AssertionReceived: broker
+  PasswordLogin --> PamAuthenticate
+  PamAuthenticate --> PamAccount: success
+  AssertionReceived --> LocalValidation
+  LocalValidation --> NssMapping: valid + JTI reserved
+  NssMapping --> PamAccount: mapped
+  PamAccount --> SessionOpen: allowed
+  SessionOpen --> Running: pam_setcred/open + session_start
+  LocalValidation --> Denied: invalid/replay
+  NssMapping --> Denied: no/forbidden account
+  PamAuthenticate --> Denied: failure
+  PamAccount --> Denied: failure
+  SessionOpen --> Denied: failure
+  Denied --> [*]
+  Running --> SessionClose
+  SessionClose --> [*]
+```
+
+Password retries retain current behavior. Broker assertion failures are not
+retryable on the same assertion. A new assertion requires a new broker-login
+request and is subject to normal rate limits.
+
+## 6. Lifecycle details
+
+1. `xrdp_mm` selects `classic`, `broker`, or `auto` based only on server
+   configuration and selected login profile.
+2. Broker mode requires an assertion field. It sends a broker SCP request.
+3. sesman creates sesexec and forwards the assertion using EICP.
+4. sesexec validates and reserves replay state.
+5. `preferred_username` is mapped by NSS and reverse UID lookup.
+6. Existing sesman access policy runs.
+7. Prevalidated PAM entry calls `pam_start` and `pam_acct_mgmt`.
+8. Existing create-session exchange and `session_start()` continue unchanged.
+9. PAM session and assertion metadata live until session cleanup; raw assertion
+   does not.
+
+## 7. Backward compatibility
+
+When disabled, no broker object is linked and generated configuration is
+identical except for commented documentation. When enabled but not selected,
+classic behavior is identical. Protocol peers negotiate capabilities before
+sending broker messages; old peers continue with classic messages. Unknown
+messages produce “unsupported” and close only that authentication exchange.
+
+No existing `username`, `password`, `pamusername`, or `pampassword` semantics
+change. `enable_token_login` is not the BAF protocol and MUST NOT implicitly
+enable BAF.
+
+## 8. Error handling
+
+| Class | Client response | Audit detail |
+|---|---|---|
+| Invalid assertion | Authentication failed | signature/header/claim category |
+| Replay | Authentication failed | replay, hashed JTI |
+| NSS mapping | Authentication failed | no mapping/forbidden UID |
+| PAM account | Access denied | PAM result class |
+| Provider unavailable | Service unavailable | key/cache/config dependency |
+| Protocol/version | Unsupported authentication | peer version/capability |
+| Internal/resource | Temporary failure | bounded diagnostic |
+
+Raw assertions and library exception strings containing token material are
+never logged. Failure timing is normalized consistently with existing sesman
+anti-enumeration behavior.
+
+## 9. Logging
+
+Use XRDP’s existing logging framework and levels. INFO records successful
+phase transitions without secrets. WARNING records policy denial, replay, key
+refresh failure, or degraded last-known-good use. ERROR records internal
+failure. DEBUG may log claim names and lengths, never values classified as
+sensitive. Every event includes a generated correlation ID.
+
+## 10. Selected validation dependencies
+
+Version 1.0 uses **libjwt** with its OpenSSL backend for compact JWT/JWS
+signature and registered-claim processing. Before policy processing, the
+protected header and payload are decoded within the configured size bound and
+parsed by **Jansson** with duplicate-key rejection. This precheck validates
+JSON structure only; it never reserializes or replaces libjwt/OpenSSL signature
+verification.
+
+A compatibility wrapper isolates libjwt APIs from provider interfaces.
+Replacing libjwt in a future release is permitted only when the replacement
+passes the same conformance vectors without changing BAF, provider, or protocol
+contracts.

@@ -1,0 +1,27 @@
+flowchart TB
+  subgraph CP["Control plane network"]
+    KC[Keycloak]
+    BR[Broker + BAF issuer]
+    JW[JWKS HTTPS]
+    ID[(LDAP / FreeIPA / AD)]
+    BR --> KC --> ID
+    BR --> JW
+  end
+  subgraph Host["Ubuntu 24.04 VDI host"]
+    XR[xrdp.service]
+    SM[xrdp-sesman.service]
+    SE[xrdp-sesexec]
+    RP[(Replay cache)]
+    SS[SSSD]
+    PAM[PAM + pam_systemd]
+    DESK[Desktop session]
+    XR --> SM --> SE
+    SE --> RP
+    SE --> SS
+    SE --> PAM --> SS
+    SE --> DESK
+  end
+  CL[FreeRDP / RDP client] -->|TLS 3389| XR
+  BR -->|assertion via client| CL
+  SE -. configured HTTPS .-> JW
+  SS --> ID

@@ -1,0 +1,190 @@
+# Broker Authentication Framework — System Architecture
+
+**Version:** 1.0
+**Status:** Contractual specification
+**Target:** Ubuntu 24.04, XRDP `devel`
+
+## 1. Scope and normative language
+
+The Broker Authentication Framework (BAF) adds broker-issued, signed
+authentication assertions to XRDP without coupling XRDP to any broker product.
+The key words **MUST**, **MUST NOT**, **SHOULD**, and **MAY** are interpreted as
+specified by RFC 2119 and RFC 8174.
+
+BAF does not provision Linux accounts, replace PAM account policy, or make
+Keycloak mandatory. Traditional XRDP username/password authentication remains
+the default.
+
+## 2. Architectural requirements
+
+| ID | Requirement |
+|---|---|
+| ARC-001 | Broker-specific APIs and claims MUST remain outside XRDP core. |
+| ARC-002 | The original signed assertion MUST reach the trusted local validator; no client-supplied “prevalidated” flag is trusted. |
+| ARC-003 | Signature and claim validation MUST occur in `xrdp-sesexec` before PAM authentication is bypassed. |
+| ARC-004 | `preferred_username` MUST resolve through NSS, normally backed by SSSD. BAF MUST NOT create users. |
+| ARC-005 | PAM `acct_mgmt`, credential, session, environment, close, and end phases MUST run for broker sessions. |
+| ARC-006 | Classic password login MUST retain the current `pam_authenticate` path and wire format. |
+| ARC-007 | XRDP MUST treat assertions as secrets and MUST NOT log them. |
+| ARC-008 | Broker outage MUST NOT disable classic PAM login unless policy explicitly selects broker-only mode. |
+
+## 3. Components
+
+```mermaid
+flowchart LR
+  U[User / RDP client] -->|TLS RDP| X[xrdp]
+  B[Desktop broker] -->|OIDC| K[Keycloak]
+  K -->|LDAP federation| D[LDAP / FreeIPA / AD]
+  B -->|signed BAF assertion| U
+  X -->|SCP: opaque assertion| S[xrdp-sesman]
+  S -->|EICP + inherited FD| E[xrdp-sesexec]
+  E --> V[BAF validator]
+  V -->|cached JWKS / trust anchors| J[Issuer JWKS]
+  V --> R[(Replay cache)]
+  E -->|getpwnam/getpwuid| N[NSS]
+  N --> SS[SSSD]
+  SS --> D
+  E --> P[PAM]
+  P --> SS
+  E -->|existing session API| L[Linux desktop session]
+```
+
+The broker authenticates the user, commonly through Keycloak OIDC, and issues
+an assertion bound to one XRDP target and broker session. XRDP never calls a
+UDS-specific interface. The front end performs only framing, size, and mode
+checks. `xrdp-sesexec`, already responsible for privileged login lifecycle,
+performs cryptographic and semantic validation.
+
+### 3.1 Open-source reuse decisions
+
+| Capability | Reused component | Rationale |
+|---|---|---|
+| RDP/TLS and login UI | XRDP/libxrdp | Avoid a parallel remote-display stack. |
+| Process separation and session launch | sesman/sesexec/libipm | Preserve upstream privilege boundaries and lifecycle. |
+| JWT/JWS | libjwt or equivalent mature JOSE library using OpenSSL | Avoid custom cryptography and parser ambiguity. |
+| Linux identity | glibc NSS + SSSD | Existing LDAP, FreeIPA, and AD mapping/caching. |
+| Account/session policy | PAM | Existing policy, systemd-logind, limits, audit, and credential hooks. |
+| Keys | HTTPS JWKS and/or local PEM trust anchors | Standard rotation and offline operation. |
+| Replay state | local bounded cache; optional Redis adapter outside XRDP | Keep the core local and deterministic while permitting clustered deployments. |
+| Service management | systemd | Native Ubuntu lifecycle, sandboxing, logging, and credentials. |
+
+### 3.2 Major decision matrix
+
+| Decision | Selected | Rejected alternatives | Rationale |
+|---|---|---|---|
+| Validation location | `xrdp-sesexec` | client, broker callback, unprivileged `xrdp` | sesexec owns trusted login state and prevents forged prevalidation. |
+| JOSE implementation | libjwt/OpenSSL plus Jansson strict precheck | custom JWT, subprocess, direct Keycloak token | Packaged C libraries; no custom signatures or broker coupling. |
+| Identity source | NSS/SSSD | assertion UID/groups, direct LDAP | Preserves Linux identity policy, caching, FreeIPA/AD compatibility. |
+| Account/session policy | PAM | provider-created session | Reuses pam_systemd, limits, audit, credentials, and cleanup. |
+| Assertion transport | distinct SCP/EICP messages | password overloading, trusted boolean | Versionable, secret-aware, and backward-compatible. |
+| Replay | atomic local interface, pluggable backend | no cache, broker callback | Works offline and fails closed; supports clustered state. |
+| Key discovery | configured anchor/JWKS URL | token `jku`, generic discovery | Prevents SSRF and issuer/key substitution. |
+
+## 4. Trust boundaries
+
+1. **TB-1 External client boundary:** RDP client input is hostile.
+2. **TB-2 Broker/issuer boundary:** a broker is trusted only through configured
+   issuer identity and keys, never by network location alone.
+3. **TB-3 XRDP process boundary:** `xrdp` is unprivileged and cannot authorize
+   a PAM bypass.
+4. **TB-4 sesman boundary:** local SCP/EICP transport is trusted for framing,
+   not for assertion validity.
+5. **TB-5 privileged validator boundary:** `sesexec` validation success creates
+   the only capability accepted by the prevalidated PAM path.
+6. **TB-6 identity boundary:** remote identity becomes a Linux identity only
+   after forward and reverse NSS lookup.
+7. **TB-7 session boundary:** PAM policy and session hooks gate process launch.
+
+See [trust-boundaries.mmd](diagrams/trust-boundaries.mmd).
+
+## 5. Authentication and authorization sequence
+
+```mermaid
+sequenceDiagram
+  participant C as RDP client
+  participant B as Broker
+  participant I as Keycloak/IdP
+  participant X as xrdp
+  participant S as xrdp-sesman
+  participant E as xrdp-sesexec
+  participant V as BAF validator
+  participant N as NSS/SSSD
+  participant P as PAM
+
+  C->>B: request desktop
+  B->>I: OIDC authentication/authorization
+  I-->>B: identity and authentication context
+  B-->>C: short-lived signed assertion
+  C->>X: TLS RDP login + opaque assertion
+  X->>S: SCP BROKER_LOGIN_REQUEST
+  S->>E: EICP BROKER_LOGIN_REQUEST
+  E->>V: validate JWS, issuer, audience, target, time, jti
+  V->>V: atomic replay reservation
+  V-->>E: validated identity capability
+  E->>N: preferred_username -> uid -> canonical username
+  N->>N: SSSD resolves LDAP/FreeIPA/AD
+  E->>P: pam_start + pam_acct_mgmt
+  P-->>E: allowed
+  E->>P: pam_setcred + pam_open_session
+  E->>E: existing session_start()
+  E-->>C: desktop established
+```
+
+Authentication proves issuer-controlled identity. Authorization is the
+intersection of broker policy, assertion target/role constraints, XRDP sesman
+group policy, NSS identity existence, and PAM account policy. No single remote
+claim grants root or creates a local account.
+
+## 6. Linux login and session lifecycle
+
+1. Validate assertion and reserve `(iss,jti)` atomically.
+2. Resolve `preferred_username` with `getpwnam_r()` semantics.
+3. Reverse-resolve the UID; use the canonical NSS name.
+4. Apply sesman allow/deny group rules.
+5. Call the prevalidated PAM entry: `pam_start`, `PAM_RHOST`, `PAM_TTY`,
+   `pam_acct_mgmt`.
+6. Existing session startup calls `initgroups`, `pam_setcred`,
+   `pam_open_session`, starts display server, window manager, and chansrv.
+7. Existing cleanup calls `pam_close_session`, deletes credentials, and
+   `pam_end`.
+
+Any failure before step 6 releases the replay reservation according to
+Section 6 of the assertion specification. Once a session is accepted, the JTI
+remains consumed until its expiry.
+
+## 7. Deployment
+
+The reference deployment separates the broker/IdP network from VDI hosts.
+VDI hosts require outbound HTTPS to approved JWKS endpoints only when remote
+key retrieval is enabled. LDAP traffic originates from SSSD, not XRDP.
+
+```mermaid
+flowchart TB
+  subgraph Control["Control plane"]
+    KC[Keycloak] --- LDAP[(LDAP / AD / FreeIPA)]
+    BR[Generic broker] --> KC
+    BR --> JWKS[JWKS endpoint]
+  end
+  subgraph VDI["Ubuntu 24.04 VDI host"]
+    XR[xrdp] --> SM[xrdp-sesman]
+    SM --> SE[xrdp-sesexec]
+    SE --> RC[(local replay DB)]
+    SE --> SSSD[SSSD/NSS/PAM]
+    SSSD --> LDAP
+    SE -. HTTPS allow-list .-> JWKS
+  end
+  CL[FreeRDP/client] --> XR
+  BR --> CL
+```
+
+## 8. Failure principles
+
+All validation is fail-closed. Unknown issuer/key/algorithm, stale JWKS beyond
+policy, replay-cache failure, NSS ambiguity, or PAM failure denies broker
+login. Classic PAM remains independently available. Errors returned to clients
+are coarse; detailed reason codes are audit-only.
+
+## 9. References
+
+RFC 7515 (JWS), RFC 7518 (JWA), RFC 7519 (JWT), RFC 8725 (JWT BCP),
+RFC 8785 (JCS), OpenID Connect Core, Linux-PAM, SSSD, and current XRDP `devel`.
