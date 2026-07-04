@@ -13,11 +13,26 @@
 
 ## 2. Test levels
 
-Unit tests isolate JOSE header/claim policy, configuration, replay state,
-provider capability, NSS mapping adapters, protocol encoding, and status
-mapping. Integration tests use real PAM/SSSD/JWKS/replay services. System tests
-use a real XRDP desktop and FreeRDP. Security tests include adversarial input,
-races, compromise assumptions, and log inspection.
+Phase 2 unit tests isolate JOSE header/claim policy, configuration, replay
+state, provider capability, and status mapping without NSS/SSSD or PAM.
+Phase 4 tests own NSS/SSSD identity-binding adapters and PAM integration.
+Integration tests use real PAM/SSSD/JWKS/replay services. System tests use a
+real XRDP desktop and FreeRDP. Security tests include adversarial input, races,
+compromise assumptions, and log inspection.
+
+### 2.1 Phase ownership
+
+Phase 2 MUST test valid, expired, not-yet-valid, excessive-lifetime,
+wrong-issuer, wrong-audience, wrong-target, missing-mandatory-claim,
+duplicate-member, `alg=none`, MAC-algorithm, bad-signature, unknown-`kid`,
+unknown-`crit`, token-controlled-key-URL, embedded-token-key, replayed-`jti`,
+oversized, malformed-compact, invalid-base64url, replay-cache-unavailable, and
+raw-assertion-redaction cases. These tests perform no local identity lookup.
+
+Phase 4 MUST test successful NSS/SSSD mapping, unknown and ambiguous users,
+disabled accounts, removed LDAP groups, unauthorized groups, SSSD
+unavailability, LDAP timeout, PAM account denial, PAM session failure, and the
+default consumption of replay reservation after identity-binding failure.
 
 ## 3. Normative test catalog
 
@@ -37,7 +52,7 @@ Each row specifies purpose, setup, steps, expected result, and automation.
 | UT-010 Unit | Protocol bounds | SCP/EICP boundary sizes | Encode/decode 0, max, max+1, truncation | Correct round trip or bounded rejection | Every PR |
 | UT-011 Unit | Secret erasure/redaction | Instrument buffers/logger | Complete success/failure | Buffers erased; token absent from logs | Sanitizer CI |
 | UT-012 Unit | PAM split contract | Mock PAM calls | Classic and prevalidated login | Classic calls authenticate; both call account/session | Every PR |
-| IT-001 Integration | NSS/SSSD mapping | SSSD against LDAP test realm | Map user, alias, disabled/missing user | Canonical UID/name or denial | Nightly |
+| IT-001 Integration/Phase 4 | NSS/SSSD identity binding | SSSD against LDAP test realm | Map valid, unknown, ambiguous, and disabled users; remove or deny groups; fail SSSD and time out LDAP | Canonical UID/name or denial; reservation consumed by default after failure | Nightly |
 | IT-002 Integration | PAM account enforcement | PAM rule denies selected user/time | Submit valid assertion | Login denied after valid signature | Every PR privileged runner |
 | IT-003 Integration | PAM session lifecycle | pam_systemd/audit hooks | Open and close broker session | Credentials/session/environment created and removed | Nightly VM |
 | IT-004 Integration | JWKS rotation | HTTPS issuer with key A/B | Validate A; publish B; rotate/remove A | Overlap succeeds; removed key fails after policy | Nightly |
@@ -71,9 +86,9 @@ unavailable cache.
 | Requirement family | Primary tests |
 |---|---|
 | ARC-001–008 | IT-006, ST-001–003, architecture review |
-| AST-001–008 | UT-001–008, SEC-001–003, FUZ-001, INT-001 |
+| AST-001–012, SD2-001–004 | UT-001–009, IT-001–003, SEC-001–003, FUZ-001, INT-001 |
 | SEC-001–006 | SEC-001–005, IT-005, ACC-001 |
-| EXT-001–008 | UT-010–012, IT-006, ST-001 |
+| EXT-001–012 | UT-010–012, IT-001–003, IT-006, ST-001 |
 | CFG-001–005 | UT-009, SEC-002, ACC-001 |
 | PRO-001–006 | UT-010–011, FUZ-001, IT-006 |
 

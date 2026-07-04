@@ -27,19 +27,24 @@ Objectives: compile-time option, generic provider types, explicit
 prevalidated PAM account entry, and unchanged classic behavior.
 
 Deliverables: small reviewed commits, PAM mocks, both-mode build matrix.
-Dependencies: Phase 0. Acceptance: classic calls `pam_authenticate`; broker
-capability alone can skip it; PAM account/session tests pass. Complexity M.
+Dependencies: Phase 0. Acceptance: classic calls `pam_authenticate`; only a
+later resolved broker-login path may skip it; a capability alone cannot
+authorize a session; PAM account/session tests pass. Complexity M.
 Risks: accidental bypass API or backend inconsistency. Testing: UT-012,
 IT-006, sanitizers. Parallel: Python vectors and CI setup.
 
 ### Phase 2 — Assertion validator and replay core
 
-Objectives: select/integrate mature JOSE library, strict BAF validation,
-trust/JWKS, clock, and atomic replay abstraction.
+Objectives: select/integrate mature JOSE library, strict BAF assertion
+validation, trust-anchor/JWKS loading, clock, and atomic replay abstraction.
+This phase performs no NSS/SSSD mapping, PAM account/session processing, or
+session startup.
 
-Deliverables: generic JWT provider, trust loader, memory/SQLite replay backend,
-vector and fuzz suites. Dependencies: Phase 1 and library ADR. Acceptance:
-AST-001–008, SEC-001–003, UT-001–009, FUZ-001 pass. Complexity XL. Risks:
+Deliverables: generic JWT provider returning a validated broker capability,
+trust loader, memory/SQLite replay backend, conformance vectors, and fuzz
+suites. The capability alone cannot authorize or start a session.
+Dependencies: Phase 1 and library ADR. Acceptance: AST-001–012, SEC-001–003,
+UT-001–009, FUZ-001 pass. Complexity XL. Risks:
 parser ambiguity, key rotation, library packaging. Parallel: replay backend,
 JWKS client, fuzz harness after interfaces freeze.
 
@@ -56,10 +61,13 @@ EICP implementations with shared vectors.
 
 ### Phase 4 — Identity, PAM, and session integration
 
-Objectives: NSS/SSSD canonical mapping, prohibited-user policy, PAM account and
-existing session lifecycle, audit correlation.
+Objectives: mandatory NSS/SSSD identity binding, prohibited-user and local
+identity checks, PAM account/session integration, failure handling after replay
+reservation, existing session lifecycle, and audit correlation.
 
 Deliverables: completed broker login path and identity/PAM integration tests.
+Session creation requires both the validated capability and a resolved Linux
+identity; later-stage failure consumes replay by default.
 Dependencies: Phase 3, test LDAP/SSSD. Acceptance: IT-001–003 and ST-001 pass;
 UID 0 denied; PAM denial final; session cleanup exactly once. Complexity L.
 Risks: directory aliases, offline cache, PAM distribution variance. Parallel:

@@ -34,8 +34,11 @@ The request contains no username and no “validated” flag. `xrdp` performs on
 framing and configured-mode checks.
 
 Response `SCP_LOGIN_RESPONSE` may be reused with the additional stable broker
-status mapping, preserving existing session creation. On successful validation
-the server returns canonical UID as current system login does.
+status mapping, preserving existing session creation. Assertion validation
+returns only a validated broker capability internally. Only after separate
+NSS/SSSD identity binding and required local authorization/PAM processing may
+a successful broker-login response return the canonical UID as current system
+login does.
 
 ## 3. EICP additions
 
@@ -65,7 +68,9 @@ sequenceDiagram
   S-->>X: broker_assertion_v1
   X->>S: SCP_BROKER_LOGIN_REQUEST_V1
   S->>E: EICP_BROKER_LOGIN_REQUEST_V1 + SCP FD
-  E->>E: validate + NSS + PAM account
+  E->>E: validate assertion + reserve replay
+  E->>E: bind identity through NSS/SSSD
+  E->>E: PAM account checks
   E-->>X: SCP_LOGIN_RESPONSE via handed-over FD
 ```
 

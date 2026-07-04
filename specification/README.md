@@ -17,18 +17,28 @@ in all ten documents and the referenced test gates.
 9. [CI/CD strategy](09-ci-cd-strategy.md)
 10. [Development roadmap](10-roadmap.md)
 
+Normative decisions:
+
+- [SD-002 — Separation of Assertion Validation and Linux Identity Binding](decisions/SD-002-validation-identity-separation.md)
+
 ## Conformance
 
 An implementation claiming BAF 1.0 conformance MUST implement the assertion
 profile, validation order, replay semantics, target binding, identity mapping,
 PAM account/session lifecycle, protocol capability negotiation, and required
-tests. Supporting the reference broker is neither necessary nor sufficient.
+tests. BAF conformance separates assertion validation from mandatory Linux
+identity binding. A validated broker capability alone is never sufficient to
+authorize or launch a session. Supporting UDS Enterprise or any other
+reference broker is neither necessary nor sufficient.
 
 ## Decision summary
 
 - XRDP transports the original assertion; sesexec validates it locally.
 - Compact asymmetric JWS is used; RS256 is mandatory for interoperability.
-- NSS/SSSD remains the authority mapping names to Linux UIDs.
+- Assertion validation performs no local or directory identity lookup.
+- NSS/SSSD remains the mandatory authority mapping names to Linux UIDs before
+  PAM account/session processing and session creation.
+- A validated broker capability alone never authorizes or launches a session.
 - PAM authentication is skipped only for a locally validated assertion.
 - PAM account, credentials, session, environment, and cleanup remain mandatory.
 - Classic password/PAM login remains default and wire-compatible.

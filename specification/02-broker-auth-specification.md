@@ -15,6 +15,10 @@
 | AST-006 | `target` MUST match the local target identity using exact, case-sensitive comparison. |
 | AST-007 | Validators MUST NOT follow token-provided `jku`, `x5u`, or embedded `jwk` values. |
 | AST-008 | Assertion lifetime MUST NOT exceed configured `max_lifetime`, default 300 seconds. |
+| AST-009 | The validator MUST NOT perform NSS, SSSD, PAM, directory, or local account lookup. |
+| AST-010 | A validated broker capability MUST NOT be treated as session authorization. |
+| AST-011 | Linux identity binding through NSS/SSSD MUST succeed before PAM account/session processing or session creation. |
+| AST-012 | Replay reservation SHOULD remain consumed after later-stage failure; release is limited to explicitly classified transient infrastructure failure. |
 
 ## 2. JOSE header
 
@@ -116,22 +120,39 @@ pseudonymous.
 Validators MUST:
 
 1. Enforce configured maximum encoded size before allocation (default 16 KiB).
-2. Parse exactly three compact-JWS segments with strict base64url.
-3. Reject duplicate header or claim members.
-4. Enforce `typ`, algorithm allow-list, `kid`, issuer-bound trust anchor, and
-   key strength before signature verification.
-5. Verify signature over received octets; never reserialize before verifying.
-6. Validate schema and exact issuer.
-7. Validate audience membership.
-8. Require `iat <= nbf < exp`, `exp-iat <= max_lifetime`, and
-   `iat <= now+clock_skew`.
-9. Accept when `now+clock_skew >= nbf` and `now-clock_skew < exp`.
-10. Match target and configured assurance/device/role policy.
-11. Resolve and canonicalize NSS identity.
-12. Atomically reserve `(iss,jti)` before reporting success.
+2. Parse exactly three compact-JWS segments.
+3. Enforce strict base64url.
+4. Reject duplicate JSON members in the protected header and claims.
+5. Validate the protected header, including exact `typ = baf+jwt`.
+6. Reject `alg = none`, MAC algorithms, unknown critical headers,
+   token-controlled key locations, and embedded token keys.
+7. Enforce the configured algorithm allow-list.
+8. Require a non-empty `kid`.
+9. Select the issuer-bound trust anchor.
+10. Enforce key strength.
+11. Verify the JWS signature over the received octets; never reserialize
+    before verifying.
+12. Validate all mandatory claims and the assertion schema.
+13. Validate the exact configured issuer.
+14. Validate audience membership.
+15. Require `iat <= nbf < exp`, `exp-iat <= max_lifetime`, and
+    `iat <= now+clock_skew`; accept only when `now+clock_skew >= nbf` and
+    `now-clock_skew < exp`.
+16. Match the exact configured target.
+17. Apply assurance, device, role, and other broker assertion policy prechecks
+    that do not require local identity resolution.
+18. Atomically reserve `(iss,jti)`.
+19. Return a validated broker capability.
 
 Default `clock_skew` is 30 seconds and MUST NOT exceed 120 seconds. Clock
 synchronization through systemd-timesyncd, chrony, or equivalent is required.
+
+The validator MUST NOT perform NSS, SSSD, PAM, LDAP, FreeIPA, Active
+Directory, local `passwd`, or equivalent identity resolution. A validated
+broker capability MUST NOT be treated as login authorization. It proves only
+that the assertion is authentic, fresh, targeted to this XRDP endpoint,
+compatible with assertion-level policy, and non-replayed. Mandatory Linux
+identity binding is a later stage defined by the XRDP extension.
 
 ## 6. Replay protection
 
@@ -140,9 +161,12 @@ never stored. Atomic insert-if-absent is required. Entries expire at
 `exp + clock_skew`. Cache capacity and rate limits are bounded.
 
 States are `reserved`, `consumed`, and `released`. Validation reserves the key.
-Successful PAM account acceptance consumes it. Failures caused by internal
-transient errors MAY release a reservation; signature, policy, NSS, and PAM
-denials MUST consume it to prevent probing. Cache unavailability fails closed.
+Once a validated capability is produced, the assertion is single-use by
+default. Later identity-binding, authorization, PAM account, or session
+creation failure SHOULD leave the reservation consumed. An implementation MAY
+define a bounded release policy only for explicitly classified transient
+infrastructure failures; the MVP default is fail-closed and consume-once.
+Cache unavailability fails closed.
 Clustered desktops require a shared atomic replay store or target-specific
 assertions that cannot move between hosts.
 

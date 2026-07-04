@@ -18,6 +18,10 @@ syntax.
 | EXT-006 | Session launch MUST reuse existing `session_start()` and PAM lifecycle. |
 | EXT-007 | Provider-specific code MUST compile behind a stable generic interface. |
 | EXT-008 | Client-visible failures MUST not disclose whether a username exists. |
+| EXT-009 | Assertion validation MUST NOT perform Linux or directory identity lookup. |
+| EXT-010 | A validated broker capability alone MUST NOT authorize or start a session. |
+| EXT-011 | Mandatory NSS/SSSD binding MUST produce a resolved Linux identity before PAM account/session processing or session creation. |
+| EXT-012 | Later-stage failure SHOULD consume the replay reservation by default. |
 
 ## 3. Modules
 
@@ -28,6 +32,7 @@ syntax.
 | `sesman/libsesman/auth_provider.[ch]` | Stable provider request/result operations. |
 | `sesman/libsesman/auth_provider_jwt.[ch]` | Generic BAF validation using libjwt/OpenSSL and Jansson strict parsing. |
 | `sesman/libsesman/replay_cache.[ch]` | Bounded atomic reserve/consume/release abstraction. |
+| `sesman/sesexec/identity_binding.[ch]` or equivalent | Phase 4 binding of a validated capability to a canonical Linux identity through NSS/SSSD. |
 | `broker-auth/` | Schema, reference issuer, vectors, conformance tools; not linked into XRDP. |
 
 The current skeleton name `auth_provider_broker` SHOULD become
@@ -64,15 +69,24 @@ The provider accepts:
 - expected audience and local target;
 - current time from a testable clock abstraction.
 
-On success it returns an opaque capability containing canonical assertion
+`auth_provider_jwt` validates broker assertions only. On success it returns an
+opaque capability containing canonical assertion
 fields needed by sesman: issuer, subject, preferred username, broker session
 ID, JTI digest, expiry, and client address. Accessors expose immutable values.
 Only the validator can construct a successful capability. The capability owns
 no PAM or session resources and is securely freed after login state is built.
+It performs no NSS, SSSD, PAM, LDAP, FreeIPA, Active Directory, or local
+account lookup.
 
 Providers return structured status, never partial success. Future providers may
 validate a different signed assertion format but must meet the same identity,
 target, time, and replay contract.
+
+Only the validator may construct a validated broker capability. Only the
+Phase 4 identity-binding path may convert one into a resolved Linux login
+identity. Session creation requires both a validated capability and a resolved
+Linux identity that has passed local authorization and PAM account/session
+prerequisites. A capability alone never authorizes a session.
 
 ## 5. Authentication state machine
 
@@ -109,12 +123,18 @@ request and is subject to normal rate limits.
 2. Broker mode requires an assertion field. It sends a broker SCP request.
 3. sesman creates sesexec and forwards the assertion using EICP.
 4. sesexec validates and reserves replay state.
-5. `preferred_username` is mapped by NSS and reverse UID lookup.
+5. The Phase 4 identity-binding path maps `preferred_username` through NSS and
+   reverse UID lookup, producing a resolved Linux identity or denying login.
 6. Existing sesman access policy runs.
 7. Prevalidated PAM entry calls `pam_start` and `pam_acct_mgmt`.
 8. Existing create-session exchange and `session_start()` continue unchanged.
 9. PAM session and assertion metadata live until session cleanup; raw assertion
    does not.
+
+After validation, later identity-binding, authorization, PAM, or
+session-creation failure consumes the assertion by default. Release is
+permitted only by a bounded policy for explicitly classified transient
+infrastructure failures.
 
 ## 7. Backward compatibility
 

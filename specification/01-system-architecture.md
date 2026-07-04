@@ -90,7 +90,7 @@ performs cryptographic and semantic validation.
 4. **TB-4 sesman boundary:** local SCP/EICP transport is trusted for framing,
    not for assertion validity.
 5. **TB-5 privileged validator boundary:** `sesexec` validation success creates
-   the only capability accepted by the prevalidated PAM path.
+   a broker capability, not a Linux login identity or session authorization.
 6. **TB-6 identity boundary:** remote identity becomes a Linux identity only
    after forward and reverse NSS lookup.
 7. **TB-7 session boundary:** PAM policy and session hooks gate process launch.
@@ -120,7 +120,7 @@ sequenceDiagram
   S->>E: EICP BROKER_LOGIN_REQUEST
   E->>V: validate JWS, issuer, audience, target, time, jti
   V->>V: atomic replay reservation
-  V-->>E: validated identity capability
+  V-->>E: validated broker capability
   E->>N: preferred_username -> uid -> canonical username
   N->>N: SSSD resolves LDAP/FreeIPA/AD
   E->>P: pam_start + pam_acct_mgmt
@@ -148,9 +148,10 @@ claim grants root or creates a local account.
 7. Existing cleanup calls `pam_close_session`, deletes credentials, and
    `pam_end`.
 
-Any failure before step 6 releases the replay reservation according to
-Section 6 of the assertion specification. Once a session is accepted, the JTI
-remains consumed until its expiry.
+After a capability is produced, failure in identity binding, authorization,
+PAM, or session creation consumes the replay reservation by default. Only a
+bounded policy for explicitly classified transient infrastructure failures
+may release it.
 
 ## 7. Deployment
 
