@@ -8,13 +8,15 @@
   "vectors": [
     {
       "claims": {
+        "assurance_level": "urn:example:mfa",
         "aud": "xrdp-sesman",
-        "auth_context": {
-          "acr": "urn:example:mfa",
-          "amr": [
-            "pwd",
-            "otp"
-          ]
+        "auth_method": [
+          "pwd",
+          "otp"
+        ],
+        "broker_session_id": "broker-session-0001",
+        "device_trust": {
+          "status": "unknown"
         },
         "exp": 1700000300,
         "groups": [
@@ -29,24 +31,25 @@
         "roles": [
           "desktop-user"
         ],
-        "session_id": "broker-session-0001",
         "sub": "user-1234",
         "target": "rdp-host.example.test"
       },
       "expected_valid": true,
       "name": "valid",
       "reason": "valid assertion",
-      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InJlZmVyZW5jZS0yMDI2LTAxIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2Jyb2tlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ4cmRwLXNlc21hbiIsInN1YiI6InVzZXItMTIzNCIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbInJlbW90ZS1kZXNrdG9wIiwiZW5naW5lZXJpbmciXSwicm9sZXMiOlsiZGVza3RvcC11c2VyIl0sInRhcmdldCI6InJkcC1ob3N0LmV4YW1wbGUudGVzdCIsInNlc3Npb25faWQiOiJicm9rZXItc2Vzc2lvbi0wMDAxIiwiYXV0aF9jb250ZXh0Ijp7ImFjciI6InVybjpleGFtcGxlOm1mYSIsImFtciI6WyJwd2QiLCJvdHAiXX0sImlhdCI6MTcwMDAwMDAwMCwibmJmIjoxNzAwMDAwMDAwLCJleHAiOjE3MDAwMDAzMDAsImp0aSI6IjAwMDAwMDAwLTAwMDAtNDAwMC04MDAwLTAwMDAwMDAwMDAwMSJ9.GFYCYpRtHMIxxvXPUp5uVTZjM1vatMKs_d5fI1Gw3jGUEBOUROUuhn65AObPzvXSYNQz9EWmj7DECaOBmDjBDOkKKYUC7GYL5sxRlB0EN-z9tDUE1m4Xs06YAJDkaZtxK6hpbaeXlt1cZUCCKLGt-Wxyv3_8xxXhgWkrLG85hfYSotjDmIK2tyI9f8FaExkg8wG_rvQLxctuEVuIb1mwUyRAHUcabMlWQlX00eaLGAz1ryQKgrBDhvKX3oMQ7KAJeytW76bfWPTlPCx813lO9uBjJu2n_fuNYMWrrTu33vghhspF5ANPtJt-3yhov-PJKWV6t8Jlc3ohlsgQOb8t0Q"
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InJlZmVyZW5jZS0yMDI2LTAxIiwidHlwIjoiYmFmK2p3dCJ9.eyJpc3MiOiJodHRwczovL2Jyb2tlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ4cmRwLXNlc21hbiIsInN1YiI6InVzZXItMTIzNCIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbInJlbW90ZS1kZXNrdG9wIiwiZW5naW5lZXJpbmciXSwicm9sZXMiOlsiZGVza3RvcC11c2VyIl0sImF1dGhfbWV0aG9kIjpbInB3ZCIsIm90cCJdLCJhc3N1cmFuY2VfbGV2ZWwiOiJ1cm46ZXhhbXBsZTptZmEiLCJicm9rZXJfc2Vzc2lvbl9pZCI6ImJyb2tlci1zZXNzaW9uLTAwMDEiLCJ0YXJnZXQiOiJyZHAtaG9zdC5leGFtcGxlLnRlc3QiLCJkZXZpY2VfdHJ1c3QiOnsic3RhdHVzIjoidW5rbm93biJ9LCJpYXQiOjE3MDAwMDAwMDAsIm5iZiI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMzAwLCJqdGkiOiIwMDAwMDAwMC0wMDAwLTQwMDAtODAwMC0wMDAwMDAwMDAwMDEifQ.l9AxK5UZt5CDrkrGiUbiXHGvN8ElxP5zzSzPkbeW69QGULzoFcBpokYh0JEAOB9SmLIc-qSOcek-Vc0wK7LazwDT3SZe3ggCEgwtbfienWX2ypCBZrSe7XQHFnrsrc2yAlQH-i0TAgYk0w7yO4EFo5X3XjFDQK1OqPpVZZ265KW6ODsAoviZvF4uD38YEhXHxSHnD5ith7LnQnW74M_yJLOJas5T6i78O2Ig1tRMF8exV75sDd-tj0zR9FZcS7l12AJCAcjPqmyH9qCGJN6J_mPKgQQMfXaVZnxxsK-GZLe0bgtJDlUDf-CNTqRD-lhhmFNnmTuu_xl0CqOqLwmPjQ"
     },
     {
       "claims": {
+        "assurance_level": "urn:example:mfa",
         "aud": "xrdp-sesman",
-        "auth_context": {
-          "acr": "urn:example:mfa",
-          "amr": [
-            "pwd",
-            "otp"
-          ]
+        "auth_method": [
+          "pwd",
+          "otp"
+        ],
+        "broker_session_id": "broker-session-0001",
+        "device_trust": {
+          "status": "unknown"
         },
         "exp": 1699999700,
         "groups": [
@@ -61,24 +64,25 @@
         "roles": [
           "desktop-user"
         ],
-        "session_id": "broker-session-0001",
         "sub": "user-1234",
         "target": "rdp-host.example.test"
       },
       "expected_valid": false,
       "name": "expired",
       "reason": "exp is in the past",
-      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InJlZmVyZW5jZS0yMDI2LTAxIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2Jyb2tlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ4cmRwLXNlc21hbiIsInN1YiI6InVzZXItMTIzNCIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbInJlbW90ZS1kZXNrdG9wIiwiZW5naW5lZXJpbmciXSwicm9sZXMiOlsiZGVza3RvcC11c2VyIl0sInRhcmdldCI6InJkcC1ob3N0LmV4YW1wbGUudGVzdCIsInNlc3Npb25faWQiOiJicm9rZXItc2Vzc2lvbi0wMDAxIiwiYXV0aF9jb250ZXh0Ijp7ImFjciI6InVybjpleGFtcGxlOm1mYSIsImFtciI6WyJwd2QiLCJvdHAiXX0sImlhdCI6MTY5OTk5OTQwMCwibmJmIjoxNjk5OTk5NDAwLCJleHAiOjE2OTk5OTk3MDAsImp0aSI6IjAwMDAwMDAwLTAwMDAtNDAwMC04MDAwLTAwMDAwMDAwMDAwMSJ9.MPJAYlEjzm-op_cf2xXxMgJfRPfJlklJ7InoEvT2q83QSngxEJun3wuPeZTvdAtlqdTh4Cd1kc6GhFHEdNupeudU-UlV64spwt0DINmJmIIIh9x51tTnmNeYNRPb2EGSOti8FVk6e4F0Zl8ReYErR4Cw6iFo3i5l8TxT5xPVXmK6xccYg5qcXu1obXQxZSSYKEpagQ_1lEFAgYILJyV87tFXpQD27d7MloOohSJpqOahpBExOZquHFQhAOxcP3Vb6eVmLBHjoMsVDOxalIy-3_x0NIksm6Rx375P9YtDNYqEpWs9hIR5q7SrQDc_ekRhTdw29iOK9oxL54pmSCb2hw"
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InJlZmVyZW5jZS0yMDI2LTAxIiwidHlwIjoiYmFmK2p3dCJ9.eyJpc3MiOiJodHRwczovL2Jyb2tlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ4cmRwLXNlc21hbiIsInN1YiI6InVzZXItMTIzNCIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbInJlbW90ZS1kZXNrdG9wIiwiZW5naW5lZXJpbmciXSwicm9sZXMiOlsiZGVza3RvcC11c2VyIl0sImF1dGhfbWV0aG9kIjpbInB3ZCIsIm90cCJdLCJhc3N1cmFuY2VfbGV2ZWwiOiJ1cm46ZXhhbXBsZTptZmEiLCJicm9rZXJfc2Vzc2lvbl9pZCI6ImJyb2tlci1zZXNzaW9uLTAwMDEiLCJ0YXJnZXQiOiJyZHAtaG9zdC5leGFtcGxlLnRlc3QiLCJkZXZpY2VfdHJ1c3QiOnsic3RhdHVzIjoidW5rbm93biJ9LCJpYXQiOjE2OTk5OTk0MDAsIm5iZiI6MTY5OTk5OTQwMCwiZXhwIjoxNjk5OTk5NzAwLCJqdGkiOiIwMDAwMDAwMC0wMDAwLTQwMDAtODAwMC0wMDAwMDAwMDAwMDEifQ.KQQJREfbI4KoXo8OZ8bjnbWnQ_KJgZHHpoWlF3KhFhW2G1yAAjRKFP_3YijieydCC8tEwyJxvEXOYVb4-4lD4z3E-xcs93Jr03GUekOzENDhdrDLUMwOUukSwKIdoXOSO7ZfgnkwR4EPEqUd7L2b_d_7DYhDA-1eVO66xo5vj9Gf_rcVutLlME9bxDwmV0qp9T5IzSeEohnExWGycNYZ4DO-fU3mB2KUFIL0YQlesBCCWkh5vVs2hjNsGXKepiRE78z5Q3wL7til--oclklQUEAc1bTLBPcvNgr0SvLdzQfG-xiuCQ4id6AJ3UHhRBEpeX58WZWnokij6XLiWgozsQ"
     },
     {
       "claims": {
+        "assurance_level": "urn:example:mfa",
         "aud": "other-service",
-        "auth_context": {
-          "acr": "urn:example:mfa",
-          "amr": [
-            "pwd",
-            "otp"
-          ]
+        "auth_method": [
+          "pwd",
+          "otp"
+        ],
+        "broker_session_id": "broker-session-0001",
+        "device_trust": {
+          "status": "unknown"
         },
         "exp": 1700000300,
         "groups": [
@@ -93,24 +97,25 @@
         "roles": [
           "desktop-user"
         ],
-        "session_id": "broker-session-0001",
         "sub": "user-1234",
         "target": "rdp-host.example.test"
       },
       "expected_valid": false,
       "name": "wrong-audience",
       "reason": "audience mismatch",
-      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InJlZmVyZW5jZS0yMDI2LTAxIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2Jyb2tlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJvdGhlci1zZXJ2aWNlIiwic3ViIjoidXNlci0xMjM0IiwicHJlZmVycmVkX3VzZXJuYW1lIjoiYWxpY2UiLCJncm91cHMiOlsicmVtb3RlLWRlc2t0b3AiLCJlbmdpbmVlcmluZyJdLCJyb2xlcyI6WyJkZXNrdG9wLXVzZXIiXSwidGFyZ2V0IjoicmRwLWhvc3QuZXhhbXBsZS50ZXN0Iiwic2Vzc2lvbl9pZCI6ImJyb2tlci1zZXNzaW9uLTAwMDEiLCJhdXRoX2NvbnRleHQiOnsiYWNyIjoidXJuOmV4YW1wbGU6bWZhIiwiYW1yIjpbInB3ZCIsIm90cCJdfSwiaWF0IjoxNzAwMDAwMDAwLCJuYmYiOjE3MDAwMDAwMDAsImV4cCI6MTcwMDAwMDMwMCwianRpIjoiMDAwMDAwMDAtMDAwMC00MDAwLTgwMDAtMDAwMDAwMDAwMDAxIn0.f49GWkKe2jZY5uobgH21EcDGyFu7jgi2hErtZsgwK9RSa6j4hEXcIUjAQNdblLThXJAs6SYc5bgM0tspHbvXL06B49v-U5Quj0SIDmKWLIIt-I3rNPJrKL-zoyx10ZUFm4AvYi9e_FQO4tbIQZVHjfFy1NEIkmBxre0Fi9lv5-CH6UQekAwhEWqWGD46AHsOSz708jiJM4b_6Jr7Y_YcjGvzgNpr4dRsJtecKfnZUUCYC0WhRpaLpUoceNQp_PFn6G5xNBsc1rqw_vagsnbnYLaNom6GPvAIYHeCKevHW1sCZyqojq6qJYOnl-GuV73I1eg3MAb_4_JywXrAgbOa4Q"
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InJlZmVyZW5jZS0yMDI2LTAxIiwidHlwIjoiYmFmK2p3dCJ9.eyJpc3MiOiJodHRwczovL2Jyb2tlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJvdGhlci1zZXJ2aWNlIiwic3ViIjoidXNlci0xMjM0IiwicHJlZmVycmVkX3VzZXJuYW1lIjoiYWxpY2UiLCJncm91cHMiOlsicmVtb3RlLWRlc2t0b3AiLCJlbmdpbmVlcmluZyJdLCJyb2xlcyI6WyJkZXNrdG9wLXVzZXIiXSwiYXV0aF9tZXRob2QiOlsicHdkIiwib3RwIl0sImFzc3VyYW5jZV9sZXZlbCI6InVybjpleGFtcGxlOm1mYSIsImJyb2tlcl9zZXNzaW9uX2lkIjoiYnJva2VyLXNlc3Npb24tMDAwMSIsInRhcmdldCI6InJkcC1ob3N0LmV4YW1wbGUudGVzdCIsImRldmljZV90cnVzdCI6eyJzdGF0dXMiOiJ1bmtub3duIn0sImlhdCI6MTcwMDAwMDAwMCwibmJmIjoxNzAwMDAwMDAwLCJleHAiOjE3MDAwMDAzMDAsImp0aSI6IjAwMDAwMDAwLTAwMDAtNDAwMC04MDAwLTAwMDAwMDAwMDAwMSJ9.C9k73PkJIWAHZ77TTBnol00CbGVR5lsZ-0LJRyzmkp89wGrVVDE6g8QAUiKL2Mr_79oCrCwcVqOlurW2cL-imM9XNHGgIWO_5RAo09v3wg7J5tHaWNkNsUvBbOuDh1McRio6wxJwlhhGxMO3yjno0dSzPgWZSSSSA7IJvWWfyZEz0kNKmONKv7v9IMdjkKRphaLRxBAMPM0IdOWGebGguxtwvRUELKhYdsEosWfik7OglXwwNv_8QBcRlxOP5Lnltp-S6mpwfDJJMMTMKtLeR-s0AoDiq5LQ_Kihn7OWzfryJJYimrS9eUQZmoqrzRrB4Wj2nOATtFE92Nlc-awE6w"
     },
     {
       "claims": {
+        "assurance_level": "urn:example:mfa",
         "aud": "xrdp-sesman",
-        "auth_context": {
-          "acr": "urn:example:mfa",
-          "amr": [
-            "pwd",
-            "otp"
-          ]
+        "auth_method": [
+          "pwd",
+          "otp"
+        ],
+        "broker_session_id": "broker-session-0001",
+        "device_trust": {
+          "status": "unknown"
         },
         "exp": 1700000300,
         "groups": [
@@ -125,24 +130,25 @@
         "roles": [
           "desktop-user"
         ],
-        "session_id": "broker-session-0001",
         "sub": "user-1234",
         "target": "other-host.example.test"
       },
       "expected_valid": false,
       "name": "wrong-target",
       "reason": "target mismatch",
-      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InJlZmVyZW5jZS0yMDI2LTAxIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2Jyb2tlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ4cmRwLXNlc21hbiIsInN1YiI6InVzZXItMTIzNCIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbInJlbW90ZS1kZXNrdG9wIiwiZW5naW5lZXJpbmciXSwicm9sZXMiOlsiZGVza3RvcC11c2VyIl0sInRhcmdldCI6Im90aGVyLWhvc3QuZXhhbXBsZS50ZXN0Iiwic2Vzc2lvbl9pZCI6ImJyb2tlci1zZXNzaW9uLTAwMDEiLCJhdXRoX2NvbnRleHQiOnsiYWNyIjoidXJuOmV4YW1wbGU6bWZhIiwiYW1yIjpbInB3ZCIsIm90cCJdfSwiaWF0IjoxNzAwMDAwMDAwLCJuYmYiOjE3MDAwMDAwMDAsImV4cCI6MTcwMDAwMDMwMCwianRpIjoiMDAwMDAwMDAtMDAwMC00MDAwLTgwMDAtMDAwMDAwMDAwMDAxIn0.SRQgdsCWYGctdycGv4iGA_01frv4_u-5V0tHlfs3yuKTarIcvcesx-tBdOZqrZ_0TP0h0AznTLaD4tANrTnCiuGl9ubOCtpSKTosNIJzIgZdSaRVxSDxJAJMkohY8XqyiKHgjrVXKBlNDhZOlgkPE5seCe1lTKN4DdDheQ6H2kRM5TWOGlWmjKgfbl__p2y9sNuAKa2ZtyFHWdtjZB85XGf4SykrF_V2x7ySE6ghFBgsSI35PWWrlTVfTOd73KPjLvvDLCBvEt-b13xdjUHeCg6uB63aAOrOmEOGeJf6e8NiNWYpx_LrnqwdZdyTnJX6QdDnos0fJ-D1kZkMAqPC9g"
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InJlZmVyZW5jZS0yMDI2LTAxIiwidHlwIjoiYmFmK2p3dCJ9.eyJpc3MiOiJodHRwczovL2Jyb2tlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ4cmRwLXNlc21hbiIsInN1YiI6InVzZXItMTIzNCIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbInJlbW90ZS1kZXNrdG9wIiwiZW5naW5lZXJpbmciXSwicm9sZXMiOlsiZGVza3RvcC11c2VyIl0sImF1dGhfbWV0aG9kIjpbInB3ZCIsIm90cCJdLCJhc3N1cmFuY2VfbGV2ZWwiOiJ1cm46ZXhhbXBsZTptZmEiLCJicm9rZXJfc2Vzc2lvbl9pZCI6ImJyb2tlci1zZXNzaW9uLTAwMDEiLCJ0YXJnZXQiOiJvdGhlci1ob3N0LmV4YW1wbGUudGVzdCIsImRldmljZV90cnVzdCI6eyJzdGF0dXMiOiJ1bmtub3duIn0sImlhdCI6MTcwMDAwMDAwMCwibmJmIjoxNzAwMDAwMDAwLCJleHAiOjE3MDAwMDAzMDAsImp0aSI6IjAwMDAwMDAwLTAwMDAtNDAwMC04MDAwLTAwMDAwMDAwMDAwMSJ9.R24Oc4Eqf4juOSjWuqDwdX0zzZ8jp6pggNz3gOVfssW-jj-nQ8KFMnr7Hbf1-Smm2wvEm5iOVLriXKOrgZp09i0kzXorufsvqaPwegXYWjiqvH8YkPG4LfC_iLxX7N4ikKcYVTUXGsfwaLMYZjqaX9wvOHNedZrgc7ka4krQRphdrUqOnlp7qbMPZQFQ-egT4lqycWQtst3Z77rcJEsFCoxbQGR6AKDZeYBSuUnCf0UxHMxgypc1hd3V2jzRTIT3ucHSHmdBN-yDGiECmoEM6I9EWX3MQBvP-lBMf2RUuGX8ZeRvgrELG3Iw1aFFZ5kN0XbaSQNLJRkwt5eOB7kf7A"
     },
     {
       "claims": {
+        "assurance_level": "urn:example:mfa",
         "aud": "xrdp-sesman",
-        "auth_context": {
-          "acr": "urn:example:mfa",
-          "amr": [
-            "pwd",
-            "otp"
-          ]
+        "auth_method": [
+          "pwd",
+          "otp"
+        ],
+        "broker_session_id": "broker-session-0001",
+        "device_trust": {
+          "status": "unknown"
         },
         "exp": 1700000300,
         "groups": [
@@ -156,24 +162,25 @@
         "roles": [
           "desktop-user"
         ],
-        "session_id": "broker-session-0001",
         "sub": "user-1234",
         "target": "rdp-host.example.test"
       },
       "expected_valid": false,
       "name": "missing-jti",
       "reason": "required jti is absent",
-      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InJlZmVyZW5jZS0yMDI2LTAxIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2Jyb2tlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ4cmRwLXNlc21hbiIsInN1YiI6InVzZXItMTIzNCIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbInJlbW90ZS1kZXNrdG9wIiwiZW5naW5lZXJpbmciXSwicm9sZXMiOlsiZGVza3RvcC11c2VyIl0sInRhcmdldCI6InJkcC1ob3N0LmV4YW1wbGUudGVzdCIsInNlc3Npb25faWQiOiJicm9rZXItc2Vzc2lvbi0wMDAxIiwiYXV0aF9jb250ZXh0Ijp7ImFjciI6InVybjpleGFtcGxlOm1mYSIsImFtciI6WyJwd2QiLCJvdHAiXX0sImlhdCI6MTcwMDAwMDAwMCwibmJmIjoxNzAwMDAwMDAwLCJleHAiOjE3MDAwMDAzMDB9.JxHwVIFp5hvof050wmWBQDFOne6bXHywCPJU6POweAztpM4LI_benHgBwao7AsOCqORJa7A3ztjcEUeIdOwL68cUBztprtnjPr04nhkfbk0kMIT3CMD85lVs5uiyDh2cXoLLrRQ9GX3hPiA513ttezDIAblWp05NJrNwqDf-PLfWXOaoudoGg70u7O4jz3XUEjFYY6SijeOL_Dra-xTfCRjj9QOcSstnej1IJTJE3F0QleS2yBD5aLFM1zVzf5m1JzGGav9pkDXoTb15CvXKwkxqh_f56pSbDXwnrEiE_UOU1J4sAe0g3riXNRDml7ucG5T1KVeOONas7bqVBHIqEA"
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InJlZmVyZW5jZS0yMDI2LTAxIiwidHlwIjoiYmFmK2p3dCJ9.eyJpc3MiOiJodHRwczovL2Jyb2tlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ4cmRwLXNlc21hbiIsInN1YiI6InVzZXItMTIzNCIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbInJlbW90ZS1kZXNrdG9wIiwiZW5naW5lZXJpbmciXSwicm9sZXMiOlsiZGVza3RvcC11c2VyIl0sImF1dGhfbWV0aG9kIjpbInB3ZCIsIm90cCJdLCJhc3N1cmFuY2VfbGV2ZWwiOiJ1cm46ZXhhbXBsZTptZmEiLCJicm9rZXJfc2Vzc2lvbl9pZCI6ImJyb2tlci1zZXNzaW9uLTAwMDEiLCJ0YXJnZXQiOiJyZHAtaG9zdC5leGFtcGxlLnRlc3QiLCJkZXZpY2VfdHJ1c3QiOnsic3RhdHVzIjoidW5rbm93biJ9LCJpYXQiOjE3MDAwMDAwMDAsIm5iZiI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMzAwfQ.RghZkTNpozxaJ7-Xz-2M0afuoIiubQVYKYfRohE8kDr59rA1GcDgOKFyRAqdBHCIL6RsHBRg_YY1AW8XGALbupvWr2qCfGm1e3-Vu-Bv9YmYVfNjHhHqVNnTtuzXj9-UTUIDI3OOvf1yobE2Dd4e-so7nMIUYqkYIKF2Q74I3qy-ftIp0X7-bO3XUbajvE_oJKyhJeAFJgczVexCgmmGbWYbpycNzt1gK5IzCC1ny7qE0Y3OqIcH1ieTLf6OJlzwi5-19g_8Sl-REwXLhRKzlOQ_TGRolYMCGahXaB4gFLXZ7SoSLm9G3c3Z8vJ78bNsHFys-uu6xNegqAYzYE7cXA"
     },
     {
       "claims": {
+        "assurance_level": "urn:example:mfa",
         "aud": "xrdp-sesman",
-        "auth_context": {
-          "acr": "urn:example:mfa",
-          "amr": [
-            "pwd",
-            "otp"
-          ]
+        "auth_method": [
+          "pwd",
+          "otp"
+        ],
+        "broker_session_id": "broker-session-0001",
+        "device_trust": {
+          "status": "unknown"
         },
         "exp": 1700000300,
         "groups": [
@@ -188,14 +195,13 @@
         "roles": [
           "desktop-user"
         ],
-        "session_id": "broker-session-0001",
         "sub": "user-1234",
         "target": "rdp-host.example.test"
       },
       "expected_valid": false,
       "name": "tampered-signature",
       "reason": "signature does not verify",
-      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InJlZmVyZW5jZS0yMDI2LTAxIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2Jyb2tlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ4cmRwLXNlc21hbiIsInN1YiI6InVzZXItMTIzNCIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbInJlbW90ZS1kZXNrdG9wIiwiZW5naW5lZXJpbmciXSwicm9sZXMiOlsiZGVza3RvcC11c2VyIl0sInRhcmdldCI6InJkcC1ob3N0LmV4YW1wbGUudGVzdCIsInNlc3Npb25faWQiOiJicm9rZXItc2Vzc2lvbi0wMDAxIiwiYXV0aF9jb250ZXh0Ijp7ImFjciI6InVybjpleGFtcGxlOm1mYSIsImFtciI6WyJwd2QiLCJvdHAiXX0sImlhdCI6MTcwMDAwMDAwMCwibmJmIjoxNzAwMDAwMDAwLCJleHAiOjE3MDAwMDAzMDAsImp0aSI6IjAwMDAwMDAwLTAwMDAtNDAwMC04MDAwLTAwMDAwMDAwMDAwMSJ9.AFYCYpRtHMIxxvXPUp5uVTZjM1vatMKs_d5fI1Gw3jGUEBOUROUuhn65AObPzvXSYNQz9EWmj7DECaOBmDjBDOkKKYUC7GYL5sxRlB0EN-z9tDUE1m4Xs06YAJDkaZtxK6hpbaeXlt1cZUCCKLGt-Wxyv3_8xxXhgWkrLG85hfYSotjDmIK2tyI9f8FaExkg8wG_rvQLxctuEVuIb1mwUyRAHUcabMlWQlX00eaLGAz1ryQKgrBDhvKX3oMQ7KAJeytW76bfWPTlPCx813lO9uBjJu2n_fuNYMWrrTu33vghhspF5ANPtJt-3yhov-PJKWV6t8Jlc3ohlsgQOb8t0Q"
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InJlZmVyZW5jZS0yMDI2LTAxIiwidHlwIjoiYmFmK2p3dCJ9.eyJpc3MiOiJodHRwczovL2Jyb2tlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ4cmRwLXNlc21hbiIsInN1YiI6InVzZXItMTIzNCIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbInJlbW90ZS1kZXNrdG9wIiwiZW5naW5lZXJpbmciXSwicm9sZXMiOlsiZGVza3RvcC11c2VyIl0sImF1dGhfbWV0aG9kIjpbInB3ZCIsIm90cCJdLCJhc3N1cmFuY2VfbGV2ZWwiOiJ1cm46ZXhhbXBsZTptZmEiLCJicm9rZXJfc2Vzc2lvbl9pZCI6ImJyb2tlci1zZXNzaW9uLTAwMDEiLCJ0YXJnZXQiOiJyZHAtaG9zdC5leGFtcGxlLnRlc3QiLCJkZXZpY2VfdHJ1c3QiOnsic3RhdHVzIjoidW5rbm93biJ9LCJpYXQiOjE3MDAwMDAwMDAsIm5iZiI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMzAwLCJqdGkiOiIwMDAwMDAwMC0wMDAwLTQwMDAtODAwMC0wMDAwMDAwMDAwMDEifQ.A9AxK5UZt5CDrkrGiUbiXHGvN8ElxP5zzSzPkbeW69QGULzoFcBpokYh0JEAOB9SmLIc-qSOcek-Vc0wK7LazwDT3SZe3ggCEgwtbfienWX2ypCBZrSe7XQHFnrsrc2yAlQH-i0TAgYk0w7yO4EFo5X3XjFDQK1OqPpVZZ265KW6ODsAoviZvF4uD38YEhXHxSHnD5ith7LnQnW74M_yJLOJas5T6i78O2Ig1tRMF8exV75sDd-tj0zR9FZcS7l12AJCAcjPqmyH9qCGJN6J_mPKgQQMfXaVZnxxsK-GZLe0bgtJDlUDf-CNTqRD-lhhmFNnmTuu_xl0CqOqLwmPjQ"
     }
   ]
 }

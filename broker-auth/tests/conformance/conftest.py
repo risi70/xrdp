@@ -39,7 +39,7 @@ def valid_claims(profile):
         auth_context={"acr": "urn:example:mfa", "amr": ["pwd", "otp"]},
         now=int(time.time()) - 1,
         lifetime=300,
-        jti="jti-1234",
+        jti="jti-123456789012",
     )
 
 

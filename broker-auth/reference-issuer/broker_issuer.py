@@ -80,9 +80,13 @@ def build_claims(
         "preferred_username": preferred_username,
         "groups": list(groups),
         "roles": list(roles),
+        "auth_method": list(auth_context.get("amr", ["unknown"])),
+        "assurance_level": str(auth_context.get("acr", "unknown")),
+        "broker_session_id": session_id,
         "target": target,
-        "session_id": session_id,
-        "auth_context": dict(auth_context),
+        "device_trust": {
+            "status": str(auth_context.get("device_trust", "unknown"))
+        },
         "iat": issued_at,
         "nbf": issued_at,
         "exp": issued_at + lifetime,
@@ -105,7 +109,7 @@ def sign_claims(
         dict(claims),
         private_key,
         algorithm="RS256",
-        headers={"kid": key_id, "typ": "JWT"},
+        headers={"kid": key_id, "typ": "baf+jwt"},
     )
 
 

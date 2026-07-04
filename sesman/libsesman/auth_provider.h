@@ -17,7 +17,9 @@ enum auth_provider_status
     AUTH_PROVIDER_SUCCESS = 0,
     AUTH_PROVIDER_UNSUPPORTED,
     AUTH_PROVIDER_INVALID,
+    AUTH_PROVIDER_REPLAY,
     AUTH_PROVIDER_CONFIG_ERROR,
+    AUTH_PROVIDER_DEPENDENCY_UNAVAILABLE,
     AUTH_PROVIDER_INTERNAL_ERROR
 };
 
@@ -55,6 +57,21 @@ auth_provider_validate(const struct auth_provider *provider,
 
 const struct auth_prevalidated_identity *
 auth_provider_result_get_identity(const struct auth_provider_result *result);
+const char *auth_prevalidated_identity_get_issuer(const struct auth_prevalidated_identity *identity);
+const char *auth_prevalidated_identity_get_subject(const struct auth_prevalidated_identity *identity);
+const char *auth_prevalidated_identity_get_preferred_username(const struct auth_prevalidated_identity *identity);
+const char *auth_prevalidated_identity_get_broker_session_id(const struct auth_prevalidated_identity *identity);
+const char *auth_prevalidated_identity_get_client_address(const struct auth_prevalidated_identity *identity);
+const char *auth_prevalidated_identity_get_assurance_level(const struct auth_prevalidated_identity *identity);
+const char *auth_prevalidated_identity_get_device_trust_status(const struct auth_prevalidated_identity *identity);
+const unsigned char *auth_prevalidated_identity_get_jti_digest(const struct auth_prevalidated_identity *identity);
+int64_t auth_prevalidated_identity_get_expiry(const struct auth_prevalidated_identity *identity);
+size_t auth_prevalidated_identity_get_group_count(const struct auth_prevalidated_identity *identity);
+const char *auth_prevalidated_identity_get_group(const struct auth_prevalidated_identity *identity, size_t index);
+size_t auth_prevalidated_identity_get_role_count(const struct auth_prevalidated_identity *identity);
+const char *auth_prevalidated_identity_get_role(const struct auth_prevalidated_identity *identity, size_t index);
+size_t auth_prevalidated_identity_get_auth_method_count(const struct auth_prevalidated_identity *identity);
+const char *auth_prevalidated_identity_get_auth_method(const struct auth_prevalidated_identity *identity, size_t index);
 
 void
 auth_provider_result_free(struct auth_provider_result *result);

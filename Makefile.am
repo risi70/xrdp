@@ -18,8 +18,10 @@ EXTRA_DIST = \
   NEWS.md \
   astyle_config.as \
   bootstrap \
+  broker-auth \
   coding_style.md \
   m4 \
+  specification \
   vrplayer
 
 if XRDP_NEUTRINORDP

@@ -35,7 +35,7 @@ class ReferenceIssuerTests(unittest.TestCase):
             session_id="session-1",
             auth_context={"acr": "mfa"},
             now=1700000000,
-            jti="jti-1",
+            jti="jti-123456789012",
         )
         token = sign_claims(claims, private_key, key_id="key-1")
         header = jwt.get_unverified_header(token)

@@ -41,9 +41,12 @@ module_LTLIBRARIES = \
   libsesman.la
 
 if ENABLE_BROKER_AUTH
+AM_CPPFLAGS += $(BROKER_AUTH_CFLAGS)
 BROKER_AUTH_SOURCES = \
   auth_provider.c \
-  auth_provider_null.c
+  auth_provider_null.c \
+  auth_provider_jwt.c \
+  replay_cache.c
 endif
 
 # Possible authentication modules
@@ -58,8 +61,11 @@ libsesman_la_DEPENDENCIES = $(AUTHMOD_OBJ)
 
 libsesman_la_SOURCES = \
   auth_provider.h \
+  auth_provider_jwt.h \
+  auth_provider_jwt_private.h \
   auth_provider_null.h \
   auth_provider_private.h \
+  replay_cache.h \
   $(BROKER_AUTH_SOURCES) \
   sesman_access.h \
   sesman_access.c \
@@ -73,4 +79,6 @@ libsesman_la_LIBADD = \
   $(AUTHMOD_OBJ) \
   $(top_builddir)/libipm/libipm.la \
   $(top_builddir)/common/libcommon.la \
-  $(AUTHMOD_LIB)
+  $(AUTHMOD_LIB) \
+  $(BROKER_AUTH_LIBS) \
+  $(OPENSSL_LIBS)

@@ -18,9 +18,11 @@ REQUIRED_CLAIMS = (
     "preferred_username",
     "groups",
     "roles",
+    "auth_method",
+    "assurance_level",
+    "broker_session_id",
     "target",
-    "session_id",
-    "auth_context",
+    "device_trust",
     "iat",
     "nbf",
     "exp",
@@ -39,6 +41,9 @@ def verify_assertion(
 ) -> dict[str, Any]:
     """Verify an RS256 broker assertion and return its claims."""
     try:
+        header = jwt.get_unverified_header(token)
+        if header.get("typ") != "baf+jwt":
+            raise ConformanceError("wrong assertion type")
         claims = jwt.decode(
             token,
             public_key,
