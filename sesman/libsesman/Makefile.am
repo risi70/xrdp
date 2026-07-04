@@ -41,7 +41,9 @@ module_LTLIBRARIES = \
   libsesman.la
 
 if ENABLE_BROKER_AUTH
-BROKER_AUTH_SOURCES = auth_provider_broker.c
+BROKER_AUTH_SOURCES = \
+  auth_provider.c \
+  auth_provider_null.c
 endif
 
 # Possible authentication modules
@@ -56,7 +58,8 @@ libsesman_la_DEPENDENCIES = $(AUTHMOD_OBJ)
 
 libsesman_la_SOURCES = \
   auth_provider.h \
-  auth_provider_broker.h \
+  auth_provider_null.h \
+  auth_provider_private.h \
   $(BROKER_AUTH_SOURCES) \
   sesman_access.h \
   sesman_access.c \

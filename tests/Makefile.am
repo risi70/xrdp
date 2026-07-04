@@ -7,4 +7,5 @@ SUBDIRS = \
   libipm \
   libxrdp \
   memtest \
+  sesman \
   xrdp

@@ -30,8 +30,6 @@
 #include <sys/types.h>
 
 struct trans;
-struct auth_provider;
-struct auth_provider_context;
 
 /**
  * Information associated with the logged-in user
@@ -85,18 +83,6 @@ login_info_sys_login_user(struct trans *scp_trans,
  */
 struct login_info *
 login_info_uds_login_user(struct trans *scp_trans);
-
-#if defined(ENABLE_BROKER_AUTH)
-/**
- * @brief Create login information from a locally validated broker assertion
- *
- * The asserted username is mapped through NSS before PAM account processing.
- */
-struct login_info *
-login_info_prevalidated_broker_user(
-    const struct auth_provider *provider,
-    const struct auth_provider_context *context);
-#endif
 
 /**
  * Free a struct login_info

@@ -118,15 +118,6 @@ auth_uds(const char *user, enum scp_login_status *errorcode)
 }
 
 /******************************************************************************/
-struct auth_info *
-auth_prevalidated(const char *user, const char *client_ip,
-                  enum scp_login_status *errorcode)
-{
-    (void)client_ip;
-    return auth_uds(user, errorcode);
-}
-
-/******************************************************************************/
 /* returns error */
 int
 auth_start_session(struct auth_info *auth_info, const char *display)

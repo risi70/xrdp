@@ -396,45 +396,6 @@ auth_uds(const char *user, enum scp_login_status *errorcode)
 
 /******************************************************************************/
 
-struct auth_info *
-auth_prevalidated(const char *user, const char *client_ip,
-                  enum scp_login_status *errorcode)
-{
-    struct auth_info *auth_info;
-    enum scp_login_status status;
-
-    auth_info = g_new0(struct auth_info, 1);
-    if (auth_info == NULL)
-    {
-        status = E_SCP_LOGIN_NO_MEMORY;
-    }
-    else
-    {
-        /*
-         * The broker provider has already authenticated the assertion.
-         * common_pam_login() still calls pam_start() and pam_acct_mgmt().
-         * auth_start_session() later calls pam_setcred() and
-         * pam_open_session().
-         */
-        status = common_pam_login(auth_info, user, NULL, client_ip, 0);
-
-        if (status != E_SCP_LOGIN_OK)
-        {
-            g_free(auth_info);
-            auth_info = NULL;
-        }
-    }
-
-    if (errorcode != NULL)
-    {
-        *errorcode = status;
-    }
-
-    return auth_info;
-}
-
-/******************************************************************************/
-
 /* returns error */
 static int
 auth_start_session_private(struct auth_info *auth_info, const char *display)
