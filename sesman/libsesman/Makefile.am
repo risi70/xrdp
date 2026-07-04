@@ -40,6 +40,10 @@ AM_CPPFLAGS = \
 module_LTLIBRARIES = \
   libsesman.la
 
+if ENABLE_BROKER_AUTH
+BROKER_AUTH_SOURCES = auth_provider_broker.c
+endif
+
 # Possible authentication modules
 # See https://www.gnu.org/software/automake/manual/html_node/Conditional-Sources.html
 EXTRA_libsesman_la_SOURCES = \
@@ -51,6 +55,9 @@ EXTRA_libsesman_la_SOURCES = \
 libsesman_la_DEPENDENCIES = $(AUTHMOD_OBJ)
 
 libsesman_la_SOURCES = \
+  auth_provider.h \
+  auth_provider_broker.h \
+  $(BROKER_AUTH_SOURCES) \
   sesman_access.h \
   sesman_access.c \
   sesman_auth.h \

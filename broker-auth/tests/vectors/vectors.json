@@ -1,0 +1,201 @@
+{
+  "algorithm": "RS256",
+  "expected_audience": "xrdp-sesman",
+  "expected_issuer": "https://broker.example.test",
+  "expected_target": "rdp-host.example.test",
+  "kid": "reference-2026-01",
+  "validation_time": 1700000000,
+  "vectors": [
+    {
+      "claims": {
+        "aud": "xrdp-sesman",
+        "auth_context": {
+          "acr": "urn:example:mfa",
+          "amr": [
+            "pwd",
+            "otp"
+          ]
+        },
+        "exp": 1700000300,
+        "groups": [
+          "remote-desktop",
+          "engineering"
+        ],
+        "iat": 1700000000,
+        "iss": "https://broker.example.test",
+        "jti": "00000000-0000-4000-8000-000000000001",
+        "nbf": 1700000000,
+        "preferred_username": "alice",
+        "roles": [
+          "desktop-user"
+        ],
+        "session_id": "broker-session-0001",
+        "sub": "user-1234",
+        "target": "rdp-host.example.test"
+      },
+      "expected_valid": true,
+      "name": "valid",
+      "reason": "valid assertion",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InJlZmVyZW5jZS0yMDI2LTAxIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2Jyb2tlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ4cmRwLXNlc21hbiIsInN1YiI6InVzZXItMTIzNCIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbInJlbW90ZS1kZXNrdG9wIiwiZW5naW5lZXJpbmciXSwicm9sZXMiOlsiZGVza3RvcC11c2VyIl0sInRhcmdldCI6InJkcC1ob3N0LmV4YW1wbGUudGVzdCIsInNlc3Npb25faWQiOiJicm9rZXItc2Vzc2lvbi0wMDAxIiwiYXV0aF9jb250ZXh0Ijp7ImFjciI6InVybjpleGFtcGxlOm1mYSIsImFtciI6WyJwd2QiLCJvdHAiXX0sImlhdCI6MTcwMDAwMDAwMCwibmJmIjoxNzAwMDAwMDAwLCJleHAiOjE3MDAwMDAzMDAsImp0aSI6IjAwMDAwMDAwLTAwMDAtNDAwMC04MDAwLTAwMDAwMDAwMDAwMSJ9.GFYCYpRtHMIxxvXPUp5uVTZjM1vatMKs_d5fI1Gw3jGUEBOUROUuhn65AObPzvXSYNQz9EWmj7DECaOBmDjBDOkKKYUC7GYL5sxRlB0EN-z9tDUE1m4Xs06YAJDkaZtxK6hpbaeXlt1cZUCCKLGt-Wxyv3_8xxXhgWkrLG85hfYSotjDmIK2tyI9f8FaExkg8wG_rvQLxctuEVuIb1mwUyRAHUcabMlWQlX00eaLGAz1ryQKgrBDhvKX3oMQ7KAJeytW76bfWPTlPCx813lO9uBjJu2n_fuNYMWrrTu33vghhspF5ANPtJt-3yhov-PJKWV6t8Jlc3ohlsgQOb8t0Q"
+    },
+    {
+      "claims": {
+        "aud": "xrdp-sesman",
+        "auth_context": {
+          "acr": "urn:example:mfa",
+          "amr": [
+            "pwd",
+            "otp"
+          ]
+        },
+        "exp": 1699999700,
+        "groups": [
+          "remote-desktop",
+          "engineering"
+        ],
+        "iat": 1699999400,
+        "iss": "https://broker.example.test",
+        "jti": "00000000-0000-4000-8000-000000000001",
+        "nbf": 1699999400,
+        "preferred_username": "alice",
+        "roles": [
+          "desktop-user"
+        ],
+        "session_id": "broker-session-0001",
+        "sub": "user-1234",
+        "target": "rdp-host.example.test"
+      },
+      "expected_valid": false,
+      "name": "expired",
+      "reason": "exp is in the past",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InJlZmVyZW5jZS0yMDI2LTAxIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2Jyb2tlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ4cmRwLXNlc21hbiIsInN1YiI6InVzZXItMTIzNCIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbInJlbW90ZS1kZXNrdG9wIiwiZW5naW5lZXJpbmciXSwicm9sZXMiOlsiZGVza3RvcC11c2VyIl0sInRhcmdldCI6InJkcC1ob3N0LmV4YW1wbGUudGVzdCIsInNlc3Npb25faWQiOiJicm9rZXItc2Vzc2lvbi0wMDAxIiwiYXV0aF9jb250ZXh0Ijp7ImFjciI6InVybjpleGFtcGxlOm1mYSIsImFtciI6WyJwd2QiLCJvdHAiXX0sImlhdCI6MTY5OTk5OTQwMCwibmJmIjoxNjk5OTk5NDAwLCJleHAiOjE2OTk5OTk3MDAsImp0aSI6IjAwMDAwMDAwLTAwMDAtNDAwMC04MDAwLTAwMDAwMDAwMDAwMSJ9.MPJAYlEjzm-op_cf2xXxMgJfRPfJlklJ7InoEvT2q83QSngxEJun3wuPeZTvdAtlqdTh4Cd1kc6GhFHEdNupeudU-UlV64spwt0DINmJmIIIh9x51tTnmNeYNRPb2EGSOti8FVk6e4F0Zl8ReYErR4Cw6iFo3i5l8TxT5xPVXmK6xccYg5qcXu1obXQxZSSYKEpagQ_1lEFAgYILJyV87tFXpQD27d7MloOohSJpqOahpBExOZquHFQhAOxcP3Vb6eVmLBHjoMsVDOxalIy-3_x0NIksm6Rx375P9YtDNYqEpWs9hIR5q7SrQDc_ekRhTdw29iOK9oxL54pmSCb2hw"
+    },
+    {
+      "claims": {
+        "aud": "other-service",
+        "auth_context": {
+          "acr": "urn:example:mfa",
+          "amr": [
+            "pwd",
+            "otp"
+          ]
+        },
+        "exp": 1700000300,
+        "groups": [
+          "remote-desktop",
+          "engineering"
+        ],
+        "iat": 1700000000,
+        "iss": "https://broker.example.test",
+        "jti": "00000000-0000-4000-8000-000000000001",
+        "nbf": 1700000000,
+        "preferred_username": "alice",
+        "roles": [
+          "desktop-user"
+        ],
+        "session_id": "broker-session-0001",
+        "sub": "user-1234",
+        "target": "rdp-host.example.test"
+      },
+      "expected_valid": false,
+      "name": "wrong-audience",
+      "reason": "audience mismatch",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InJlZmVyZW5jZS0yMDI2LTAxIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2Jyb2tlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJvdGhlci1zZXJ2aWNlIiwic3ViIjoidXNlci0xMjM0IiwicHJlZmVycmVkX3VzZXJuYW1lIjoiYWxpY2UiLCJncm91cHMiOlsicmVtb3RlLWRlc2t0b3AiLCJlbmdpbmVlcmluZyJdLCJyb2xlcyI6WyJkZXNrdG9wLXVzZXIiXSwidGFyZ2V0IjoicmRwLWhvc3QuZXhhbXBsZS50ZXN0Iiwic2Vzc2lvbl9pZCI6ImJyb2tlci1zZXNzaW9uLTAwMDEiLCJhdXRoX2NvbnRleHQiOnsiYWNyIjoidXJuOmV4YW1wbGU6bWZhIiwiYW1yIjpbInB3ZCIsIm90cCJdfSwiaWF0IjoxNzAwMDAwMDAwLCJuYmYiOjE3MDAwMDAwMDAsImV4cCI6MTcwMDAwMDMwMCwianRpIjoiMDAwMDAwMDAtMDAwMC00MDAwLTgwMDAtMDAwMDAwMDAwMDAxIn0.f49GWkKe2jZY5uobgH21EcDGyFu7jgi2hErtZsgwK9RSa6j4hEXcIUjAQNdblLThXJAs6SYc5bgM0tspHbvXL06B49v-U5Quj0SIDmKWLIIt-I3rNPJrKL-zoyx10ZUFm4AvYi9e_FQO4tbIQZVHjfFy1NEIkmBxre0Fi9lv5-CH6UQekAwhEWqWGD46AHsOSz708jiJM4b_6Jr7Y_YcjGvzgNpr4dRsJtecKfnZUUCYC0WhRpaLpUoceNQp_PFn6G5xNBsc1rqw_vagsnbnYLaNom6GPvAIYHeCKevHW1sCZyqojq6qJYOnl-GuV73I1eg3MAb_4_JywXrAgbOa4Q"
+    },
+    {
+      "claims": {
+        "aud": "xrdp-sesman",
+        "auth_context": {
+          "acr": "urn:example:mfa",
+          "amr": [
+            "pwd",
+            "otp"
+          ]
+        },
+        "exp": 1700000300,
+        "groups": [
+          "remote-desktop",
+          "engineering"
+        ],
+        "iat": 1700000000,
+        "iss": "https://broker.example.test",
+        "jti": "00000000-0000-4000-8000-000000000001",
+        "nbf": 1700000000,
+        "preferred_username": "alice",
+        "roles": [
+          "desktop-user"
+        ],
+        "session_id": "broker-session-0001",
+        "sub": "user-1234",
+        "target": "other-host.example.test"
+      },
+      "expected_valid": false,
+      "name": "wrong-target",
+      "reason": "target mismatch",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InJlZmVyZW5jZS0yMDI2LTAxIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2Jyb2tlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ4cmRwLXNlc21hbiIsInN1YiI6InVzZXItMTIzNCIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbInJlbW90ZS1kZXNrdG9wIiwiZW5naW5lZXJpbmciXSwicm9sZXMiOlsiZGVza3RvcC11c2VyIl0sInRhcmdldCI6Im90aGVyLWhvc3QuZXhhbXBsZS50ZXN0Iiwic2Vzc2lvbl9pZCI6ImJyb2tlci1zZXNzaW9uLTAwMDEiLCJhdXRoX2NvbnRleHQiOnsiYWNyIjoidXJuOmV4YW1wbGU6bWZhIiwiYW1yIjpbInB3ZCIsIm90cCJdfSwiaWF0IjoxNzAwMDAwMDAwLCJuYmYiOjE3MDAwMDAwMDAsImV4cCI6MTcwMDAwMDMwMCwianRpIjoiMDAwMDAwMDAtMDAwMC00MDAwLTgwMDAtMDAwMDAwMDAwMDAxIn0.SRQgdsCWYGctdycGv4iGA_01frv4_u-5V0tHlfs3yuKTarIcvcesx-tBdOZqrZ_0TP0h0AznTLaD4tANrTnCiuGl9ubOCtpSKTosNIJzIgZdSaRVxSDxJAJMkohY8XqyiKHgjrVXKBlNDhZOlgkPE5seCe1lTKN4DdDheQ6H2kRM5TWOGlWmjKgfbl__p2y9sNuAKa2ZtyFHWdtjZB85XGf4SykrF_V2x7ySE6ghFBgsSI35PWWrlTVfTOd73KPjLvvDLCBvEt-b13xdjUHeCg6uB63aAOrOmEOGeJf6e8NiNWYpx_LrnqwdZdyTnJX6QdDnos0fJ-D1kZkMAqPC9g"
+    },
+    {
+      "claims": {
+        "aud": "xrdp-sesman",
+        "auth_context": {
+          "acr": "urn:example:mfa",
+          "amr": [
+            "pwd",
+            "otp"
+          ]
+        },
+        "exp": 1700000300,
+        "groups": [
+          "remote-desktop",
+          "engineering"
+        ],
+        "iat": 1700000000,
+        "iss": "https://broker.example.test",
+        "nbf": 1700000000,
+        "preferred_username": "alice",
+        "roles": [
+          "desktop-user"
+        ],
+        "session_id": "broker-session-0001",
+        "sub": "user-1234",
+        "target": "rdp-host.example.test"
+      },
+      "expected_valid": false,
+      "name": "missing-jti",
+      "reason": "required jti is absent",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InJlZmVyZW5jZS0yMDI2LTAxIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2Jyb2tlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ4cmRwLXNlc21hbiIsInN1YiI6InVzZXItMTIzNCIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbInJlbW90ZS1kZXNrdG9wIiwiZW5naW5lZXJpbmciXSwicm9sZXMiOlsiZGVza3RvcC11c2VyIl0sInRhcmdldCI6InJkcC1ob3N0LmV4YW1wbGUudGVzdCIsInNlc3Npb25faWQiOiJicm9rZXItc2Vzc2lvbi0wMDAxIiwiYXV0aF9jb250ZXh0Ijp7ImFjciI6InVybjpleGFtcGxlOm1mYSIsImFtciI6WyJwd2QiLCJvdHAiXX0sImlhdCI6MTcwMDAwMDAwMCwibmJmIjoxNzAwMDAwMDAwLCJleHAiOjE3MDAwMDAzMDB9.JxHwVIFp5hvof050wmWBQDFOne6bXHywCPJU6POweAztpM4LI_benHgBwao7AsOCqORJa7A3ztjcEUeIdOwL68cUBztprtnjPr04nhkfbk0kMIT3CMD85lVs5uiyDh2cXoLLrRQ9GX3hPiA513ttezDIAblWp05NJrNwqDf-PLfWXOaoudoGg70u7O4jz3XUEjFYY6SijeOL_Dra-xTfCRjj9QOcSstnej1IJTJE3F0QleS2yBD5aLFM1zVzf5m1JzGGav9pkDXoTb15CvXKwkxqh_f56pSbDXwnrEiE_UOU1J4sAe0g3riXNRDml7ucG5T1KVeOONas7bqVBHIqEA"
+    },
+    {
+      "claims": {
+        "aud": "xrdp-sesman",
+        "auth_context": {
+          "acr": "urn:example:mfa",
+          "amr": [
+            "pwd",
+            "otp"
+          ]
+        },
+        "exp": 1700000300,
+        "groups": [
+          "remote-desktop",
+          "engineering"
+        ],
+        "iat": 1700000000,
+        "iss": "https://broker.example.test",
+        "jti": "00000000-0000-4000-8000-000000000001",
+        "nbf": 1700000000,
+        "preferred_username": "alice",
+        "roles": [
+          "desktop-user"
+        ],
+        "session_id": "broker-session-0001",
+        "sub": "user-1234",
+        "target": "rdp-host.example.test"
+      },
+      "expected_valid": false,
+      "name": "tampered-signature",
+      "reason": "signature does not verify",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InJlZmVyZW5jZS0yMDI2LTAxIiwidHlwIjoiSldUIn0.eyJpc3MiOiJodHRwczovL2Jyb2tlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ4cmRwLXNlc21hbiIsInN1YiI6InVzZXItMTIzNCIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbInJlbW90ZS1kZXNrdG9wIiwiZW5naW5lZXJpbmciXSwicm9sZXMiOlsiZGVza3RvcC11c2VyIl0sInRhcmdldCI6InJkcC1ob3N0LmV4YW1wbGUudGVzdCIsInNlc3Npb25faWQiOiJicm9rZXItc2Vzc2lvbi0wMDAxIiwiYXV0aF9jb250ZXh0Ijp7ImFjciI6InVybjpleGFtcGxlOm1mYSIsImFtciI6WyJwd2QiLCJvdHAiXX0sImlhdCI6MTcwMDAwMDAwMCwibmJmIjoxNzAwMDAwMDAwLCJleHAiOjE3MDAwMDAzMDAsImp0aSI6IjAwMDAwMDAwLTAwMDAtNDAwMC04MDAwLTAwMDAwMDAwMDAwMSJ9.AFYCYpRtHMIxxvXPUp5uVTZjM1vatMKs_d5fI1Gw3jGUEBOUROUuhn65AObPzvXSYNQz9EWmj7DECaOBmDjBDOkKKYUC7GYL5sxRlB0EN-z9tDUE1m4Xs06YAJDkaZtxK6hpbaeXlt1cZUCCKLGt-Wxyv3_8xxXhgWkrLG85hfYSotjDmIK2tyI9f8FaExkg8wG_rvQLxctuEVuIb1mwUyRAHUcabMlWQlX00eaLGAz1ryQKgrBDhvKX3oMQ7KAJeytW76bfWPTlPCx813lO9uBjJu2n_fuNYMWrrTu33vghhspF5ANPtJt-3yhov-PJKWV6t8Jlc3ohlsgQOb8t0Q"
+    }
+  ]
+}

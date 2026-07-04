@@ -171,6 +171,17 @@ auth_uds(const char *user, enum scp_login_status *errorcode)
     return (status == E_SCP_LOGIN_OK) ? &success : NULL;
 }
 
+/******************************************************************************/
+struct auth_info *
+auth_prevalidated(const char *user, const char *client_ip,
+                  enum scp_login_status *errorcode)
+{
+    (void)client_ip;
+
+    /* The built-in backend has no separate account/session stack. */
+    return auth_uds(user, errorcode);
+}
+
 
 /******************************************************************************/
 /* returns error */

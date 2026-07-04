@@ -86,6 +86,15 @@ AC_ARG_ENABLE(pam, AS_HELP_STRING([--enable-pam],
               [Build PAM support (default: yes)]),
               [], [enable_pam=yes])
 AM_CONDITIONAL(SESMAN_NOPAM, [test x$enable_pam != xyes])
+AC_ARG_ENABLE(broker-auth,
+              AS_HELP_STRING([--enable-broker-auth],
+              [Build experimental broker auth provider skeleton (default: no)]),
+              [], [enable_broker_auth=no])
+AM_CONDITIONAL(ENABLE_BROKER_AUTH,
+               [test x$enable_broker_auth = xyes])
+AS_IF([test x$enable_broker_auth = xyes],
+      [AC_DEFINE([ENABLE_BROKER_AUTH], [1],
+                 [Build the broker authentication provider skeleton])])
 AC_ARG_ENABLE(vsock, AS_HELP_STRING([--enable-vsock],
               [Build AF_VSOCK support (default: no)]),
               [], [enable_vsock=no])

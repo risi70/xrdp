@@ -61,6 +61,22 @@ struct auth_info *
 auth_uds(const char *user, enum scp_login_status *errorcode);
 
 /**
+ * @brief Gets an auth handle for a locally prevalidated broker identity
+ *
+ * The caller must only use this after an enabled broker provider has locally
+ * verified the assertion signature and all required claims. PAM account and
+ * session processing is still performed.
+ *
+ * @param user Locally mapped user name from the validated assertion
+ * @param client_ip IP address of the connecting client (or ""/NULL)
+ * @param[out] errorcode Error code for the operation
+ * @return auth handle on success, NULL on failure
+ */
+struct auth_info *
+auth_prevalidated(const char *user, const char *client_ip,
+                  enum scp_login_status *errorcode);
+
+/**
  *
  * @brief Starts a session
  * @param auth_info Auth handle created by auth_userpass

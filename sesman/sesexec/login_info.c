@@ -41,6 +41,10 @@
 #include "sesexec.h"
 #include "string_calls.h"
 
+#if defined(ENABLE_BROKER_AUTH)
+#include "auth_provider.h"
+#endif
+
 // Sys login fails all take a fixed time before returning. This
 // prevents an attacker using timing differences to determine
 // information about the users on the system (CVE-2026-42218)
@@ -365,6 +369,105 @@ login_info_uds_login_user(struct trans *scp_trans)
     login_info_free(result);
     return NULL;
 }
+
+#if defined(ENABLE_BROKER_AUTH)
+/******************************************************************************/
+struct login_info *
+login_info_prevalidated_broker_user(
+    const struct auth_provider *provider,
+    const struct auth_provider_context *context)
+{
+    struct login_info *result = NULL;
+    const char *asserted_username;
+    const char *client_ip;
+    char *username = NULL;
+    int uid;
+    enum scp_login_status status = E_SCP_LOGIN_GENERAL_ERROR;
+    struct auth_info *auth_info = NULL;
+
+    /* Restrict the PAM-authentication bypass to a context which a compiled-in
+     * provider marks as locally validated. */
+    if (provider == NULL || context == NULL ||
+            provider->is_locally_validated == NULL ||
+            !provider->is_locally_validated(context) ||
+            provider->get_username == NULL ||
+            (asserted_username = provider->get_username(context)) == NULL ||
+            asserted_username[0] == '\0')
+    {
+        LOG(LOG_LEVEL_ERROR,
+            "Rejected non-prevalidated broker authentication context");
+        return NULL;
+    }
+
+    client_ip = (provider->get_client_ip == NULL)
+                ? NULL : provider->get_client_ip(context);
+
+    /* Broker identities never create local users. Resolve through NSS/SSSD
+     * and canonicalise by reverse-looking up the UID. */
+    if (g_getuser_info_by_name(asserted_username,
+                               &uid, NULL, NULL, NULL, NULL) != 0 ||
+            g_getuser_info_by_uid(uid, &username,
+                                  NULL, NULL, NULL, NULL) != 0)
+    {
+        LOG(LOG_LEVEL_ERROR,
+            "Broker user %s cannot be mapped through NSS",
+            asserted_username);
+        status = E_SCP_LOGIN_NOT_AUTHENTICATED;
+    }
+    else
+    {
+        auth_info = auth_prevalidated(username, client_ip, &status);
+        if ((auth_info != NULL && status != E_SCP_LOGIN_OK) ||
+                (auth_info == NULL && status == E_SCP_LOGIN_OK))
+        {
+            LOG(LOG_LEVEL_ERROR,
+                "Bugcheck; inconsistent prevalidated auth result");
+            status = E_SCP_LOGIN_GENERAL_ERROR;
+            auth_end(auth_info);
+            auth_info = NULL;
+        }
+
+        if (auth_info != NULL && status == E_SCP_LOGIN_OK &&
+                !access_login_allowed(&g_cfg->sec, username))
+        {
+            LOG(LOG_LEVEL_INFO,
+                "Broker username okay but group problem for user: %s",
+                username);
+            status = E_SCP_LOGIN_NOT_AUTHORIZED;
+            auth_end(auth_info);
+            auth_info = NULL;
+        }
+
+        if (auth_info != NULL && status == E_SCP_LOGIN_OK)
+        {
+            result = g_new0(struct login_info, 1);
+            if (result == NULL ||
+                    (result->username = g_strdup(username)) == NULL ||
+                    (result->ip_addr = g_strdup(
+                         client_ip == NULL ? "" : client_ip)) == NULL)
+            {
+                login_info_free(result);
+                result = NULL;
+                auth_end(auth_info);
+            }
+            else
+            {
+                result->uid = (uid_t)uid;
+                result->auth_info = auth_info;
+                LOG(LOG_LEVEL_INFO,
+                    "Broker access permitted for user: %s", username);
+            }
+        }
+        else if (auth_info != NULL)
+        {
+            auth_end(auth_info);
+        }
+    }
+
+    g_free(username);
+    return result;
+}
+#endif
 
 
 /******************************************************************************/
