@@ -1,6 +1,7 @@
 AM_CPPFLAGS = \
   -I$(top_builddir) \
   -I$(top_srcdir)/sesman/libsesman \
+  -I$(top_srcdir)/libipm \
   $(BROKER_AUTH_CFLAGS) \
   -DTEST_PRIVATE_KEY=\"$(srcdir)/data/test-private.pem\" \
   -DTEST_PUBLIC_KEY=\"$(srcdir)/data/test-public.pem\" \
@@ -12,9 +13,10 @@ PY_LOG_COMPILER = python3
 
 if ENABLE_BROKER_AUTH
 TESTS = test_replay_cache test_auth_provider_jwt test_phase2_vectors \
-  test_baf_transport test_security_contract.py
+  test_baf_transport test_baf_identity test_pam_broker_contract.py \
+  test_security_contract.py
 check_PROGRAMS = test_replay_cache test_auth_provider_jwt test_phase2_vectors \
-  test_baf_transport
+  test_baf_transport test_baf_identity
 test_replay_cache_SOURCES = test_replay_cache.c
 test_replay_cache_LDADD = \
   $(top_builddir)/sesman/libsesman/libsesman.la
@@ -30,6 +32,10 @@ test_baf_transport_SOURCES = test_baf_transport.c
 test_baf_transport_LDADD = \
   $(top_builddir)/sesman/libsesman/libsesman.la \
   $(BROKER_AUTH_LIBS)
+test_baf_identity_SOURCES = test_baf_identity.c
+test_baf_identity_LDADD = \
+  $(top_builddir)/sesman/libsesman/libsesman.la \
+  $(BROKER_AUTH_LIBS)
 endif
 
 EXTRA_DIST = \
@@ -37,7 +43,9 @@ EXTRA_DIST = \
   data/test-public.pem \
   fuzz/fuzz_baf_compact.c \
   fuzz/README.md \
+  test_baf_identity.c \
   test_baf_transport.c \
+  test_pam_broker_contract.py \
   test_phase2_vectors.c \
   test_security_contract.py
 

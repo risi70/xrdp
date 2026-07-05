@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Source contract checks for the Phase 1 authentication boundary."""
+"""Source contract checks for classic and explicit broker PAM boundaries."""
 import re
 import sys
 from pathlib import Path
@@ -40,9 +40,11 @@ def main() -> int:
     assert "pam_setcred(" in session
     assert "pam_open_session(" in session
     combined = login + auth_header
-    for marker in ("auth_prevalidated", "prevalidated_broker",
-                   "is_locally_validated", "trusted=true"):
+    for marker in ("is_locally_validated", "trusted=true"):
         assert marker not in combined, f"prohibited Phase 1 bypass: {marker}"
+    assert "auth_prevalidated_broker" in auth_header
+    assert "auth_prevalidated_broker" not in login, (
+        "live sesexec login must not use broker prevalidation before wiring")
     return 0
 
 if __name__ == "__main__":

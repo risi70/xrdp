@@ -41,3 +41,27 @@ assert "assertion" not in REPLAY.lower()
 assert "libipm_msg_out_erase" in PROTOCOL
 assert "LIBIPM_E_MSG_IN_ERASE_AFTER_USE" in PROTOCOL
 assert "password" not in TRANSPORT.lower()
+IDENTITY = (
+    ROOT / "sesman" / "libsesman" / "baf_identity.c"
+).read_text(encoding="utf-8")
+PAM = (ROOT / "sesman" / "libsesman" / "verify_user_pam.c").read_text(
+    encoding="utf-8")
+AUTHORIZATION = (
+    ROOT / "sesman" / "libsesman" / "baf_authorization.c"
+).read_text(encoding="utf-8")
+
+assert "getpwnam_r" in IDENTITY and "getpwuid_r" in IDENTITY
+assert "auth_prevalidated_broker" not in IDENTITY
+assert "auth_prevalidated_broker" in AUTHORIZATION
+assert "getpwnam" not in AUTHORIZATION and "getpwuid" not in AUTHORIZATION
+for forbidden in ("pam_", "session_start", "Keycloak", "trusted = true"):
+    assert forbidden not in IDENTITY
+for source in (PROVIDER, TRANSPORT):
+    assert "getpwnam" not in source
+    assert "getpwuid" not in source
+    assert "pam_" not in source
+    assert "session_start" not in source
+assert "auth_prevalidated_broker" in PAM
+assert "pam_acct_mgmt" in PAM
+assert "pam_open_session" in PAM and "pam_close_session" in PAM
+assert "assertion" not in PAM.lower()

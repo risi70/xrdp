@@ -101,6 +101,19 @@ auth_userpass(const char *const_user, const char *const_pass,
     return (status == E_SCP_LOGIN_OK) ? &success : NULL;
 }
 
+
+struct auth_info *
+auth_prevalidated_broker(const char *user,
+                         const char *client_ip,
+                         enum scp_login_status *errorcode)
+{
+    if (errorcode != NULL)
+    {
+        *errorcode = E_SCP_LOGIN_GENERAL_ERROR;
+    }
+    return NULL;
+}
+
 /******************************************************************************/
 /* returns non-NULL for success */
 struct auth_info *
