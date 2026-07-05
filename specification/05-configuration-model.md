@@ -87,7 +87,9 @@ not guessing whether a password resembles a JWT.
 Issuer names are local labels only. `Issuer` values must be unique exact URIs.
 Exactly one of `JwksUri` or `TrustFile` is required unless both refer to the
 same administratively managed trust set for rotation. HTTPS is mandatory for
-remote keys. Allowed algorithms cannot contain `none` or `HS*`.
+remote keys. Phase 2 requires `AllowedAlgorithms=RS256` exactly. `none`, `HS*`,
+PS256, ES256, and mixed lists fail closed; future phases may extend this only
+with complete implementation and conformance tests.
 
 ## 4. Policy evaluation
 

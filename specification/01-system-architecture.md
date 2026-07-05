@@ -148,10 +148,9 @@ claim grants root or creates a local account.
 7. Existing cleanup calls `pam_close_session`, deletes credentials, and
    `pam_end`.
 
-After a capability is produced, failure in identity binding, authorization,
-PAM, or session creation consumes the replay reservation by default. Only a
-bounded policy for explicitly classified transient infrastructure failures
-may release it.
+After replay reservation, failure in identity binding, authorization, PAM, or
+session creation leaves the assertion unusable until expiry. A `released`
+state is an audit marker only and never permits retry.
 
 ## 7. Deployment
 

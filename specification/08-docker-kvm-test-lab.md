@@ -42,7 +42,7 @@ flowchart LR
 | Keycloak | pinned upstream image, OIDC realm import | discovery and token endpoint ready |
 | LDAP | 389 Directory Server or FreeIPA-compatible test service | TLS bind and seeded search |
 | Reference broker | broker-independent test façade | OIDC login and target authorization |
-| Issuer | reference RS256/PS256 issuer | assertion endpoint and rotation controls |
+| Issuer | reference RS256 issuer; future PS256 fixture | assertion endpoint and rotation controls |
 | JWKS | HTTPS endpoint with programmable keys/cache headers | TLS and expected key set |
 | Replay cache | Redis only for clustered adapter testing | atomic SET NX + TTL |
 | Test runner | pinned Python image | can reach all lab endpoints |

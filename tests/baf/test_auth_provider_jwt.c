@@ -95,6 +95,7 @@ main(void)
     struct baf_validator_options options;
     struct auth_provider_config *config = NULL;
     struct auth_provider_config *unavailable_config = NULL;
+    struct auth_provider_config *rejected_config = NULL;
     struct auth_provider_result *result = NULL;
     const struct auth_prevalidated_identity *identity;
     char *token;
@@ -117,6 +118,20 @@ main(void)
     options.trust_pem = public_key;
     options.trust_pem_length = public_length;
     options.replay_cache = cache;
+    options.allowed_algorithms = "PS256";
+    assert(baf_validator_config_create(&options, &rejected_config) ==
+           AUTH_PROVIDER_CONFIG_ERROR);
+    assert(rejected_config == NULL);
+    options.allowed_algorithms = "ES256";
+    assert(baf_validator_config_create(&options, &rejected_config) ==
+           AUTH_PROVIDER_CONFIG_ERROR);
+    options.allowed_algorithms = "RS256,PS256";
+    assert(baf_validator_config_create(&options, &rejected_config) ==
+           AUTH_PROVIDER_CONFIG_ERROR);
+    options.allowed_algorithms = "HS256";
+    assert(baf_validator_config_create(&options, &rejected_config) ==
+           AUTH_PROVIDER_CONFIG_ERROR);
+    options.allowed_algorithms = "RS256";
     assert(baf_validator_config_create(&options, &config) ==
            AUTH_PROVIDER_SUCCESS);
 

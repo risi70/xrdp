@@ -34,12 +34,14 @@ reference broker is neither necessary nor sufficient.
 ## Decision summary
 
 - XRDP transports the original assertion; sesexec validates it locally.
-- Compact asymmetric JWS is used; RS256 is mandatory for interoperability.
+- Phase 2 uses compact JWS with exact RS256; PS256/ES256 are future extensions.
 - Assertion validation performs no local or directory identity lookup.
 - NSS/SSSD remains the mandatory authority mapping names to Linux UIDs before
   PAM account/session processing and session creation.
 - A validated broker capability alone never authorizes or launches a session.
-- PAM authentication is skipped only for a locally validated assertion.
+- PAM authentication may be skipped only after both local assertion validation
+  and mandatory Phase 4 Linux identity binding; a capability alone is
+  insufficient.
 - PAM account, credentials, session, environment, and cleanup remain mandatory.
 - Classic password/PAM login remains default and wire-compatible.
 - Keycloak is a possible broker IdP, not an XRDP dependency.

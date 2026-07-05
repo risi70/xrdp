@@ -51,9 +51,12 @@ main(void)
     assert(replay_cache_get_state(cache, key1, 100, &state) ==
            REPLAY_CACHE_OK);
     assert(state == REPLAY_CACHE_RELEASED);
+    assert(replay_cache_reserve(cache, key1, 110, 100) ==
+           REPLAY_CACHE_EXISTS);
     assert(replay_cache_get_state(cache, key1, 110, &state) ==
            REPLAY_CACHE_NOT_FOUND);
-    assert(replay_cache_reserve(cache, key2, 120, 110) == REPLAY_CACHE_OK);
+    assert(replay_cache_reserve(cache, key1, 120, 110) == REPLAY_CACHE_OK);
+    assert(replay_cache_reserve(cache, key2, 120, 110) == REPLAY_CACHE_FULL);
     assert(replay_cache_reserve(NULL, key1, 120, 110) ==
            REPLAY_CACHE_UNAVAILABLE);
     replay_cache_free(cache);

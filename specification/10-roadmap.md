@@ -38,7 +38,7 @@ IT-006, sanitizers. Parallel: Python vectors and CI setup.
 Objectives: select/integrate mature JOSE library, strict BAF assertion
 validation, trust-anchor/JWKS loading, clock, and atomic replay abstraction.
 This phase performs no NSS/SSSD mapping, PAM account/session processing, or
-session startup.
+session startup. Phase 2 is RS256-only; PS256 and ES256 are future extensions.
 
 Deliverables: generic JWT provider returning a validated broker capability,
 trust loader, memory/SQLite replay backend, conformance vectors, and fuzz
@@ -67,7 +67,7 @@ reservation, existing session lifecycle, and audit correlation.
 
 Deliverables: completed broker login path and identity/PAM integration tests.
 Session creation requires both the validated capability and a resolved Linux
-identity; later-stage failure consumes replay by default.
+identity; later-stage failure leaves replay unusable until expiry.
 Dependencies: Phase 3, test LDAP/SSSD. Acceptance: IT-001–003 and ST-001 pass;
 UID 0 denied; PAM denial final; session cleanup exactly once. Complexity L.
 Risks: directory aliases, offline cache, PAM distribution variance. Parallel:

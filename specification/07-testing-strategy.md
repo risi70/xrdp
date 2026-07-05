@@ -31,8 +31,8 @@ raw-assertion-redaction cases. These tests perform no local identity lookup.
 
 Phase 4 MUST test successful NSS/SSSD mapping, unknown and ambiguous users,
 disabled accounts, removed LDAP groups, unauthorized groups, SSSD
-unavailability, LDAP timeout, PAM account denial, PAM session failure, and the
-default consumption of replay reservation after identity-binding failure.
+unavailability, LDAP timeout, PAM account denial, PAM session failure, and
+mandatory replay non-reusability after identity-binding failure.
 
 ## 3. Normative test catalog
 
@@ -41,13 +41,13 @@ Each row specifies purpose, setup, steps, expected result, and automation.
 | ID/type | Purpose | Setup | Steps | Expected result | Automation |
 |---|---|---|---|---|---|
 | UT-001 Unit | Accept valid RS256 assertion | Fixed key, clock, config | Sign all claims; validate | Context returned; exact identity metadata | pytest/C unit, every PR |
-| UT-002 Unit | Enforce algorithms | RSA/EC/HMAC/none vectors | Try allowed and forbidden `alg`/key pairs | Only explicit allow-list accepted | Every PR |
+| UT-002 Unit | Enforce Phase 2 algorithm | RS256/PS256/ES256/HMAC/none vectors | Try exact RS256 and every unsupported algorithm/configuration | Only exact RS256 accepted; mixed or future allow-lists fail closed | Every PR |
 | UT-003 Unit | Reject malformed/duplicate JSON | Corpus with bad base64, depth, duplicates | Parse each input | Bounded failure, no crash | Every PR + fuzz |
 | UT-004 Unit | Validate issuer/audience/target | Valid base, mutate one claim | Validate mutations | Each denied with stable local reason | Every PR |
 | UT-005 Unit | Validate time | Fake clock, boundary vectors | Test before/at/after `nbf/exp`, max TTL/skew | Exact exclusive expiry semantics | Every PR |
 | UT-006 Unit | Validate mandatory identity | Missing/empty username, subject, JTI | Validate | Denied before NSS/PAM | Every PR |
 | UT-007 Unit | Replay atomicity | Empty isolated cache, 64 workers | Submit same `(iss,jti)` concurrently | Exactly one reservation succeeds | Every PR/TSAN nightly |
-| UT-008 Unit | Replay lifecycle | Fake clock/cache | Reserve, consume/release, advance time | State transitions and eviction match spec | Every PR |
+| UT-008 Unit | Replay lifecycle | Fake clock/cache | Reserve, consume/release, attempt re-reserve, advance time | Released marker cannot retry before expiry; expiry permits a new reservation | Every PR |
 | UT-009 Unit | Configuration safety | Valid/invalid files and permissions | Load/reload candidates | Invalid candidate rejected; old config retained | Every PR |
 | UT-010 Unit | Protocol bounds | SCP/EICP boundary sizes | Encode/decode 0, max, max+1, truncation | Correct round trip or bounded rejection | Every PR |
 | UT-011 Unit | Secret erasure/redaction | Instrument buffers/logger | Complete success/failure | Buffers erased; token absent from logs | Sanitizer CI |

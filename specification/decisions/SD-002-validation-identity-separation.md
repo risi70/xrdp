@@ -8,7 +8,7 @@
 The BAF assertion validator is responsible only for cryptographic validation,
 claim validation, target binding, assertion-level policy prechecks, and atomic
 replay reservation. It MUST NOT perform NSS, SSSD, PAM, LDAP, FreeIPA, Active
-Directory, local `passwd`, or equivalent Linux identity lookups.
+Directory, local `passwd`/`group`, or equivalent Linux identity lookups.
 
 After successful validation, the validator returns a validated broker
 capability containing canonical assertion metadata. This capability proves
@@ -25,11 +25,10 @@ identities. Only this later path may produce a resolved Linux login identity.
 Phase 2 implements assertion validation and replay protection only. Phase 4
 implements NSS/SSSD identity binding and PAM account/session integration.
 
-Once validation reserves an assertion and produces a capability, the
-assertion is single-use by default. A later identity-binding, authorization,
-PAM, or session-creation failure SHOULD leave the reservation consumed. A
-bounded release policy MAY apply only to explicitly classified transient
-infrastructure failures; the MVP default is fail-closed and consume-once.
+Once validation reserves an assertion, it is single-use until replay expiry.
+A later identity-binding, authorization, PAM, or session-creation failure does
+not permit retry. A `released` state is an audit marker only and does not make
+the assertion reusable. Transient-failure retry is outside the MVP.
 
 ## Normative requirements
 
@@ -38,4 +37,4 @@ infrastructure failures; the MVP default is fail-closed and consume-once.
 | SD2-001 | The assertion validator MUST NOT perform local or directory identity lookup. |
 | SD2-002 | A validated broker capability MUST NOT be treated as session authorization. |
 | SD2-003 | Linux identity binding through NSS/SSSD is mandatory before PAM account/session processing or session creation. |
-| SD2-004 | A replay reservation SHOULD remain consumed after later-stage failure; bounded release is permitted only for explicitly classified transient infrastructure failure. |
+| SD2-004 | A reserved assertion MUST remain unusable until expiry after later-stage failure; a `released` marker MUST NOT permit retry. |

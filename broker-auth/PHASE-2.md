@@ -15,6 +15,18 @@ libjwt verifies the received compact serialization; Jansson performs strict
 header and claim parsing with duplicate-member rejection before policy
 processing. No libjwt type appears in the provider interface.
 
+## Validator scope and algorithms
+
+The provider validates compact structure, strict JSON/header syntax, RS256
+signature and key strength, mandatory claims, issuer/audience/time/target,
+assertion-level policy, and replay reservation. It performs no NSS, SSSD, PAM,
+LDAP, FreeIPA, Active Directory, or local passwd/group lookup.
+
+Phase 2 is deliberately RS256-only. Configuration must specify exactly
+`RS256`; PS256, ES256, MAC algorithms, `none`, and mixed allow-lists fail
+closed. PS256/ES256 require complete future implementation and conformance
+coverage rather than partial algorithm agility.
+
 ## Trust and replay
 
 The MVP trust loader accepts an administrator-selected local PEM public key
@@ -27,6 +39,10 @@ The memory replay backend hashes `UTF8(iss) || 0x00 || UTF8(jti)` with SHA-256,
 uses a mutex-protected atomic insert-if-absent operation, has fixed capacity,
 and expires entries at `exp + clock_skew`. It never receives or stores raw
 assertions. Cache absence, exhaustion, and locking errors fail closed.
+`replay_cache_release()` records an audit/state transition only. It does not
+delete the replay key or permit retry before expiry. Phase 2 is unconditionally
+consume-once, including after later identity, authorization, PAM, or
+session-start failure.
 
 ## Boundaries
 
@@ -51,6 +67,10 @@ make -C tests/sesman check
 ```
 
 The optional fuzz harness and build example are under `tests/baf/fuzz/`.
+`broker-auth/vectors/phase2-vectors.json` contains deterministic static tokens
+and malformed inputs for every Phase 2 positive and negative class. Each entry
+records its reason, expected result/status, storage mode, and any sequence
+needed to reproduce replay behavior.
 
 ## Deferred optional backends
 

@@ -21,7 +21,7 @@ syntax.
 | EXT-009 | Assertion validation MUST NOT perform Linux or directory identity lookup. |
 | EXT-010 | A validated broker capability alone MUST NOT authorize or start a session. |
 | EXT-011 | Mandatory NSS/SSSD binding MUST produce a resolved Linux identity before PAM account/session processing or session creation. |
-| EXT-012 | Later-stage failure SHOULD consume the replay reservation by default. |
+| EXT-012 | Later-stage failure MUST leave the assertion unusable until replay expiry; `released` is an audit marker only. |
 
 ## 3. Modules
 
@@ -31,7 +31,7 @@ syntax.
 |---|---|
 | `sesman/libsesman/auth_provider.[ch]` | Stable provider request/result operations. |
 | `sesman/libsesman/auth_provider_jwt.[ch]` | Generic BAF validation using libjwt/OpenSSL and Jansson strict parsing. |
-| `sesman/libsesman/replay_cache.[ch]` | Bounded atomic reserve/consume/release abstraction. |
+| `sesman/libsesman/replay_cache.[ch]` | Bounded atomic reserve/consume and audit-only release-state abstraction. |
 | `sesman/sesexec/identity_binding.[ch]` or equivalent | Phase 4 binding of a validated capability to a canonical Linux identity through NSS/SSSD. |
 | `broker-auth/` | Schema, reference issuer, vectors, conformance tools; not linked into XRDP. |
 
@@ -75,8 +75,8 @@ fields needed by sesman: issuer, subject, preferred username, broker session
 ID, JTI digest, expiry, and client address. Accessors expose immutable values.
 Only the validator can construct a successful capability. The capability owns
 no PAM or session resources and is securely freed after login state is built.
-It performs no NSS, SSSD, PAM, LDAP, FreeIPA, Active Directory, or local
-account lookup.
+It performs no NSS, SSSD, PAM, LDAP, FreeIPA, Active Directory, local
+passwd/group, or equivalent identity lookup.
 
 Providers return structured status, never partial success. Future providers may
 validate a different signed assertion format but must meet the same identity,
@@ -132,9 +132,8 @@ request and is subject to normal rate limits.
    does not.
 
 After validation, later identity-binding, authorization, PAM, or
-session-creation failure consumes the assertion by default. Release is
-permitted only by a bounded policy for explicitly classified transient
-infrastructure failures.
+session-creation failure leaves the assertion unusable until replay expiry.
+The `released` state is an audit marker only and never permits retry.
 
 ## 7. Backward compatibility
 

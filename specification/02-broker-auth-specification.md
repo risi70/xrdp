@@ -8,17 +8,17 @@
 | ID | Requirement |
 |---|---|
 | AST-001 | Assertions MUST be JWS Compact Serialization JWTs. |
-| AST-002 | Assertions MUST use an asymmetric algorithm from the configured allow-list. |
+| AST-002 | Phase 2 assertions MUST use RS256; all other algorithms MUST fail closed. |
 | AST-003 | Validators MUST reject `none`, all MAC algorithms, duplicate JSON members, unknown critical headers, and algorithm/key-type confusion. |
 | AST-004 | Every mandatory claim MUST be validated independently of signature validity. |
 | AST-005 | `(iss,jti)` MUST be accepted at most once within the replay window. |
 | AST-006 | `target` MUST match the local target identity using exact, case-sensitive comparison. |
 | AST-007 | Validators MUST NOT follow token-provided `jku`, `x5u`, or embedded `jwk` values. |
 | AST-008 | Assertion lifetime MUST NOT exceed configured `max_lifetime`, default 300 seconds. |
-| AST-009 | The validator MUST NOT perform NSS, SSSD, PAM, directory, or local account lookup. |
+| AST-009 | The validator MUST NOT perform NSS, SSSD, PAM, LDAP, FreeIPA, Active Directory, local passwd, local group, or equivalent identity lookup. |
 | AST-010 | A validated broker capability MUST NOT be treated as session authorization. |
 | AST-011 | Linux identity binding through NSS/SSSD MUST succeed before PAM account/session processing or session creation. |
-| AST-012 | Replay reservation SHOULD remain consumed after later-stage failure; release is limited to explicitly classified transient infrastructure failure. |
+| AST-012 | Once reserved, an assertion MUST remain unusable until replay expiry, including after later-stage failure or a `released` state marker. |
 
 ## 2. JOSE header
 
@@ -26,15 +26,16 @@ Mandatory protected headers are:
 
 | Header | Rule |
 |---|---|
-| `alg` | `RS256` for 1.0 interoperability; `PS256` or `ES256` MAY be enabled explicitly. |
+| `alg` | Exact value `RS256` for the Phase 2 MVP. |
 | `kid` | Non-empty identifier unique within the issuer trust set. |
 | `typ` | Exact value `baf+jwt`. |
 
-`RS256` is mandatory because mature JOSE/OpenSSL implementations support it
-widely. New deployments SHOULD prefer `PS256` when all participants support
-it. RSA keys MUST be at least 2048 bits. ES256 keys MUST use P-256. SHA-1,
-HMAC, unsecured JWTs, and keys selected from assertion-controlled URLs are
-prohibited.
+Phase 2 is intentionally RS256-only. Its configured algorithm value MUST be
+exactly `RS256`; `PS256`, `ES256`, `none`, all MAC algorithms, and mixed
+allow-lists fail closed. RSA keys MUST be at least 2048 bits. PS256 and ES256
+are future extensions requiring complete implementation, configuration, and
+conformance tests before they can be enabled. SHA-1, HMAC, unsecured JWTs, and
+keys selected from assertion-controlled URLs are prohibited.
 
 ## 3. Claims
 
@@ -123,36 +124,38 @@ Validators MUST:
 2. Parse exactly three compact-JWS segments.
 3. Enforce strict base64url.
 4. Reject duplicate JSON members in the protected header and claims.
-5. Validate the protected header, including exact `typ = baf+jwt`.
-6. Reject `alg = none`, MAC algorithms, unknown critical headers,
-   token-controlled key locations, and embedded token keys.
-7. Enforce the configured algorithm allow-list.
-8. Require a non-empty `kid`.
-9. Select the issuer-bound trust anchor.
-10. Enforce key strength.
-11. Verify the JWS signature over the received octets; never reserialize
+5. Validate the protected header, including exact `typ = baf+jwt`, rejection
+   of unknown critical headers, token-controlled key locations, embedded token
+   keys, `alg = none`, and MAC algorithms.
+6. Enforce the Phase 2 RS256-only algorithm allow-list.
+7. Require a non-empty `kid`.
+8. Select the issuer-bound trust anchor.
+9. Enforce key strength.
+10. Verify the JWS signature over the received octets; never reserialize
     before verifying.
-12. Validate all mandatory claims and the assertion schema.
-13. Validate the exact configured issuer.
-14. Validate audience membership.
-15. Require `iat <= nbf < exp`, `exp-iat <= max_lifetime`, and
+11. Validate all mandatory claims and the assertion schema.
+12. Validate the exact configured issuer.
+13. Validate audience membership.
+14. Require `iat <= nbf < exp`, `exp-iat <= max_lifetime`, and
     `iat <= now+clock_skew`; accept only when `now+clock_skew >= nbf` and
     `now-clock_skew < exp`.
-16. Match the exact configured target.
-17. Apply assurance, device, role, and other broker assertion policy prechecks
+15. Match the exact configured target.
+16. Apply assurance, device, role, and other broker assertion policy prechecks
     that do not require local identity resolution.
-18. Atomically reserve `(iss,jti)`.
-19. Return a validated broker capability.
+17. Atomically reserve `(iss,jti)`.
+18. Create and return a validated broker capability.
 
 Default `clock_skew` is 30 seconds and MUST NOT exceed 120 seconds. Clock
 synchronization through systemd-timesyncd, chrony, or equivalent is required.
 
 The validator MUST NOT perform NSS, SSSD, PAM, LDAP, FreeIPA, Active
-Directory, local `passwd`, or equivalent identity resolution. A validated
-broker capability MUST NOT be treated as login authorization. It proves only
-that the assertion is authentic, fresh, targeted to this XRDP endpoint,
-compatible with assertion-level policy, and non-replayed. Mandatory Linux
-identity binding is a later stage defined by the XRDP extension.
+Directory, local `passwd`/`group`, or equivalent identity resolution. A
+validated broker capability MUST NOT be treated as login authorization or
+start a session. It proves only that the assertion is authentic, fresh,
+targeted to this XRDP endpoint, compatible with assertion-level policy, and
+non-replayed. Mandatory Linux identity binding is a later Phase 4 stage.
+Session creation requires both a validated broker capability and a separately
+resolved Linux identity.
 
 ## 6. Replay protection
 
@@ -161,11 +164,11 @@ never stored. Atomic insert-if-absent is required. Entries expire at
 `exp + clock_skew`. Cache capacity and rate limits are bounded.
 
 States are `reserved`, `consumed`, and `released`. Validation reserves the key.
-Once a validated capability is produced, the assertion is single-use by
-default. Later identity-binding, authorization, PAM account, or session
-creation failure SHOULD leave the reservation consumed. An implementation MAY
-define a bounded release policy only for explicitly classified transient
-infrastructure failures; the MVP default is fail-closed and consume-once.
+Phase 2 uses unconditional consume-once semantics: once reserved, the
+assertion cannot be reserved again before expiry. Later identity-binding,
+authorization, PAM account, or session-creation failure does not permit retry.
+`released` is an audit/state marker only; it MUST NOT remove the entry or make
+the assertion reusable. Transient-failure retry is not part of the MVP.
 Cache unavailability fails closed.
 Clustered desktops require a shared atomic replay store or target-specific
 assertions that cannot move between hosts.
@@ -200,5 +203,6 @@ member order. UTF-8, integers for NumericDate, and unique members are required.
 
 New optional data belongs under `extensions` using URI keys. Unknown extension
 keys are ignored unless named by a future understood critical policy. New
-mandatory claims require a new profile version and media type. Algorithm
-support is configuration-gated, never inferred from the token.
+mandatory claims require a new profile version and media type. Future
+algorithm support is configuration-gated, never inferred from the token.
+Phase 2 accepts only an exact RS256 configuration.

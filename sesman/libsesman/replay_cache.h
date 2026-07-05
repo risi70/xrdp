@@ -37,6 +37,12 @@ enum replay_cache_status replay_cache_reserve(
 enum replay_cache_status replay_cache_consume(
     struct replay_cache *cache,
     const unsigned char key[REPLAY_CACHE_KEY_SIZE], int64_t now);
+/**
+ * Mark a reservation as released for audit/state reporting only.
+ *
+ * Phase 2 is consume-once: this does not delete the entry or permit the key
+ * to be reserved again before its expiry.
+ */
 enum replay_cache_status replay_cache_release(
     struct replay_cache *cache,
     const unsigned char key[REPLAY_CACHE_KEY_SIZE], int64_t now);

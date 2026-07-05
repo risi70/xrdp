@@ -30,6 +30,8 @@ REQUIRED_NAMES = {
     "oversized-assertion",
     "malformed-compact",
     "invalid-base64url",
+    "ps256-unsupported",
+    "es256-unsupported",
 }
 
 
@@ -39,6 +41,18 @@ def test_phase2_vector_manifest_is_complete():
     assert REQUIRED_NAMES <= vectors.keys()
     assert vectors["valid-rs256"]["expected_status"] == "success"
     assert vectors["replayed-jti"]["expected_status"] == "replay"
+    for vector in vectors.values():
+        assert vector["token"]
+        assert vector["reason"]
+        assert vector["static"] is True
+        assert vector["expected_result"] in {
+            "accepted",
+            "rejected",
+            "replay-rejected",
+        }
+        assert vector["expected_status"] in {"success", "invalid", "replay"}
+        assert vector["expected_validator_status"] == vector["expected_status"]
+    assert vectors["replayed-jti"]["generation_parameters"]["sequence"]
 
 
 def test_valid_phase2_vector_is_baf_rs256():

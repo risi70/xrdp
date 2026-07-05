@@ -72,7 +72,7 @@ nonempty(const char *value)
 }
 
 static int
-algorithm_allowed(const char *list, const char *algorithm)
+comma_list_contains(const char *list, const char *algorithm)
 {
     const char *p = list;
     size_t length = strlen(algorithm);
@@ -153,9 +153,7 @@ baf_validator_config_create(const struct baf_validator_options *options,
             !nonempty(options->local_target) ||
             !nonempty(options->key_id) ||
             !nonempty(options->allowed_algorithms) ||
-            !algorithm_allowed(options->allowed_algorithms, "RS256") ||
-            strstr(options->allowed_algorithms, "none") != NULL ||
-            strstr(options->allowed_algorithms, "HS") != NULL ||
+            strcmp(options->allowed_algorithms, "RS256") != 0 ||
             max_size < 1024 || max_size > 65536 ||
             lifetime < 30 || lifetime > 900 ||
             skew < 0 || skew > BAF_MAX_CLOCK_SKEW_SECONDS)
@@ -658,7 +656,7 @@ provider_validate(const struct auth_provider_request *request,
              !array_contains(json_object_get(claims, "roles"),
                              config->required_role)) ||
             (nonempty(config->allowed_device_status) &&
-             !algorithm_allowed(config->allowed_device_status, device_status)))
+             !comma_list_contains(config->allowed_device_status, device_status)))
     {
         goto cleanup;
     }
