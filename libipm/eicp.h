@@ -52,8 +52,28 @@ enum eicp_msg_code
     // No E_EICP_LOGOUT_RESPONSE
 
     E_EICP_CREATE_SESSION_REQUEST,
-    E_EICP_CREATE_SESSION_RESPONSE
+    E_EICP_CREATE_SESSION_RESPONSE,
+#if defined(ENABLE_BROKER_AUTH)
+    E_EICP_BROKER_LOGIN_REQUEST_V1
+#endif
 };
+
+#if defined(ENABLE_BROKER_AUTH)
+int eicp_send_broker_login_request_v1(struct trans *trans,
+                                      unsigned short profile_version,
+                                      const unsigned char *assertion,
+                                      unsigned int assertion_length,
+                                      const char *client_address,
+                                      const unsigned char correlation_id[16],
+                                      int scp_fd);
+int eicp_get_broker_login_request_v1(struct trans *trans,
+                                     unsigned short *profile_version,
+                                     unsigned char *assertion,
+                                     unsigned int *assertion_length,
+                                     const char **client_address,
+                                     unsigned char correlation_id[16],
+                                     int *scp_fd);
+#endif
 
 /* Common facilities */
 

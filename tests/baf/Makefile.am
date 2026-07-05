@@ -12,8 +12,9 @@ PY_LOG_COMPILER = python3
 
 if ENABLE_BROKER_AUTH
 TESTS = test_replay_cache test_auth_provider_jwt test_phase2_vectors \
-  test_security_contract.py
-check_PROGRAMS = test_replay_cache test_auth_provider_jwt test_phase2_vectors
+  test_baf_transport test_security_contract.py
+check_PROGRAMS = test_replay_cache test_auth_provider_jwt test_phase2_vectors \
+  test_baf_transport
 test_replay_cache_SOURCES = test_replay_cache.c
 test_replay_cache_LDADD = \
   $(top_builddir)/sesman/libsesman/libsesman.la
@@ -25,6 +26,10 @@ test_phase2_vectors_SOURCES = test_phase2_vectors.c
 test_phase2_vectors_LDADD = \
   $(top_builddir)/sesman/libsesman/libsesman.la \
   $(BROKER_AUTH_LIBS)
+test_baf_transport_SOURCES = test_baf_transport.c
+test_baf_transport_LDADD = \
+  $(top_builddir)/sesman/libsesman/libsesman.la \
+  $(BROKER_AUTH_LIBS)
 endif
 
 EXTRA_DIST = \
@@ -32,6 +37,7 @@ EXTRA_DIST = \
   data/test-public.pem \
   fuzz/fuzz_baf_compact.c \
   fuzz/README.md \
+  test_baf_transport.c \
   test_phase2_vectors.c \
   test_security_contract.py
 

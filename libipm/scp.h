@@ -65,9 +65,34 @@ enum scp_msg_code
     E_SCP_CREATE_SOCKDIR_REQUEST,
     E_SCP_CREATE_SOCKDIR_RESPONSE,
 
-    E_SCP_CLOSE_CONNECTION_REQUEST
+    E_SCP_CLOSE_CONNECTION_REQUEST,
     // No E_SCP_CLOSE_CONNECTION_RESPONSE
+#if defined(ENABLE_BROKER_AUTH)
+    E_SCP_CAPABILITIES_REQUEST,
+    E_SCP_CAPABILITIES_RESPONSE,
+    E_SCP_BROKER_LOGIN_REQUEST_V1
+#endif
 };
+
+#if defined(ENABLE_BROKER_AUTH)
+#define SCP_CAP_BROKER_ASSERTION_V1 0x00000001U
+#define SCP_BAF_CORRELATION_ID_BYTES 16U
+int scp_send_capabilities_request(struct trans *trans);
+int scp_send_capabilities_response(struct trans *trans, unsigned int capabilities);
+int scp_get_capabilities_response(struct trans *trans, unsigned int *capabilities);
+int scp_send_broker_login_request_v1(struct trans *trans,
+                                     unsigned short profile_version,
+                                     const unsigned char *assertion,
+                                     unsigned int assertion_length,
+                                     const char *client_address,
+                                     const unsigned char correlation_id[SCP_BAF_CORRELATION_ID_BYTES]);
+int scp_get_broker_login_request_v1(struct trans *trans,
+                                    unsigned short *profile_version,
+                                    unsigned char *assertion,
+                                    unsigned int *assertion_length,
+                                    const char **client_address,
+                                    unsigned char correlation_id[SCP_BAF_CORRELATION_ID_BYTES]);
+#endif
 
 /* Common facilities */
 
