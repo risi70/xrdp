@@ -15,8 +15,10 @@
 
 Phase 2 unit tests isolate JOSE header/claim policy, configuration, replay
 state, provider capability, and status mapping without NSS/SSSD or PAM.
-Phase 4 tests own NSS/SSSD identity-binding adapters and PAM integration.
-Integration tests use real PAM/SSSD/JWKS/replay services. System tests use a
+Phase 4a tests own NSS/SSSD identity-binding adapters and PAM precondition
+contracts. Phase 4b tests own live activation, effective transport boundaries,
+and dynamic PAM denial/session-failure behavior. Integration tests use real
+PAM/SSSD/JWKS/replay services. System tests use a
 real XRDP desktop and FreeRDP. Security tests include adversarial input, races,
 compromise assumptions, and log inspection.
 
@@ -29,10 +31,20 @@ unknown-`crit`, token-controlled-key-URL, embedded-token-key, replayed-`jti`,
 oversized, malformed-compact, invalid-base64url, replay-cache-unavailable, and
 raw-assertion-redaction cases. These tests perform no local identity lookup.
 
-Phase 4 MUST test successful NSS/SSSD mapping, unknown and ambiguous users,
+Phase 4a MUST test successful NSS/SSSD mapping, unknown and ambiguous users,
 disabled accounts, removed LDAP groups, unauthorized groups, SSSD
-unavailability, LDAP timeout, PAM account denial, PAM session failure, and
+unavailability, LDAP timeout, UID 0 rejection, PAM account preconditions, and
 mandatory replay non-reusability after identity-binding failure.
+
+Phase 4b MUST test live authorization only after every BAF stage,
+runtime-disabled
+rejection, unchanged classic PAM/password login, dynamic PAM account denial and
+session-open failure, and consume-once replay after identity/PAM/session failure.
+Transport tests MUST cover a valid assertion below the effective limit, exactly
+the derived permitted boundary, one byte over that boundary rejected before
+validation where possible, and input above the validator maximum. Validator
+success alone and identity binding without PAM approval MUST NOT start a
+session.
 
 ## 3. Normative test catalog
 
@@ -49,12 +61,12 @@ Each row specifies purpose, setup, steps, expected result, and automation.
 | UT-007 Unit | Replay atomicity | Empty isolated cache, 64 workers | Submit same `(iss,jti)` concurrently | Exactly one reservation succeeds | Every PR/TSAN nightly |
 | UT-008 Unit | Replay lifecycle | Fake clock/cache | Reserve, consume/release, attempt re-reserve, advance time | Released marker cannot retry before expiry; expiry permits a new reservation | Every PR |
 | UT-009 Unit | Configuration safety | Valid/invalid files and permissions | Load/reload candidates | Invalid candidate rejected; old config retained | Every PR |
-| UT-010 Unit | Protocol bounds | SCP/EICP boundary sizes | Encode/decode 0, max, max+1, truncation | Correct round trip or bounded rejection | Every PR |
+| UT-010 Unit/Phase 4b | Effective protocol bounds | Validator/transport limits and exact SCP/EICP framing capacity | Encode/decode under-boundary, exact boundary, boundary+1, validator+1, and truncation | Exact boundary round trips; oversize rejected before validation where possible; no fragmentation | Every PR |
 | UT-011 Unit | Secret erasure/redaction | Instrument buffers/logger | Complete success/failure | Buffers erased; token absent from logs | Sanitizer CI |
 | UT-012 Unit | PAM split contract | Mock PAM calls | Classic and prevalidated login | Classic calls authenticate; both call account/session | Every PR |
-| IT-001 Integration/Phase 4 | NSS/SSSD identity binding | SSSD against LDAP test realm | Map valid, unknown, ambiguous, and disabled users; remove or deny groups; fail SSSD and time out LDAP | Canonical UID/name or denial; reservation consumed by default after failure | Nightly |
-| IT-002 Integration | PAM account enforcement | PAM rule denies selected user/time | Submit valid assertion | Login denied after valid signature | Every PR privileged runner |
-| IT-003 Integration | PAM session lifecycle | pam_systemd/audit hooks | Open and close broker session | Credentials/session/environment created and removed | Nightly VM |
+| IT-001 Integration/Phase 4a | NSS/SSSD identity binding | SSSD against LDAP test realm | Map valid, unknown, ambiguous, and disabled users; remove or deny groups; fail SSSD and time out LDAP | Canonical UID/name or denial; reservation consumed by default after failure | Nightly |
+| IT-002 Integration/Phase 4b | PAM account enforcement | PAM rule denies selected user/time | Submit valid assertion | Login denied after valid signature | Every PR privileged runner |
+| IT-003 Integration/Phase 4b | PAM session lifecycle | pam_systemd/audit hooks | Open and close broker session | Credentials/session/environment created and removed | Nightly VM |
 | IT-004 Integration | JWKS rotation | HTTPS issuer with key A/B | Validate A; publish B; rotate/remove A | Overlap succeeds; removed key fails after policy | Nightly |
 | IT-005 Integration | Dependency failure | Stop JWKS/replay/LDAP independently | Attempt login with cache warm/cold | Exact fail-closed/degraded policy | Nightly |
 | IT-006 Integration | Classic regression | Same binaries, broker on/off | Password success/failure/retry/reconnect | Behavior and messages unchanged | Every PR |
@@ -72,6 +84,26 @@ Each row specifies purpose, setup, steps, expected result, and automation.
 | INT-001 Interop | Issuer/library compatibility | Reference issuer + selected C JOSE libs | Validate shared vectors | Identical classification | Every PR |
 | ACC-001 Acceptance | Operational recovery | Full lab | Rotate/revoke key, restart services, inspect audit | Runbook works; classic login remains | Release/manual automated |
 
+### 3.1 Phase 4b activation matrix
+
+| Case | Required result |
+|---|---|
+| Valid under-limit assertion, resolved user, PAM success | Live broker session authorization may proceed. |
+| Broker auth runtime-disabled | Assertion request rejected; classic login unaffected. |
+| Validator success without identity binding | No session authorization. |
+| Identity-bound result without PAM approval | No session authorization. |
+| Unknown/unsafe/UID 0 identity | Rejected; replay reservation remains consumed. |
+| PAM account denial or session-open failure | Rejected; no active session; replay remains consumed. |
+| Exact effective transport boundary | Framing round trip succeeds. |
+| Effective boundary plus one | Rejected before validator where possible. |
+| Above validator maximum | Rejected even if another transport could carry it. |
+
+Dynamic PAM account-denial and session-failure tests SHOULD run on every
+privileged PR runner and MUST run on the Ubuntu 24.04 release VM. If host PAM
+policy cannot safely be altered in ordinary `make check`, the repository MUST
+provide an isolated harness and explicit integration target; the static split
+contract remains mandatory in normal checks.
+
 ## 4. Negative vector minimum
 
 The committed corpus includes valid, expired, future `nbf`, excessive lifetime,
@@ -86,11 +118,11 @@ unavailable cache.
 | Requirement family | Primary tests |
 |---|---|
 | ARC-001–008 | IT-006, ST-001–003, architecture review |
-| AST-001–012, SD2-001–004 | UT-001–009, IT-001–003, SEC-001–003, FUZ-001, INT-001 |
+| AST-001–015, SD2-001–004, SD3-001–005 | UT-001–009, IT-001–003, SEC-001–003, FUZ-001, INT-001 |
 | SEC-001–006 | SEC-001–005, IT-005, ACC-001 |
-| EXT-001–012 | UT-010–012, IT-001–003, IT-006, ST-001 |
+| EXT-001–015 | UT-010–012, IT-001–003, IT-006, ST-001 |
 | CFG-001–005 | UT-009, SEC-002, ACC-001 |
-| PRO-001–006 | UT-010–011, FUZ-001, IT-006 |
+| PRO-001–008 | UT-010–011, FUZ-001, IT-006 |
 
 A machine-readable traceability manifest SHOULD be generated from test markers
 before implementation phase completion.

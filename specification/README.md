@@ -20,16 +20,20 @@ in all ten documents and the referenced test gates.
 Normative decisions:
 
 - [SD-002 — Separation of Assertion Validation and Linux Identity Binding](decisions/SD-002-validation-identity-separation.md)
+- [SD-003 — Phase Ownership and Assertion Transport Size](decisions/SD-003-phase-ownership-transport-size.md)
 
 ## Conformance
 
 An implementation claiming BAF 1.0 conformance MUST implement the assertion
 profile, validation order, replay semantics, target binding, identity mapping,
 PAM account/session lifecycle, protocol capability negotiation, and required
-tests. BAF conformance separates assertion validation from mandatory Linux
-identity binding. A validated broker capability alone is never sufficient to
-authorize or launch a session. Supporting UDS Enterprise or any other
-reference broker is neither necessary nor sufficient.
+tests. BAF conformance separates assertion validation, transport, mandatory
+Linux identity binding, PAM preconditions, and live session activation. A
+validated broker capability alone is never sufficient to authorize or launch a
+session. Phase 4a is the completed identity/PAM-precondition phase; Phase 4b
+owns live broker-auth activation; Phase 5 remains reference broker and
+interoperability work. Supporting UDS Enterprise or any other reference broker
+is neither necessary nor sufficient for core BAF conformance.
 
 ## Decision summary
 
@@ -40,9 +44,16 @@ reference broker is neither necessary nor sufficient.
   PAM account/session processing and session creation.
 - A validated broker capability alone never authorizes or launches a session.
 - PAM authentication may be skipped only after both local assertion validation
-  and mandatory Phase 4 Linux identity binding; a capability alone is
+  and mandatory Phase 4a Linux identity binding; a capability alone is
   insufficient.
 - PAM account, credentials, session, environment, and cleanup remain mandatory.
+- Phase 4a produces no live-session authorization; Phase 4b owns activation
+  after every validation, replay, identity, UID, and PAM prerequisite passes.
+- The validator's 16 KiB default is an upper validation bound. In-band SCP/EICP
+  transport has a nominal 8 KiB message ceiling and MUST subtract framing
+  overhead; the effective maximum is the minimum of validator, transport, and
+  available payload limits.
+- The MVP has no fragmentation or out-of-band assertion handles.
 - Classic password/PAM login remains default and wire-compatible.
 - Keycloak is a possible broker IdP, not an XRDP dependency.
 - No UDS Enterprise concept appears in the XRDP extension contract.

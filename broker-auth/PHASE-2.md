@@ -51,9 +51,9 @@ raw token. The temporary NUL-terminated copy required by libjwt is cleansed
 after validation. Caller-owned assertion storage remains the caller's erasure
 responsibility.
 
-Phase 3 transports opaque assertions. Phase 4 binds
-`preferred_username` through NSS/SSSD and integrates PAM account/session
-processing. A Phase 2 capability alone has no session-start API.
+Phase 3 transports opaque assertions. Phase 4a binds
+`preferred_username` through NSS/SSSD and integrates PAM account
+preconditions while preserving the existing session lifecycle. A Phase 2 capability alone has no session-start API.
 
 ## Tests
 

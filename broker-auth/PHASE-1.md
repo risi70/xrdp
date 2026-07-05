@@ -39,11 +39,11 @@ contract test confirms classic PAM calls remain and no trusted bypass exists.
 ## Deferred
 
 JWT/JWS validation and replay are Phase 2. SCP/EICP assertion transport is
-Phase 3. NSS mapping and capability-gated PAM account/session are Phase 4.
+Phase 3. NSS mapping and capability-gated PAM preconditions are Phase 4a.
 
 ## Ambiguity resolved
 
 The roadmap mentions an explicit prevalidated PAM entry in Phase 1. This task
 more strictly requires that prevalidated structures cannot start a login before
 successful validation exists. Phase 1 therefore defines opaque types and
-defers the callable PAM entry to Phase 4.
+defers the callable PAM entry to Phase 4a.

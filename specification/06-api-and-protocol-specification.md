@@ -10,6 +10,8 @@
 | PRO-004 | All length fields MUST be bounded and checked before allocation. |
 | PRO-005 | Secret-bearing input/output buffers MUST be erased after use. |
 | PRO-006 | Status codes MUST be stable, coarse across trust boundaries, and versioned. |
+| PRO-007 | Effective assertion size MUST be the minimum of validator, transport, and framed libipm payload limits. |
+| PRO-008 | MVP SCP/EICP transport MUST reject oversize assertions and MUST NOT fragment or use out-of-band assertion handles. |
 
 ## 2. Internal SCP additions
 
@@ -26,12 +28,14 @@ Symbolic message: `SCP_BROKER_LOGIN_REQUEST_V1`.
 | Field | Encoding | Limit |
 |---|---|---|
 | profile version | uint16 | value 1 |
-| assertion | length-prefixed opaque bytes | configured maximum, hard max 64 KiB |
+| assertion | length-prefixed opaque bytes | effective framed transport maximum; nominal MVP ceiling 8 KiB |
 | client address | UTF-8 string | 255 bytes |
 | correlation ID | 16 bytes | UUID bytes |
 
 The request contains no username and no “validated” flag. `xrdp` performs only
-framing and configured-mode checks.
+framing and configured-mode checks. The nominal 8 KiB in-band ceiling includes
+all libipm/SCP framing and fields; it is not 8 KiB of assertion data. Senders
+and receivers MUST derive and enforce the lower exact assertion boundary.
 
 Response `SCP_LOGIN_RESPONSE` may be reused with the additional stable broker
 status mapping, preserving existing session creation. Assertion validation
@@ -50,7 +54,8 @@ handover rules.
 
 The assertion buffer is erased in xrdp after SCP send, sesman after EICP send,
 and sesexec immediately after provider validation. Size is checked at every
-hop.
+hop before allocation or forwarding where possible. Phase 4b rejects any input
+above the effective maximum and does not fall back to classic authentication.
 
 ## 4. Version negotiation
 
@@ -162,6 +167,26 @@ unless a configured issuer intentionally emits the BAF profile. The reference
 broker validates Keycloak/OIDC and produces a separate target-bound BAF token.
 
 ## 9. Limits and transport security
+
+The validator's default 16 KiB maximum is an API validation ceiling, not an
+in-band transport guarantee. For SCP/EICP, the effective maximum is:
+
+```text
+min(configured validator maximum,
+    configured transport maximum,
+    libipm/SCP/EICP payload capacity after framing overhead)
+```
+
+The MVP configured in-band ceiling is nominally 8 KiB. Implementations MUST
+subtract message headers, length fields, profile version, client address,
+correlation ID, transferred descriptor metadata, and any other framing. An
+assertion exactly at the derived permitted boundary is accepted for transport;
+one byte over is rejected before allocation/validation where possible.
+
+The MVP defines neither fragmentation nor out-of-band assertion handles. It
+MUST NOT raise libipm message bounds as an implicit substitute. Fragmentation,
+handle transport, and larger messages are deferred to a separate versioned
+protocol/security decision.
 
 RDP TLS is required. Local sockets use existing XRDP permissions and peer
 credentials. Assertion fields cannot be copied into environment variables,

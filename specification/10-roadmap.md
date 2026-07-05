@@ -48,40 +48,64 @@ UT-001–009, FUZ-001 pass. Complexity XL. Risks:
 parser ambiguity, key rotation, library packaging. Parallel: replay backend,
 JWKS client, fuzz harness after interfaces freeze.
 
-### Phase 3 — SCP/EICP transport and xrdp integration
+### Phase 3 — SCP/EICP Transport Scaffolding
 
-Objectives: negotiate capabilities, carry opaque assertions, erase buffers,
-and invoke validator in sesexec.
+Objectives: define capability negotiation and bounded opaque assertion codecs,
+erase buffers, and provide a controlled validator handoff.
 
-Deliverables: protocol additions, state machine, mode configuration, negative
-protocol tests. Dependencies: Phases 1–2. Acceptance: old/new peer matrix,
+Deliverables: protocol message and transport scaffolding plus negative protocol
+tests. Production state-machine, mode-configuration, and live-login wiring are
+completed in Phase 4b. Dependencies: Phases 1–2. Acceptance: old/new peer matrix,
 UT-010–011, no token logs, no classic wire change. Complexity L. Risks:
 secret lifetime, handover races, upstream protocol review. Parallel: SCP and
 EICP implementations with shared vectors.
 
-### Phase 4 — Identity, PAM, and session integration
+### Phase 4a — Linux Identity Binding and PAM Preconditions
 
-Objectives: mandatory NSS/SSSD identity binding, prohibited-user and local
-identity checks, PAM account/session integration, failure handling after replay
-reservation, existing session lifecycle, and audit correlation.
+**Status: implemented / completed.**
 
-Deliverables: completed broker login path and identity/PAM integration tests.
-Session creation requires both the validated capability and a resolved Linux
-identity; later-stage failure leaves replay unusable until expiry.
-Dependencies: Phase 3, test LDAP/SSSD. Acceptance: IT-001–003 and ST-001 pass;
-UID 0 denied; PAM denial final; session cleanup exactly once. Complexity L.
-Risks: directory aliases, offline cache, PAM distribution variance. Parallel:
-SSSD lab and PAM test modules.
+Objectives: consume a validated capability, perform mandatory NSS/SSSD identity
+binding, reject prohibited or UID 0 identities by default, create the
+prevalidated PAM account handle, preserve consume-once replay semantics, and
+leave classic password/PAM behavior unchanged.
 
-### Phase 5 — Reference ecosystem and interoperability
+Deliverables: resolved Linux identity abstraction, NSS adapters, prevalidated
+PAM account entry, and identity/PAM contract tests. Phase 4a produces an
+identity-bound, PAM-precondition-approved internal result; it does not authorize
+or start a live broker session. Dependencies: Phase 3. Acceptance: identity
+unit tests and classic regression pass. Complexity L. Risks: directory aliases,
+offline cache, and PAM distribution variance.
 
-Objectives: broker-neutral reference issuer/API, Keycloak-backed reference
-broker, static vectors, administrator documentation.
+### Phase 4b — Live Broker-Auth Session Activation
 
-Deliverables: container services, REST API, JWKS rotation, example policies.
-Dependencies: BAF 1.0 profile. Acceptance: INT-001, IT-004, no reference-specific
-XRDP code. Complexity M. Risks: examples mistaken for production defaults.
-Parallel: reference broker and issuer/vector work.
+**Status: next implementation phase.**
+
+Objectives: connect the broker SCP/EICP state machine to validation, replay,
+Phase 4a identity/PAM prerequisites, and the existing session lifecycle under
+explicit runtime gating. Session authorization requires every BAF stage and
+uses only the NSS-resolved Linux identity.
+
+Deliverables: completed live broker-login path, exact effective transport-bound
+checks, dynamic PAM denial/session-failure tests, negative protocol tests, and
+classic-mode regression coverage. No fragmentation or out-of-band assertion
+handles are in scope. Dependencies: Phase 3 and Phase 4a. Acceptance: UT-010–012,
+IT-002–003, IT-006, and ST-001 pass; UID 0 is denied; PAM denial is final;
+session cleanup occurs exactly once. Complexity L. Risks: handover races,
+transport framing capacity, and PAM lifecycle variance.
+
+### Phase 5 — Reference Broker and Interoperability
+
+**Status: future.**
+
+Objectives: broker-neutral reference issuer/API, UDS Enterprise reference
+broker integration, generic broker interoperability, static vectors,
+administrator documentation, and compatibility testing.
+
+Deliverables: container services, REST API, JWKS rotation, example policies,
+and broker interoperability evidence. Dependencies: BAF 1.0 profile. Acceptance:
+INT-001, IT-004, no reference-specific XRDP core code. Complexity M. Risks:
+examples mistaken for production defaults. Parallel: reference broker and
+issuer/vector work.
 
 ### Phase 6 — Full laboratory and hardening
 
@@ -121,9 +145,10 @@ flowchart LR
   P1 --> P2[2 Validator/replay]
   P1 --> P3[3 Protocol]
   P2 --> P3
-  P3 --> P4[4 NSS/PAM/session]
+  P3 --> P4A[4a Identity/PAM prerequisites]
+  P4A --> P4B[4b Live activation]
   P0 --> P5[5 Reference ecosystem]
-  P4 --> P6[6 Lab/hardening]
+  P4B --> P6[6 Lab/hardening]
   P5 --> P6
   P6 --> P7[7 Package/upstream RC]
   P7 --> P8[8 Release]

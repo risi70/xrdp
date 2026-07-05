@@ -1,6 +1,6 @@
-# Phase 4: Linux identity binding and PAM checks
+# Phase 4a: Linux Identity Binding and PAM Preconditions
 
-Phase 4 separates signed broker claims from the local Linux identity. A
+Phase 4a separates signed broker claims from the local Linux identity. A
 validated capability supplies only `preferred_username`. `baf_identity_bind()`
 validates that name and resolves it through the system NSS interface using
 `getpwnam_r()` and reverse `getpwuid_r()` canonicalization. Consequently local
@@ -26,13 +26,15 @@ Replay reservations are not released by identity or PAM failures. Once the
 validator produced the capability, another validation of the same assertion
 returns replay until expiry.
 
-Live broker session startup remains deliberately disabled. Phase 3 left the
+Live broker session startup remains deliberately disabled and is owned by
+Phase 4b under SD-003. Phase 3 left the
 SCP/EICP codecs disconnected from the production state machine and documented
-the 8 KiB libipm limit versus the validator's 16 KiB default. This phase
+the 8 KiB libipm limit versus the validator's 16 KiB default. Phase 4a
 produces an identity-bound, PAM-account-approved handle only; connecting that
 handle to a successful broker login response and existing session lifecycle
-requires resolving that transport limit and completing production state-machine
-wiring. Classic password login is unchanged.
+is the explicit scope of Phase 4b, which applies the effective framed transport
+limit without fragmentation. This phase split is normative and no longer a
+roadmap contradiction. Classic password login is unchanged.
 
 Run focused tests with:
 

@@ -22,8 +22,9 @@ resolve and canonicalize the asserted preferred username through NSS/SSSD and
 reject unknown, disabled, ambiguous, unauthorized, or policy-denied
 identities. Only this later path may produce a resolved Linux login identity.
 
-Phase 2 implements assertion validation and replay protection only. Phase 4
-implements NSS/SSSD identity binding and PAM account/session integration.
+Phase 2 implements assertion validation and replay protection only. Phase 4a
+implements NSS/SSSD identity binding and PAM preconditions. Phase 4b owns live
+session activation after those prerequisites pass.
 
 Once validation reserves an assertion, it is single-use until replay expiry.
 A later identity-binding, authorization, PAM, or session-creation failure does

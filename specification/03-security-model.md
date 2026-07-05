@@ -109,7 +109,9 @@ storage. Correlation identifiers are random and not authentication secrets.
 
 ## 7. Availability and limits
 
-Default limits: 16 KiB assertion, 256 groups, 256 roles, 5-minute lifetime,
+Default validator limits: 16 KiB assertion, 256 groups, 256 roles, 5-minute
+lifetime. The nominal in-band SCP/EICP transport ceiling is 8 KiB including
+framing, so its exact effective assertion limit is lower. Other defaults:
 30-second skew, one unknown-key refresh per issuer per 30 seconds, bounded JWKS
 and replay caches, and per-source authentication rate limiting. Parser and
 signature work occur after cheap framing/size checks.

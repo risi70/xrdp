@@ -22,6 +22,9 @@ syntax.
 | EXT-010 | A validated broker capability alone MUST NOT authorize or start a session. |
 | EXT-011 | Mandatory NSS/SSSD binding MUST produce a resolved Linux identity before PAM account/session processing or session creation. |
 | EXT-012 | Later-stage failure MUST leave the assertion unusable until replay expiry; `released` is an audit marker only. |
+| EXT-013 | Phase 4a output MUST remain internal and MUST NOT authorize or start a live session. |
+| EXT-014 | Phase 4b MUST require validation, replay reservation, NSS identity binding, default UID 0 rejection, and PAM account approval before session authorization. |
+| EXT-015 | In-band broker assertions MUST obey the effective framed transport bound and fail closed when oversized; MVP transport MUST NOT fragment. |
 
 ## 3. Modules
 
@@ -32,7 +35,7 @@ syntax.
 | `sesman/libsesman/auth_provider.[ch]` | Stable provider request/result operations. |
 | `sesman/libsesman/auth_provider_jwt.[ch]` | Generic BAF validation using libjwt/OpenSSL and Jansson strict parsing. |
 | `sesman/libsesman/replay_cache.[ch]` | Bounded atomic reserve/consume and audit-only release-state abstraction. |
-| `sesman/sesexec/identity_binding.[ch]` or equivalent | Phase 4 binding of a validated capability to a canonical Linux identity through NSS/SSSD. |
+| `sesman/sesexec/identity_binding.[ch]` or equivalent | Phase 4a binding of a validated capability to a canonical Linux identity through NSS/SSSD. |
 | `broker-auth/` | Schema, reference issuer, vectors, conformance tools; not linked into XRDP. |
 
 The current skeleton name `auth_provider_broker` SHOULD become
@@ -83,10 +86,33 @@ validate a different signed assertion format but must meet the same identity,
 target, time, and replay contract.
 
 Only the validator may construct a validated broker capability. Only the
-Phase 4 identity-binding path may convert one into a resolved Linux login
+Phase 4a identity-binding path may convert one into a resolved Linux login
 identity. Session creation requires both a validated capability and a resolved
 Linux identity that has passed local authorization and PAM account/session
 prerequisites. A capability alone never authorizes a session.
+
+## 4.1 Phase 4a and Phase 4b activation boundary
+
+Phase 4a consumes a validated broker capability, resolves and canonicalizes the
+Linux identity through NSS/SSSD-compatible APIs, rejects UID 0 by default, and
+obtains PAM account approval through the explicit prevalidated entry. Its output
+is an internal identity-bound, PAM-precondition-approved result. Phase 4a MUST
+NOT send a successful broker login response or activate a live session.
+
+Phase 4b owns production state-machine and session activation wiring. A broker
+session may be authorized only when all of the following are present:
+
+1. a structurally and cryptographically valid broker assertion;
+2. an atomic replay reservation;
+3. a validator-created broker capability;
+4. an NSS/SSSD-resolved canonical Linux identity;
+5. default rejection of UID 0 and all applicable local policy checks;
+6. PAM account approval; and
+7. the existing PAM credential, session, environment, and cleanup lifecycle.
+
+No individual or partial-stage success is session authorization. Phase 4b also
+enforces the effective SCP/EICP assertion boundary defined by SD-003 and the
+protocol specification. The MVP has no fragmentation or out-of-band handles.
 
 ## 5. Authentication state machine
 
@@ -118,16 +144,21 @@ request and is subject to normal rate limits.
 
 ## 6. Lifecycle details
 
+The following is the completed target lifecycle. Phase 4a implements steps 4–7
+as internal prerequisites without a successful live-login transition. Phase 4b
+owns production wiring and the transition into step 8.
+
 1. `xrdp_mm` selects `classic`, `broker`, or `auto` based only on server
    configuration and selected login profile.
 2. Broker mode requires an assertion field. It sends a broker SCP request.
 3. sesman creates sesexec and forwards the assertion using EICP.
 4. sesexec validates and reserves replay state.
-5. The Phase 4 identity-binding path maps `preferred_username` through NSS and
+5. The Phase 4a identity-binding path maps `preferred_username` through NSS and
    reverse UID lookup, producing a resolved Linux identity or denying login.
 6. Existing sesman access policy runs.
 7. Prevalidated PAM entry calls `pam_start` and `pam_acct_mgmt`.
-8. Existing create-session exchange and `session_start()` continue unchanged.
+8. In Phase 4b, existing create-session exchange and `session_start()`
+   continue unchanged.
 9. PAM session and assertion metadata live until session cleanup; raw assertion
    does not.
 

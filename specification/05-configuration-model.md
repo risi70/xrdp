@@ -30,6 +30,7 @@ Provider=jwt
 Audience=urn:baf:xrdp:production
 Target=urn:baf:desktop:tenant:pool:host
 MaxAssertionBytes=16384
+TransportMaxAssertionBytes=8192
 MaxLifetimeSeconds=300
 ClockSkewSeconds=30
 ReplayBackend=memory
@@ -74,7 +75,8 @@ not guessing whether a password resembles a JWT.
 | `Provider` | string/jwt | Must name compiled provider. |
 | `Audience` | string/no default | Required and non-empty in broker mode. |
 | `Target` | string/no default | Required; stable exact identifier. |
-| `MaxAssertionBytes` | int/16384 | 1024–65536. |
+| `MaxAssertionBytes` | int/16384 | Validator upper bound, 1024–65536; not a transport guarantee. |
+| `TransportMaxAssertionBytes` | int/8192 | Nominal configured assertion ceiling; the framed libipm capacity may impose a lower effective value. |
 | `MaxLifetimeSeconds` | int/300 | 30–900. |
 | `ClockSkewSeconds` | int/30 | 0–120. |
 | `ReplayBackend` | enum/memory | `memory`, `sqlite`, or future registered adapter. |
@@ -83,6 +85,11 @@ not guessing whether a password resembles a JWT.
 | `AllowStaleJwksSeconds` | int/0 | 0 disables stale use; maximum 86400. |
 | `DeniedUsers` | string list/root | Always implicitly includes UID 0. |
 | `MinimumUid` | int/1000 | 0–2^31-1; UID 0 still denied. |
+
+The effective in-band assertion maximum is the minimum of `MaxAssertionBytes`,
+`TransportMaxAssertionBytes`, and framed libipm/SCP/EICP payload capacity.
+Oversize input fails closed. MVP configuration cannot enable fragmentation or
+out-of-band handles.
 
 Issuer names are local labels only. `Issuer` values must be unique exact URIs.
 Exactly one of `JwksUri` or `TrustFile` is required unless both refer to the

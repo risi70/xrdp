@@ -120,6 +120,30 @@ pseudonymous.
 }
 ```
 
+## 4.1 Validation and transport size bounds
+
+The configured validator maximum (16 KiB by default) is an upper bound on input
+accepted by the validator API. It is not a transport guarantee. Each active
+transport MUST enforce its own, potentially stricter bound before allocation or
+forwarding.
+
+For the Phase 4b in-band SCP/EICP path, the effective assertion maximum is the
+minimum of the configured validator maximum, configured transport maximum, and
+libipm/SCP/EICP payload capacity remaining after all framing overhead. The MVP
+configured in-band transport ceiling is nominally 8 KiB; the exact permitted
+assertion length is lower and MUST be derived from the encoded message. Input
+over the effective maximum MUST fail closed before validation where possible.
+
+The MVP does not fragment assertions and does not use out-of-band assertion
+handles. Fragmentation, reassembly, handle transport, and larger libipm messages
+require a future protocol decision.
+
+| ID | Requirement |
+|---|---|
+| AST-013 | A transport MUST enforce its effective assertion bound before forwarding to the validator. |
+| AST-014 | The in-band effective maximum MUST be the minimum of validator, transport, and framed payload limits. |
+| AST-015 | Oversize assertions MUST fail closed; MVP implementations MUST NOT fragment or use out-of-band handles. |
+
 ## 5. Validation order
 
 Validators MUST:
@@ -157,9 +181,10 @@ Directory, local `passwd`/`group`, or equivalent identity resolution. A
 validated broker capability MUST NOT be treated as login authorization or
 start a session. It proves only that the assertion is authentic, fresh,
 targeted to this XRDP endpoint, compatible with assertion-level policy, and
-non-replayed. Mandatory Linux identity binding is a later Phase 4 stage.
-Session creation requires both a validated broker capability and a separately
-resolved Linux identity.
+non-replayed. Mandatory Linux identity binding is a later Phase 4a stage. Phase 4a
+still produces no session authorization. Phase 4b may authorize session creation only
+after a validated capability, separately resolved Linux identity, default UID 0
+rejection, and required PAM preconditions are all present.
 
 ## 6. Replay protection
 
