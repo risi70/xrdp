@@ -19,11 +19,32 @@ python3 broker_issuer.py issue \
   --auth-context '{"acr":"mfa","amr":["pwd","otp"]}'
 ```
 
-Generate valid and invalid interoperability vectors:
+Regenerate the deterministic Phase 2 conformance corpus from the repository
+root:
 
 ```sh
-python3 broker_issuer.py vectors --output-dir ../tests/vectors
+python3 broker-auth/reference-issuer/generate_phase2_vectors.py
 ```
 
-Private keys are generated locally and are never written to the vector
-directory. The vector public key is safe to distribute.
+This writes:
+
+- `broker-auth/vectors/phase2-vectors.json`
+- `broker-auth/vectors/test-public.pem`
+
+The generator uses the committed, test-only RSA key under `tests/baf/data/`
+and a fixed validation clock (`1700000000`), so the corpus is reproducible.
+That key MUST NOT be used outside tests. No private key is copied into the
+vector directory.
+
+Validate vector completeness and the static RS256 signature:
+
+```sh
+python3 -m pytest broker-auth/tests/test_phase2_vectors.py
+```
+
+Exercise every vector through the actual C provider after configuring an
+enabled build:
+
+```sh
+make -C tests/baf check TESTS=test_phase2_vectors
+```

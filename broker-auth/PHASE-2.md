@@ -59,18 +59,37 @@ processing. A Phase 2 capability alone has no session-start API.
 
 ```sh
 ./bootstrap
-mkdir build && cd build
+mkdir build-default && cd build-default
+../configure --disable-rfxcodec
+make -j2
+make -C tests/sesman check
+
+cd ..
+mkdir build-baf && cd build-baf
 ../configure --disable-rfxcodec --enable-broker-auth
 make -j2
 make -C tests/baf check
 make -C tests/sesman check
+
+cd ..
+python3 -m pytest broker-auth/tests
 ```
 
 The optional fuzz harness and build example are under `tests/baf/fuzz/`.
 `broker-auth/vectors/phase2-vectors.json` contains deterministic static tokens
 and malformed inputs for every Phase 2 positive and negative class. Each entry
 records its reason, expected result/status, storage mode, and any sequence
-needed to reproduce replay behavior.
+needed to reproduce replay behavior. Regenerate it with
+`python3 broker-auth/reference-issuer/generate_phase2_vectors.py`. The
+`test_phase2_vectors` C test loads the committed corpus and sends every entry
+through `auth_provider_jwt` with the fixed vector clock.
+
+Corrective closure results: default and enabled full builds passed; the
+enabled BAF suite passed 4/4 (including native vectors and security contract);
+enabled classic/null-provider tests passed 2/2; disabled classic tests passed
+1/1; Python reference/conformance/vector tests passed 18/18. Regenerating the
+corpus into a temporary directory produced byte-identical JSON and public-key
+files.
 
 ## Deferred optional backends
 

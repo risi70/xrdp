@@ -14,61 +14,75 @@
       "expected_result": "accepted",
       "reason": "Valid RS256 BAF assertion.",
       "static": true,
-      "expected_validator_status": "success"
+      "expected_validator_status": "success",
+      "description": "Complete, correctly signed RS256 BAF assertion.",
+      "validator_config_overrides": {}
     },
     {
       "name": "expired",
       "expected_status": "invalid",
-      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InRlc3QtcnNhLTEiLCJ0eXAiOiJiYWYrand0In0.eyJpc3MiOiJodHRwczovL2lzc3Vlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ1cm46YmFmOnhyZHA6dGVzdCIsInN1YiI6InN1YmplY3QtMSIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbImVuZ2luZWVyaW5nIl0sInJvbGVzIjpbImRlc2t0b3AtdXNlciJdLCJhdXRoX21ldGhvZCI6WyJwd2QiLCJvdHAiXSwiYXNzdXJhbmNlX2xldmVsIjoidXJuOnRlc3Q6YWFsMiIsImJyb2tlcl9zZXNzaW9uX2lkIjoic2Vzc2lvbi0xIiwidGFyZ2V0IjoidXJuOmJhZjpkZXNrdG9wOnRlc3QiLCJpYXQiOjE2OTk5OTk4MDAsIm5iZiI6MTY5OTk5OTgwMCwiZXhwIjoxNjk5OTk5OTAwLCJqdGkiOiJleHBpcmVkMDAwMDAwMDAwMDAwMDAwMCIsImRldmljZV90cnVzdCI6eyJzdGF0dXMiOiJ0cnVzdGVkIn19.ZeJQr7mi-76mae1AntRnWkPtQh33pY8lG0DL2JRhGZZ-ImDI6CHoEO6gqQdkgnTV5ANlUuyH4P7eKFSPA9SXYuFCIF3NJXDTDFLdO_s9O_2lbisfxcdOIfYpzjVfe1aRrtgjO-lswDKH3UfzQZ2i_OxLj8KtmTtnfn-5AhcwZfc0mNy6ObPIDmK5ZoSANMxpKqBxBOh3rMaV0YpGPP-nsjNCkKl0nGaEF6xK3FusjUbuTjvMVGE9o_j1iKtp3xYKdRnvNulIfI_gURBP4y2eKjxKbaKKMmYZ-qYaKxRGl6n3NXneX9nNtJ01O4O9N4n4MN8Killg3IBwIEP44qPGPg",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InRlc3QtcnNhLTEiLCJ0eXAiOiJiYWYrand0In0.eyJpc3MiOiJodHRwczovL2lzc3Vlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ1cm46YmFmOnhyZHA6dGVzdCIsInN1YiI6InN1YmplY3QtMSIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbImVuZ2luZWVyaW5nIl0sInJvbGVzIjpbImRlc2t0b3AtdXNlciJdLCJhdXRoX21ldGhvZCI6WyJwd2QiLCJvdHAiXSwiYXNzdXJhbmNlX2xldmVsIjoidXJuOnRlc3Q6YWFsMiIsImJyb2tlcl9zZXNzaW9uX2lkIjoic2Vzc2lvbi0xIiwidGFyZ2V0IjoidXJuOmJhZjpkZXNrdG9wOnRlc3QiLCJpYXQiOjE2OTk5OTk4MDAsIm5iZiI6MTY5OTk5OTgwMCwiZXhwIjoxNjk5OTk5OTAwLCJqdGkiOiJleHBpcmVkMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsImRldmljZV90cnVzdCI6eyJzdGF0dXMiOiJ0cnVzdGVkIn19.k2fg3vdj7u6CiOPK03vZOyBIQVkSQyXt1yp0W7ftpJgyOv3WBqzmFCmVQ_mt39UcJrvToc3WxbL156S0L0ILTteRAGwL4xFDyvKVwCc6kP2L5UeCoiQATNK9GuTk4EhwWqXh0--cCRpOikM0WAEbL3JGgZgbRLtXF_peTRl8DZIPyZ5FvDVsR3qEEfma3c4ScXx_UGp6OtlkKzxmMKy0t6pxPPYxtBxrQvea1ir0eqmGk9DgWC4Obv1WI09DIxWBsRmDWVZHNLZzyQkubco5WFqofvg9Pb0ybBs76VSuiKBU5NOS7qR0CyTTJXropwkv9S_bkng0Ut_3J4mUCyBw8g",
       "expected_result": "rejected",
       "reason": "exp is before the fixed validation time.",
       "static": true,
-      "expected_validator_status": "invalid"
+      "expected_validator_status": "invalid",
+      "description": "Correctly signed assertion whose expiration precedes the fixed clock.",
+      "validator_config_overrides": {}
     },
     {
       "name": "not-yet-valid",
       "expected_status": "invalid",
-      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InRlc3QtcnNhLTEiLCJ0eXAiOiJiYWYrand0In0.eyJpc3MiOiJodHRwczovL2lzc3Vlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ1cm46YmFmOnhyZHA6dGVzdCIsInN1YiI6InN1YmplY3QtMSIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbImVuZ2luZWVyaW5nIl0sInJvbGVzIjpbImRlc2t0b3AtdXNlciJdLCJhdXRoX21ldGhvZCI6WyJwd2QiLCJvdHAiXSwiYXNzdXJhbmNlX2xldmVsIjoidXJuOnRlc3Q6YWFsMiIsImJyb2tlcl9zZXNzaW9uX2lkIjoic2Vzc2lvbi0xIiwidGFyZ2V0IjoidXJuOmJhZjpkZXNrdG9wOnRlc3QiLCJpYXQiOjE3MDAwMDAwMDAsIm5iZiI6MTcwMDAwMDA2MCwiZXhwIjoxNzAwMDAwMTAwLCJqdGkiOiJub3R5ZXR2YWxpZDAwMDAwMDAwMDAwMDAwMDAiLCJkZXZpY2VfdHJ1c3QiOnsic3RhdHVzIjoidHJ1c3RlZCJ9fQ.T5PrS0FG9D6D-TDiU8rc7bzCa0N0KOgq1Yo9YX4-nuMAOSm5JwW89j3-ib0hKn9UYtJxIziptUMvAcquPsEey4KPUiFT7RVbXeFN-9X1_4jGi16wlih2HpVXQO0VJiYl0_HWYF3IVlrX0smvII46QH5Qi4SveAKPvpD5SBDJN3zUHCPe-j8XupnZ6AsHXFkyRWPp_2UU53wBzluXwDnrXIrHdq63fXYzbODurKAMnwgO17MvMU-n4yFv9UF8N_hSFMkP1CVHHmjRvW4WseJpGB-4mg2OKJFxfE998CuqKCfrMCVq5GHkg-XLLrkKr06XMl2lKNU32q-4c5PbNQoefQ",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InRlc3QtcnNhLTEiLCJ0eXAiOiJiYWYrand0In0.eyJpc3MiOiJodHRwczovL2lzc3Vlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ1cm46YmFmOnhyZHA6dGVzdCIsInN1YiI6InN1YmplY3QtMSIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbImVuZ2luZWVyaW5nIl0sInJvbGVzIjpbImRlc2t0b3AtdXNlciJdLCJhdXRoX21ldGhvZCI6WyJwd2QiLCJvdHAiXSwiYXNzdXJhbmNlX2xldmVsIjoidXJuOnRlc3Q6YWFsMiIsImJyb2tlcl9zZXNzaW9uX2lkIjoic2Vzc2lvbi0xIiwidGFyZ2V0IjoidXJuOmJhZjpkZXNrdG9wOnRlc3QiLCJpYXQiOjE3MDAwMDAwMDAsIm5iZiI6MTcwMDAwMDA2MCwiZXhwIjoxNzAwMDAwMTAwLCJqdGkiOiJub3R5ZXR2YWxpZDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsImRldmljZV90cnVzdCI6eyJzdGF0dXMiOiJ0cnVzdGVkIn19.GWFl9cI7yjlYvANq5sS2XG1CU_Ue13E4Zus5WafTE3AggwC7ASwv4DWAoA6YJyk5orJLTMhtIqqq32dRZPL6N78Iq15pNVhktgasOWna71FN5Z_HW8tqxDUm-QWA7d17P--vhJ2H1DCEuOSNUMoRshZUR2E_zhrlQ_qhfGhWzcUgW6PWRnavS2lyj6xDeR1pnNzX1gZj5geAJht8C7DK2WJ8ZG8IdwhIzL37WRcqQ58lMMKVrWe76IEml0BEEXKJVyuCb7FyBla2fp9-9GTXrHSB3IciLs6qx8vwqCLgMOe9pNupOgC490Gr5Yrk7Fi4CCEmZxO1M11TZ29zL_aBTg",
       "expected_result": "rejected",
       "reason": "nbf is beyond the permitted clock skew.",
       "static": true,
-      "expected_validator_status": "invalid"
+      "expected_validator_status": "invalid",
+      "description": "Correctly signed assertion whose not-before time exceeds allowed skew.",
+      "validator_config_overrides": {}
     },
     {
       "name": "lifetime-too-long",
       "expected_status": "invalid",
-      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InRlc3QtcnNhLTEiLCJ0eXAiOiJiYWYrand0In0.eyJpc3MiOiJodHRwczovL2lzc3Vlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ1cm46YmFmOnhyZHA6dGVzdCIsInN1YiI6InN1YmplY3QtMSIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbImVuZ2luZWVyaW5nIl0sInJvbGVzIjpbImRlc2t0b3AtdXNlciJdLCJhdXRoX21ldGhvZCI6WyJwd2QiLCJvdHAiXSwiYXNzdXJhbmNlX2xldmVsIjoidXJuOnRlc3Q6YWFsMiIsImJyb2tlcl9zZXNzaW9uX2lkIjoic2Vzc2lvbi0xIiwidGFyZ2V0IjoidXJuOmJhZjpkZXNrdG9wOnRlc3QiLCJpYXQiOjE3MDAwMDAwMDAsIm5iZiI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMzAxLCJqdGkiOiJsaWZldGltZXRvb2xvbmcwMDAwMDAwMDAwMDAwMDAwIiwiZGV2aWNlX3RydXN0Ijp7InN0YXR1cyI6InRydXN0ZWQifX0.DFOlp4dC3kb5f9akOBbypFich_WOK4FnF-9HpQJ-KvJ_fA2G-5vHy8KxJ7DpTLJ_LSgL226Iay1CctzrVaps9Eq-LX77XnrAkvXmHnp-E0eHmSQvoi_hye52x1pfAgQZWuxDeFZpnvvX5E-YDGhqPpY7o00rm6cADJMD74CZ63NmYUbT2sGCXvIAvc1CLBfgbFL9FPpVmvV_jb9bJXY2Bc6R4XzFKmewgyKhSFUkHgJ8OoQxgM2w5o9_959CVVUMLosW4Y50MhP8ZVDxKvWVJ-lDYkgagBC8tI8Q9188CMTgIsAYa75f3du2tNNxBtUN3ZxnwJTD6-LqtIu5GvxuHQ",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InRlc3QtcnNhLTEiLCJ0eXAiOiJiYWYrand0In0.eyJpc3MiOiJodHRwczovL2lzc3Vlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ1cm46YmFmOnhyZHA6dGVzdCIsInN1YiI6InN1YmplY3QtMSIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbImVuZ2luZWVyaW5nIl0sInJvbGVzIjpbImRlc2t0b3AtdXNlciJdLCJhdXRoX21ldGhvZCI6WyJwd2QiLCJvdHAiXSwiYXNzdXJhbmNlX2xldmVsIjoidXJuOnRlc3Q6YWFsMiIsImJyb2tlcl9zZXNzaW9uX2lkIjoic2Vzc2lvbi0xIiwidGFyZ2V0IjoidXJuOmJhZjpkZXNrdG9wOnRlc3QiLCJpYXQiOjE3MDAwMDAwMDAsIm5iZiI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMzAxLCJqdGkiOiJsaWZldGltZXRvb2xvbmcwMDAwMDAwMDAwMDAwMDAwMCIsImRldmljZV90cnVzdCI6eyJzdGF0dXMiOiJ0cnVzdGVkIn19.nei5JFDrXtc7a7HCHFeNTpAIqjZEniDHXgGrzJIgFoGvON-voFJCSWIYH0DHwY8g0nM-IwB396S_2l0P2Ienj-j7-qvRKtexYelADjX3QYNhC-nCa_Oyuv68Scf8VpOnlADszWQADkWEv6rQTBiu7FFAzb-DqR9VrBQCTDecMOew1Y5G-FYEf9CMFf-SX0jDINv6TGpxxhGYfuQCcsB5GLToW8WDQ09u5oDYO6MM7mzYkG4_Zq8SkoYeZQZEqezYRodnXpvEn4KXTEoNHXUXvQH29n4ezh5WQlaRxc5CqFAXJ8nCrb74G8h0ptOq5p2Q45E2trBVDUPocvkEOQ_G7A",
       "expected_result": "rejected",
       "reason": "exp - iat exceeds max_lifetime.",
       "static": true,
-      "expected_validator_status": "invalid"
+      "expected_validator_status": "invalid",
+      "description": "Correctly signed assertion exceeding the configured maximum lifetime.",
+      "validator_config_overrides": {}
     },
     {
       "name": "wrong-issuer",
       "expected_status": "invalid",
-      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InRlc3QtcnNhLTEiLCJ0eXAiOiJiYWYrand0In0.eyJpc3MiOiJodHRwczovL3dyb25nLmV4YW1wbGUudGVzdCIsImF1ZCI6InVybjpiYWY6eHJkcDp0ZXN0Iiwic3ViIjoic3ViamVjdC0xIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiYWxpY2UiLCJncm91cHMiOlsiZW5naW5lZXJpbmciXSwicm9sZXMiOlsiZGVza3RvcC11c2VyIl0sImF1dGhfbWV0aG9kIjpbInB3ZCIsIm90cCJdLCJhc3N1cmFuY2VfbGV2ZWwiOiJ1cm46dGVzdDphYWwyIiwiYnJva2VyX3Nlc3Npb25faWQiOiJzZXNzaW9uLTEiLCJ0YXJnZXQiOiJ1cm46YmFmOmRlc2t0b3A6dGVzdCIsImlhdCI6MTcwMDAwMDAwMCwibmJmIjoxNzAwMDAwMDAwLCJleHAiOjE3MDAwMDAxMDAsImp0aSI6Indyb25naXNzdWVyMDAwMDAwMDAwMDAwMDAwMCIsImRldmljZV90cnVzdCI6eyJzdGF0dXMiOiJ0cnVzdGVkIn19.qJvG6S_YeX57_rjUIRHhDCclZ2ys1XsdRNEkTJhgu0pEjJ8ctUKNfpDn_XTGVKXOQlnakZQzC-ln8ash5L_eWP5fw5d4pMgJUNTah_j5eLyW9oimrg9FSYCri-8mb9BMK84dWkwyrl7sKTo_iVaQd8876GI8tr1C3WVXEXhqYwc6bCdlevnT8HL74LaeO263h465UliDWm6TuL5-bmHB4yr1Y2NFB80rqnge73HXGVbtUtA81Qk7rhNihHnYpBlieTXzWTAB9nXVZYXqA7fvHIdWn-sCdiFg7cUqOf_DxhZIdD6QlPQ20tDII-dyAzSWjFjNGqeY6wupqN5WW5FQcg",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InRlc3QtcnNhLTEiLCJ0eXAiOiJiYWYrand0In0.eyJpc3MiOiJodHRwczovL3dyb25nLmV4YW1wbGUudGVzdCIsImF1ZCI6InVybjpiYWY6eHJkcDp0ZXN0Iiwic3ViIjoic3ViamVjdC0xIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiYWxpY2UiLCJncm91cHMiOlsiZW5naW5lZXJpbmciXSwicm9sZXMiOlsiZGVza3RvcC11c2VyIl0sImF1dGhfbWV0aG9kIjpbInB3ZCIsIm90cCJdLCJhc3N1cmFuY2VfbGV2ZWwiOiJ1cm46dGVzdDphYWwyIiwiYnJva2VyX3Nlc3Npb25faWQiOiJzZXNzaW9uLTEiLCJ0YXJnZXQiOiJ1cm46YmFmOmRlc2t0b3A6dGVzdCIsImlhdCI6MTcwMDAwMDAwMCwibmJmIjoxNzAwMDAwMDAwLCJleHAiOjE3MDAwMDAxMDAsImp0aSI6Indyb25naXNzdWVyMDAwMDAwMDAwMDAwMDAwMDAwMDAwIiwiZGV2aWNlX3RydXN0Ijp7InN0YXR1cyI6InRydXN0ZWQifX0.B9g8kuho2-1qJtdhqvjwFtNAho9Vneukx6ZImnW4Oaa2kOy99MbhgnYSvCTaBitNmwlO2XGdylr251wsL6kMp5vW2ADiOMcDcPiUpzV0CNW_EVtAo4jlKYalT10_gctbuDbMugyzh5PEzR-AKjTW4pXjd8VIMiS3iH6fYH6WqeG-IGhySt05ZECNHO9qrpLkpkQq_8DR7pAoTdXX6uK1N8eJzc_zdBrJ-3__Q3vMv0RaZqvWpZVxo_83LYJk0gvMzEtGuYpCAIsI4gsv1jSbBlnq0D_REmAJUQ3AreqQIos2T56UnM2yRDSSSOtoH0EChXLKuzTyu8ISF8AEl9gQtQ",
       "expected_result": "rejected",
       "reason": "iss does not exactly match configured issuer.",
       "static": true,
-      "expected_validator_status": "invalid"
+      "expected_validator_status": "invalid",
+      "description": "Correctly signed assertion with a different issuer.",
+      "validator_config_overrides": {}
     },
     {
       "name": "wrong-audience",
       "expected_status": "invalid",
-      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InRlc3QtcnNhLTEiLCJ0eXAiOiJiYWYrand0In0.eyJpc3MiOiJodHRwczovL2lzc3Vlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ3cm9uZyIsInN1YiI6InN1YmplY3QtMSIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbImVuZ2luZWVyaW5nIl0sInJvbGVzIjpbImRlc2t0b3AtdXNlciJdLCJhdXRoX21ldGhvZCI6WyJwd2QiLCJvdHAiXSwiYXNzdXJhbmNlX2xldmVsIjoidXJuOnRlc3Q6YWFsMiIsImJyb2tlcl9zZXNzaW9uX2lkIjoic2Vzc2lvbi0xIiwidGFyZ2V0IjoidXJuOmJhZjpkZXNrdG9wOnRlc3QiLCJpYXQiOjE3MDAwMDAwMDAsIm5iZiI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTAwLCJqdGkiOiJ3cm9uZ2F1ZGllbmNlMDAwMDAwMDAwMDAwMDAwMCIsImRldmljZV90cnVzdCI6eyJzdGF0dXMiOiJ0cnVzdGVkIn19.q8ebBLB8NuAXAf8CwPouNT_35XrSb_uzVuFEOsRufLsJTy1ZOd3gCer0VH4yUa-fM9Sym4Bz0UnyRk9JVfkzo5bApATbu_0ZRuZYV8RLvcNcV1K0ZThjenqsubuhFs45dyqw1W_nS58hJfg5JSInlpvR8SHxdZmkEw2P1IWhmfyyRgv4AstBgsHSEvNf5YVeh_e8MXNK8esFf-QzbC2Kj8NukgPqpaWLaQImyDl2HGOlMFe4fqvQiuCpT5SZAbOM2rOKkeOtkGal0NN1kr8X4VWIFS9hRd9zgUWoVPzAiCUngYOSLxZOCC4ZOkc2yspoJf6ycUYlmuFKnMubuHnm7A",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InRlc3QtcnNhLTEiLCJ0eXAiOiJiYWYrand0In0.eyJpc3MiOiJodHRwczovL2lzc3Vlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ3cm9uZyIsInN1YiI6InN1YmplY3QtMSIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbImVuZ2luZWVyaW5nIl0sInJvbGVzIjpbImRlc2t0b3AtdXNlciJdLCJhdXRoX21ldGhvZCI6WyJwd2QiLCJvdHAiXSwiYXNzdXJhbmNlX2xldmVsIjoidXJuOnRlc3Q6YWFsMiIsImJyb2tlcl9zZXNzaW9uX2lkIjoic2Vzc2lvbi0xIiwidGFyZ2V0IjoidXJuOmJhZjpkZXNrdG9wOnRlc3QiLCJpYXQiOjE3MDAwMDAwMDAsIm5iZiI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTAwLCJqdGkiOiJ3cm9uZ2F1ZGllbmNlMDAwMDAwMDAwMDAwMDAwMDAwMCIsImRldmljZV90cnVzdCI6eyJzdGF0dXMiOiJ0cnVzdGVkIn19.C-6uINhHbZFVzwaRRMoRTpi7UM4NjsEMW8HVBB1wvCguHdYAfCfd89KesghGAMBd7G0WSNE0ISpJ7FrXhaNAO_UniIdJSEmrhBajIOUKN9GP6YjX4C8pd3yhpHy8oQecI0Ut03oOlJfj0AQ2vN3rOZNow4Hwuzp7VCNU6BqlAgfGKNUFfwlGfvPCBepe940sKPddnuIq5jrBFUWCniLOfkygukULJtHX6ygQev9zv2tt5epTVbUtiVULQ5mcBI2FFwSeP3bQ-yDl685URdX_xtT3nHTBjlDVmIazdQ9AmHGJ2NBX4tubo3ExnbOQRUn3q0eRolRCQPF7ZjJhffG4jg",
       "expected_result": "rejected",
       "reason": "aud does not contain configured audience.",
       "static": true,
-      "expected_validator_status": "invalid"
+      "expected_validator_status": "invalid",
+      "description": "Correctly signed assertion without the expected audience.",
+      "validator_config_overrides": {}
     },
     {
       "name": "wrong-target",
       "expected_status": "invalid",
-      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InRlc3QtcnNhLTEiLCJ0eXAiOiJiYWYrand0In0.eyJpc3MiOiJodHRwczovL2lzc3Vlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ1cm46YmFmOnhyZHA6dGVzdCIsInN1YiI6InN1YmplY3QtMSIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbImVuZ2luZWVyaW5nIl0sInJvbGVzIjpbImRlc2t0b3AtdXNlciJdLCJhdXRoX21ldGhvZCI6WyJwd2QiLCJvdHAiXSwiYXNzdXJhbmNlX2xldmVsIjoidXJuOnRlc3Q6YWFsMiIsImJyb2tlcl9zZXNzaW9uX2lkIjoic2Vzc2lvbi0xIiwidGFyZ2V0Ijoid3JvbmciLCJpYXQiOjE3MDAwMDAwMDAsIm5iZiI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTAwLCJqdGkiOiJ3cm9uZ3RhcmdldDAwMDAwMDAwMDAwMDAwMDAiLCJkZXZpY2VfdHJ1c3QiOnsic3RhdHVzIjoidHJ1c3RlZCJ9fQ.XGPfLNH5xRa16CDZ6PhsW9CyNTyMHMLd-6ag3vrtvoYr28dTKU6NskI-puAdJZazCJKWCnbNFNpBYdnU6VoEQb-BtDEDhmb3psbSN_7FPZZRhbS6REriG9HWottNQpfIqg_TsQNk0uFSPEuFqDQfWtcLxk_LpBzLX8cmaHY9e3lPhpBtbzBVG3BKZ_F1qgKvRQdISQg2N6ewq0XrzhTPIJlJwn4g3qdMu4m7L4dZ2v2sVZMEvnl-459DZXhzWMQeuGraK2d2kk04tU4vuCY1RPkiuf1UNGQd7BwgprjbcIz706eFV7MQ_8q00D-hgDB_GJ1AxZgItWgaKyOWkdTceg",
+      "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InRlc3QtcnNhLTEiLCJ0eXAiOiJiYWYrand0In0.eyJpc3MiOiJodHRwczovL2lzc3Vlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ1cm46YmFmOnhyZHA6dGVzdCIsInN1YiI6InN1YmplY3QtMSIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbImVuZ2luZWVyaW5nIl0sInJvbGVzIjpbImRlc2t0b3AtdXNlciJdLCJhdXRoX21ldGhvZCI6WyJwd2QiLCJvdHAiXSwiYXNzdXJhbmNlX2xldmVsIjoidXJuOnRlc3Q6YWFsMiIsImJyb2tlcl9zZXNzaW9uX2lkIjoic2Vzc2lvbi0xIiwidGFyZ2V0Ijoid3JvbmciLCJpYXQiOjE3MDAwMDAwMDAsIm5iZiI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTAwLCJqdGkiOiJ3cm9uZ3RhcmdldDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsImRldmljZV90cnVzdCI6eyJzdGF0dXMiOiJ0cnVzdGVkIn19.LnW2Ewivhvb0VyoNVtqSYTLWVhXp6vsE3y9-bb3qeDJWmqhAt90Y3H_DEa_pSTt542EvVmMBHKCxZXEXzD9gjUhZ2z-gdI1dzJvaJCAl6jWKU8a_r1_lhTKL41kMaV5hVgZBvX03QNosf70C3SiLc3TJT1px_l-_80P3X41r-6OLZ2OcJpNdAPMDCsCLM4-WfslUsMsBfYFg3QlZwBNX2urLh7eTEf6dyXY6hFKO7uNryBJTbl2I2g1g_b77l2L6V2EuR1R4iTrr8cBuMsjUTBFG72USO9OU3WU1JA2xw8JoIXDWx_tCr0zh_7xuOhZqTODWJ7La9k6pmgeMufCPVQ",
       "expected_result": "rejected",
       "reason": "target does not exactly match local target.",
       "static": true,
-      "expected_validator_status": "invalid"
+      "expected_validator_status": "invalid",
+      "description": "Correctly signed assertion bound to a different desktop target.",
+      "validator_config_overrides": {}
     },
     {
       "name": "missing-mandatory-claim",
@@ -77,7 +91,9 @@
       "expected_result": "rejected",
       "reason": "preferred_username is absent.",
       "static": true,
-      "expected_validator_status": "invalid"
+      "expected_validator_status": "invalid",
+      "description": "Correctly signed assertion missing preferred_username.",
+      "validator_config_overrides": {}
     },
     {
       "name": "unknown-kid",
@@ -86,7 +102,9 @@
       "expected_result": "rejected",
       "reason": "kid is not in the issuer-bound trust set.",
       "static": true,
-      "expected_validator_status": "invalid"
+      "expected_validator_status": "invalid",
+      "description": "Correctly signed assertion naming an unconfigured key identifier.",
+      "validator_config_overrides": {}
     },
     {
       "name": "unknown-crit",
@@ -95,7 +113,9 @@
       "expected_result": "rejected",
       "reason": "crit names an unsupported protected header.",
       "static": true,
-      "expected_validator_status": "invalid"
+      "expected_validator_status": "invalid",
+      "description": "Correctly signed assertion with an unsupported critical header.",
+      "validator_config_overrides": {}
     },
     {
       "name": "jku-header",
@@ -104,7 +124,9 @@
       "expected_result": "rejected",
       "reason": "Token-controlled key URL is prohibited.",
       "static": true,
-      "expected_validator_status": "invalid"
+      "expected_validator_status": "invalid",
+      "description": "Correctly signed assertion containing a token-controlled JWK URL.",
+      "validator_config_overrides": {}
     },
     {
       "name": "x5u-header",
@@ -113,7 +135,9 @@
       "expected_result": "rejected",
       "reason": "Token-controlled certificate URL is prohibited.",
       "static": true,
-      "expected_validator_status": "invalid"
+      "expected_validator_status": "invalid",
+      "description": "Correctly signed assertion containing a token-controlled certificate URL.",
+      "validator_config_overrides": {}
     },
     {
       "name": "embedded-jwk",
@@ -122,7 +146,9 @@
       "expected_result": "rejected",
       "reason": "Token-controlled embedded key is prohibited.",
       "static": true,
-      "expected_validator_status": "invalid"
+      "expected_validator_status": "invalid",
+      "description": "Correctly signed assertion containing an embedded token key.",
+      "validator_config_overrides": {}
     },
     {
       "name": "alg-none",
@@ -131,16 +157,20 @@
       "expected_result": "rejected",
       "reason": "Unsecured JWT algorithm is prohibited.",
       "static": true,
-      "expected_validator_status": "invalid"
+      "expected_validator_status": "invalid",
+      "description": "Unsecured JWT using alg none.",
+      "validator_config_overrides": {}
     },
     {
       "name": "mac-hs256",
       "expected_status": "invalid",
-      "token": "eyJhbGciOiJIUzI1NiIsImtpZCI6InRlc3QtcnNhLTEiLCJ0eXAiOiJiYWYrand0In0.eyJpc3MiOiJodHRwczovL2lzc3Vlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ1cm46YmFmOnhyZHA6dGVzdCIsInN1YiI6InN1YmplY3QtMSIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbImVuZ2luZWVyaW5nIl0sInJvbGVzIjpbImRlc2t0b3AtdXNlciJdLCJhdXRoX21ldGhvZCI6WyJwd2QiLCJvdHAiXSwiYXNzdXJhbmNlX2xldmVsIjoidXJuOnRlc3Q6YWFsMiIsImJyb2tlcl9zZXNzaW9uX2lkIjoic2Vzc2lvbi0xIiwidGFyZ2V0IjoidXJuOmJhZjpkZXNrdG9wOnRlc3QiLCJpYXQiOjE3MDAwMDAwMDAsIm5iZiI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTAwLCJqdGkiOiIwMTIzNDU2Nzg5YWJjZGVmIiwiZGV2aWNlX3RydXN0Ijp7InN0YXR1cyI6InRydXN0ZWQifX0.3bSTui9n3pSyj5MLnVgCnh_YfuEAcT0eWNhPkj2vIN4",
+      "token": "eyJhbGciOiJIUzI1NiIsImtpZCI6InRlc3QtcnNhLTEiLCJ0eXAiOiJiYWYrand0In0.eyJpc3MiOiJodHRwczovL2lzc3Vlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ1cm46YmFmOnhyZHA6dGVzdCIsInN1YiI6InN1YmplY3QtMSIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbImVuZ2luZWVyaW5nIl0sInJvbGVzIjpbImRlc2t0b3AtdXNlciJdLCJhdXRoX21ldGhvZCI6WyJwd2QiLCJvdHAiXSwiYXNzdXJhbmNlX2xldmVsIjoidXJuOnRlc3Q6YWFsMiIsImJyb2tlcl9zZXNzaW9uX2lkIjoic2Vzc2lvbi0xIiwidGFyZ2V0IjoidXJuOmJhZjpkZXNrdG9wOnRlc3QiLCJpYXQiOjE3MDAwMDAwMDAsIm5iZiI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTAwLCJqdGkiOiIwMTIzNDU2Nzg5YWJjZGVmIiwiZGV2aWNlX3RydXN0Ijp7InN0YXR1cyI6InRydXN0ZWQifX0.Ga91O3WJgJdx5JMoCpiSa8TsV4gvBojQAwMp7TKVkn4",
       "expected_result": "rejected",
       "reason": "MAC algorithms are prohibited.",
       "static": true,
-      "expected_validator_status": "invalid"
+      "expected_validator_status": "invalid",
+      "description": "JWT signed with the prohibited HS256 MAC algorithm.",
+      "validator_config_overrides": {}
     },
     {
       "name": "bad-signature",
@@ -149,7 +179,9 @@
       "expected_result": "rejected",
       "reason": "Signature octets do not verify.",
       "static": true,
-      "expected_validator_status": "invalid"
+      "expected_validator_status": "invalid",
+      "description": "Structurally valid RS256 assertion with a corrupted signature.",
+      "validator_config_overrides": {}
     },
     {
       "name": "duplicate-json-member",
@@ -158,7 +190,9 @@
       "expected_result": "rejected",
       "reason": "Protected header contains duplicate alg members.",
       "static": true,
-      "expected_validator_status": "invalid"
+      "expected_validator_status": "invalid",
+      "description": "Compact JWS with duplicate alg protected-header members.",
+      "validator_config_overrides": {}
     },
     {
       "name": "replayed-jti",
@@ -167,13 +201,15 @@
       "expected_result": "replay-rejected",
       "reason": "Second reservation of the same (iss,jti) must fail.",
       "static": true,
+      "expected_validator_status": "replay",
+      "description": "Second validation of the valid vector with the same issuer and JTI.",
+      "validator_config_overrides": {},
       "generation_parameters": {
         "sequence": [
           "validate valid-rs256 once",
           "validate this identical token before replay expiry"
         ]
-      },
-      "expected_validator_status": "replay"
+      }
     },
     {
       "name": "oversized-assertion",
@@ -182,7 +218,9 @@
       "expected_result": "rejected",
       "reason": "Encoded assertion exceeds the 16 KiB default.",
       "static": true,
-      "expected_validator_status": "invalid"
+      "expected_validator_status": "invalid",
+      "description": "Input exceeding the default maximum encoded assertion size.",
+      "validator_config_overrides": {}
     },
     {
       "name": "malformed-compact",
@@ -191,7 +229,9 @@
       "expected_result": "rejected",
       "reason": "Compact serialization has the wrong segment count.",
       "static": true,
-      "expected_validator_status": "invalid"
+      "expected_validator_status": "invalid",
+      "description": "Input with fewer than three compact-JWS segments.",
+      "validator_config_overrides": {}
     },
     {
       "name": "invalid-base64url",
@@ -200,25 +240,31 @@
       "expected_result": "rejected",
       "reason": "Protected segment contains forbidden padding.",
       "static": true,
-      "expected_validator_status": "invalid"
+      "expected_validator_status": "invalid",
+      "description": "Compact JWS containing forbidden base64url padding.",
+      "validator_config_overrides": {}
     },
     {
       "name": "ps256-unsupported",
       "expected_status": "invalid",
+      "token": "eyJhbGciOiJQUzI1NiIsImtpZCI6InRlc3QtcnNhLTEiLCJ0eXAiOiJiYWYrand0In0.eyJpc3MiOiJodHRwczovL2lzc3Vlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ1cm46YmFmOnhyZHA6dGVzdCIsInN1YiI6InN1YmplY3QtMSIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbImVuZ2luZWVyaW5nIl0sInJvbGVzIjpbImRlc2t0b3AtdXNlciJdLCJhdXRoX21ldGhvZCI6WyJwd2QiLCJvdHAiXSwiYXNzdXJhbmNlX2xldmVsIjoidXJuOnRlc3Q6YWFsMiIsImJyb2tlcl9zZXNzaW9uX2lkIjoic2Vzc2lvbi0xIiwidGFyZ2V0IjoidXJuOmJhZjpkZXNrdG9wOnRlc3QiLCJpYXQiOjE3MDAwMDAwMDAsIm5iZiI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTAwLCJqdGkiOiIwMTIzNDU2Nzg5YWJjZGVmIiwiZGV2aWNlX3RydXN0Ijp7InN0YXR1cyI6InRydXN0ZWQifX0.AA",
       "expected_result": "rejected",
       "reason": "PS256 is a future extension and unsupported in Phase 2.",
       "static": true,
-      "token": "eyJhbGciOiJQUzI1NiIsImtpZCI6InRlc3QtcnNhLTEiLCJ0eXAiOiJiYWYrand0In0.eyJpc3MiOiJodHRwczovL2lzc3Vlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ1cm46YmFmOnhyZHA6dGVzdCIsInN1YiI6InN1YmplY3QtMSIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbImVuZ2luZWVyaW5nIl0sInJvbGVzIjpbImRlc2t0b3AtdXNlciJdLCJhdXRoX21ldGhvZCI6WyJwd2QiLCJvdHAiXSwiYXNzdXJhbmNlX2xldmVsIjoidXJuOnRlc3Q6YWFsMiIsImJyb2tlcl9zZXNzaW9uX2lkIjoic2Vzc2lvbi0xIiwidGFyZ2V0IjoidXJuOmJhZjpkZXNrdG9wOnRlc3QiLCJpYXQiOjE3MDAwMDAwMDAsIm5iZiI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTAwLCJqdGkiOiIwMTIzNDU2Nzg5YWJjZGVmIiwiZGV2aWNlX3RydXN0Ijp7InN0YXR1cyI6InRydXN0ZWQifX0.AA",
-      "expected_validator_status": "invalid"
+      "expected_validator_status": "invalid",
+      "description": "Compact JWS declaring deferred PS256.",
+      "validator_config_overrides": {}
     },
     {
       "name": "es256-unsupported",
       "expected_status": "invalid",
+      "token": "eyJhbGciOiJFUzI1NiIsImtpZCI6InRlc3QtcnNhLTEiLCJ0eXAiOiJiYWYrand0In0.eyJpc3MiOiJodHRwczovL2lzc3Vlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ1cm46YmFmOnhyZHA6dGVzdCIsInN1YiI6InN1YmplY3QtMSIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbImVuZ2luZWVyaW5nIl0sInJvbGVzIjpbImRlc2t0b3AtdXNlciJdLCJhdXRoX21ldGhvZCI6WyJwd2QiLCJvdHAiXSwiYXNzdXJhbmNlX2xldmVsIjoidXJuOnRlc3Q6YWFsMiIsImJyb2tlcl9zZXNzaW9uX2lkIjoic2Vzc2lvbi0xIiwidGFyZ2V0IjoidXJuOmJhZjpkZXNrdG9wOnRlc3QiLCJpYXQiOjE3MDAwMDAwMDAsIm5iZiI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTAwLCJqdGkiOiIwMTIzNDU2Nzg5YWJjZGVmIiwiZGV2aWNlX3RydXN0Ijp7InN0YXR1cyI6InRydXN0ZWQifX0.AA",
       "expected_result": "rejected",
       "reason": "ES256 is a future extension and unsupported in Phase 2.",
       "static": true,
-      "token": "eyJhbGciOiJFUzI1NiIsImtpZCI6InRlc3QtcnNhLTEiLCJ0eXAiOiJiYWYrand0In0.eyJpc3MiOiJodHRwczovL2lzc3Vlci5leGFtcGxlLnRlc3QiLCJhdWQiOiJ1cm46YmFmOnhyZHA6dGVzdCIsInN1YiI6InN1YmplY3QtMSIsInByZWZlcnJlZF91c2VybmFtZSI6ImFsaWNlIiwiZ3JvdXBzIjpbImVuZ2luZWVyaW5nIl0sInJvbGVzIjpbImRlc2t0b3AtdXNlciJdLCJhdXRoX21ldGhvZCI6WyJwd2QiLCJvdHAiXSwiYXNzdXJhbmNlX2xldmVsIjoidXJuOnRlc3Q6YWFsMiIsImJyb2tlcl9zZXNzaW9uX2lkIjoic2Vzc2lvbi0xIiwidGFyZ2V0IjoidXJuOmJhZjpkZXNrdG9wOnRlc3QiLCJpYXQiOjE3MDAwMDAwMDAsIm5iZiI6MTcwMDAwMDAwMCwiZXhwIjoxNzAwMDAwMTAwLCJqdGkiOiIwMTIzNDU2Nzg5YWJjZGVmIiwiZGV2aWNlX3RydXN0Ijp7InN0YXR1cyI6InRydXN0ZWQifX0.AA",
-      "expected_validator_status": "invalid"
+      "expected_validator_status": "invalid",
+      "description": "Compact JWS declaring deferred ES256.",
+      "validator_config_overrides": {}
     }
   ],
   "vector_format": "BAF phase2 static corpus v1",

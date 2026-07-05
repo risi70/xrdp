@@ -43,8 +43,10 @@ def test_phase2_vector_manifest_is_complete():
     assert vectors["replayed-jti"]["expected_status"] == "replay"
     for vector in vectors.values():
         assert vector["token"]
+        assert vector["description"]
         assert vector["reason"]
         assert vector["static"] is True
+        assert isinstance(vector["validator_config_overrides"], dict)
         assert vector["expected_result"] in {
             "accepted",
             "rejected",

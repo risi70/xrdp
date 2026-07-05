@@ -37,6 +37,10 @@ are future extensions requiring complete implementation, configuration, and
 conformance tests before they can be enabled. SHA-1, HMAC, unsecured JWTs, and
 keys selected from assertion-controlled URLs are prohibited.
 
+BAF 1.0 defines an algorithm-agile extension model, but the Phase 2 MVP
+implementation supports RS256 only. Advertising another algorithm in
+configuration does not enable it.
+
 ## 3. Claims
 
 | Claim | Type | M/O | Meaning |
