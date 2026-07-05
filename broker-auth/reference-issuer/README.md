@@ -34,7 +34,13 @@ This writes:
 The generator uses the committed, test-only RSA key under `tests/baf/data/`
 and a fixed validation clock (`1700000000`), so the corpus is reproducible.
 That key MUST NOT be used outside tests. No private key is copied into the
-vector directory.
+vector directory. `broker-auth/vectors/test-public.pem` is the public half of
+that key and is the issuer-bound trust anchor used by the native validator
+test.
+
+Phase 2 deliberately supports RS256 only. PS256 and ES256 are deferred until
+algorithm agility can be implemented and tested completely; Phase 2 rejects
+them.
 
 Validate vector completeness and the static RS256 signature:
 
@@ -48,3 +54,9 @@ enabled build:
 ```sh
 make -C tests/baf check TESTS=test_phase2_vectors
 ```
+
+The native test locates assets through Automake's `top_srcdir`, injects the
+committed fixed validation time, checks each provider status exactly, and
+proves that an audit-only replay release does not allow reuse. Regenerated
+vectors must retain the fixed clock and remain byte-for-byte deterministic.
+Runtime code must never log generated assertions or other raw token material.

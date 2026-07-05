@@ -34,3 +34,5 @@ EXTRA_DIST = \
   fuzz/README.md \
   test_phase2_vectors.c \
   test_security_contract.py
+
+# Top-level EXTRA_DIST includes broker-auth, preserving vector asset paths.

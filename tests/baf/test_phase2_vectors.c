@@ -35,6 +35,39 @@ fixed_now(void *userdata)
     return *(const int64_t *)userdata;
 }
 
+static int
+status_from_string(const char *value, enum auth_provider_status *status)
+{
+    static const struct
+    {
+        const char *name;
+        enum auth_provider_status status;
+    } statuses[] = {
+        {"success", AUTH_PROVIDER_SUCCESS},
+        {"unsupported", AUTH_PROVIDER_UNSUPPORTED},
+        {"invalid", AUTH_PROVIDER_INVALID},
+        {"replay", AUTH_PROVIDER_REPLAY},
+        {"configuration-error", AUTH_PROVIDER_CONFIG_ERROR},
+        {"dependency-unavailable", AUTH_PROVIDER_DEPENDENCY_UNAVAILABLE},
+        {"internal-error", AUTH_PROVIDER_INTERNAL_ERROR}
+    };
+    size_t index;
+
+    if (value == NULL || status == NULL)
+    {
+        return 0;
+    }
+    for (index = 0; index < sizeof(statuses) / sizeof(statuses[0]); ++index)
+    {
+        if (strcmp(value, statuses[index].name) == 0)
+        {
+            *status = statuses[index].status;
+            return 1;
+        }
+    }
+    return 0;
+}
+
 int
 main(void)
 {
@@ -63,6 +96,7 @@ main(void)
     int64_t now;
     size_t index;
     json_t *vector;
+    int valid_vector_released = 0;
 
     assert(json_is_object(document));
     vectors = json_object_get(document, "vectors");
@@ -97,13 +131,18 @@ main(void)
         const char *token =
             json_string_value(json_object_get(vector, "token"));
         const char *expected =
+            json_string_value(json_object_get(vector, "expected_status"));
+        const char *expected_alias =
             json_string_value(json_object_get(
                                   vector, "expected_validator_status"));
         struct auth_provider_request request;
         struct auth_provider_result *result = NULL;
+        enum auth_provider_status expected_status;
         enum auth_provider_status status;
 
         assert(name != NULL && token != NULL && expected != NULL);
+        assert(status_from_string(expected, &expected_status));
+        assert(expected_alias == NULL || strcmp(expected, expected_alias) == 0);
         assert(json_is_string(json_object_get(vector, "description")));
         assert(json_is_string(json_object_get(vector, "reason")));
         assert(json_is_object(json_object_get(vector,
@@ -134,11 +173,32 @@ main(void)
 
         status = auth_provider_validate(auth_provider_jwt_get(), &request,
                                         &result);
-        if (strcmp(auth_provider_status_to_string(status), expected) != 0)
+        if (status != expected_status)
         {
             fprintf(stderr, "%s: expected %s, got %s\n", name, expected,
                     auth_provider_status_to_string(status));
             return 1;
+        }
+        /*
+         * replayed-jti reuses valid-rs256's (iss,jti). Release is an
+         * audit-only transition in Phase 2 and must not permit reuse.
+         */
+        if (strcmp(name, "valid-rs256") == 0)
+        {
+            const struct auth_prevalidated_identity *identity =
+                auth_provider_result_get_identity(result);
+            const unsigned char *key =
+                auth_prevalidated_identity_get_jti_digest(identity);
+
+            assert(status == AUTH_PROVIDER_SUCCESS);
+            assert(key != NULL);
+            assert(replay_cache_release(cache, key, now) == REPLAY_CACHE_OK);
+            valid_vector_released = 1;
+        }
+        else if (strcmp(name, "replayed-jti") == 0)
+        {
+            assert(valid_vector_released);
+            assert(status == AUTH_PROVIDER_REPLAY);
         }
         auth_provider_result_free(result);
     }
@@ -148,6 +208,7 @@ main(void)
     {
         assert(seen[index]);
     }
+    assert(valid_vector_released);
 
     baf_validator_config_free(config);
     replay_cache_free(cache);
