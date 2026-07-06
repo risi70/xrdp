@@ -91,8 +91,10 @@ Cluster-wide and persistent replay storage remain deferred.
 
 Deliverables: completed live broker-login path, exact effective transport-bound
 checks, dynamic PAM denial/session-failure tests, negative protocol tests, and
-classic-mode regression coverage. No fragmentation or out-of-band assertion
-handles are in scope. Dependencies: Phase 3 and Phase 4a. Acceptance: UT-010–012,
+classic-mode regression coverage. No fragmentation or generic out-of-band assertion
+handles are in scope. The only permitted handle mechanism is SD-006 one-time
+server-side assertion handles, with SD-007 target-mismatch consume semantics.
+Dependencies: Phase 3 and Phase 4a. Acceptance: UT-010–012,
 IT-002–003, IT-006, and ST-001 pass; UID 0 is denied; PAM denial is final;
 session cleanup occurs exactly once. Complexity L. Risks: handover races,
 transport framing capacity, and PAM lifecycle variance.

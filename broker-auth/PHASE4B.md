@@ -26,8 +26,9 @@ The effective maximum is the minimum of the configured validator maximum, the
 configured transport maximum, and libipm/SCP/EICP payload capacity after
 framing overhead. The nominal MVP in-band transport ceiling is 8 KiB; usable
 assertion bytes are necessarily lower. Oversize assertions fail closed before
-allocation or validation where possible. Phase 4b implements neither
-fragmentation nor out-of-band assertion handles.
+allocation or validation where possible. Phase 4b implements no fragmentation
+and no generic out-of-band assertion handles. The only permitted handle
+mechanism is SD-006 one-time server-side assertion handles.
 
 ## Acceptance criteria
 
@@ -44,7 +45,7 @@ fragmentation nor out-of-band assertion handles.
 ## Non-goals
 
 - UDS-specific or Keycloak-specific XRDP logic.
-- Fragmentation, reassembly, or out-of-band assertion handles.
+- Fragmentation, reassembly, or generic out-of-band assertion handles. SD-006 one-time server-side assertion handles are the only permitted handle mechanism.
 - Direct LDAP, FreeIPA, Active Directory, or SSSD APIs.
 - Enabling broker auth by default.
 - Trusting assertion UID, GID, or groups as Linux authorization data.
@@ -52,4 +53,4 @@ fragmentation nor out-of-band assertion handles.
 
 ## Phase 4b-1 handle ingress
 
-SD-006 permits a standard broker-compatible opaque handle while retaining the full assertion in `xrdp-baf-handled`. Handle resolution is atomic and feeds the existing BAF transport/validator path. The resulting state is `BAF_HANDLE_VALIDATED_NOT_SESSION_AUTHORIZED`: neither resolution nor validation authorizes login. Identity binding, PAM, and live session startup remain Phase 4b-2.
+SD-006 permits a standard broker-compatible opaque handle while retaining the full assertion in `xrdp-baf-handled`. Handle resolution is atomic and feeds the existing BAF transport/validator path. SD-007 requires target-mismatched resolution of a known handle to consume or invalidate that handle without returning assertion bytes; a later correct-target retry must not recover the assertion. The resulting state is `BAF_HANDLE_VALIDATED_NOT_SESSION_AUTHORIZED`: neither resolution nor validation authorizes login. Identity binding, PAM, and live session startup remain Phase 4b-2.

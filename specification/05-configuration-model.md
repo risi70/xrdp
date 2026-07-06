@@ -93,7 +93,7 @@ not guessing whether a password resembles a JWT.
 The effective in-band assertion maximum is the minimum of `MaxAssertionBytes`,
 `TransportMaxAssertionBytes`, and framed libipm/SCP/EICP payload capacity.
 Oversize input fails closed. MVP configuration cannot enable fragmentation or
-out-of-band handles.
+generic out-of-band handles. Only SD-006 short-lived, one-time, server-side assertion handles are permitted.
 
 Issuer names are local labels only. `Issuer` values must be unique exact URIs.
 Exactly one of `JwksUri` or `TrustFile` is required unless both refer to the

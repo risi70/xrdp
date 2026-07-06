@@ -116,7 +116,7 @@ No individual or partial-stage success is session authorization. Phase 4b also
 requires the replay reservation from the SD-004 trusted replay service;
 worker-local memory replay state cannot authorize live activation. Phase 4b
 enforces the effective SCP/EICP assertion boundary defined by SD-003 and the
-protocol specification. The MVP has no fragmentation or out-of-band handles.
+protocol specification. The MVP has no fragmentation and no generic out-of-band handles; only SD-006 short-lived, one-time, server-side assertion handles are permitted.
 
 ## 5. Authentication state machine
 

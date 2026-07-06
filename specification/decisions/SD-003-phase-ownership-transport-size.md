@@ -34,7 +34,7 @@ build time and runtime by default.
 ecosystem phase. UDS Enterprise is a reference broker use case only and adds no
 broker-specific requirement to XRDP core.
 
-The MVP uses no assertion fragmentation and no out-of-band assertion handles.
+The MVP uses no assertion fragmentation and no generic out-of-band assertion handles. SD-006 later narrows this by permitting only short-lived, one-time, server-side assertion handles for standard RDP broker compatibility.
 For in-band SCP/EICP transport, the effective assertion maximum is:
 
 ```text
@@ -57,7 +57,7 @@ not a guarantee that an in-band transport can carry a 16 KiB assertion.
 | SD3-002 | Phase 4b MUST own live activation and require every validation, replay, identity, UID, and PAM prerequisite. |
 | SD3-003 | Phase 5 MUST remain reference broker and interoperability work with no reference-specific XRDP core logic. |
 | SD3-004 | Effective in-band size MUST be the minimum of validator, transport, and framed payload limits. |
-| SD3-005 | MVP in-band transport MUST fail closed on oversize input and MUST NOT fragment or use out-of-band handles. |
+| SD3-005 | MVP in-band transport MUST fail closed on oversize input and MUST NOT fragment or use generic out-of-band handles. SD-006 one-time server-side assertion handles are the only permitted handle mechanism. |
 
 ## Consequences
 
@@ -71,6 +71,6 @@ not a guarantee that an in-band transport can carry a 16 KiB assertion.
 
 ## Deferred work
 
-Fragmentation, multi-message reassembly, out-of-band assertion handles, larger
+Fragmentation, multi-message reassembly, generic out-of-band assertion handles, larger
 libipm messages, and alternate transports are deferred beyond the MVP and
 require a separate protocol/security decision.

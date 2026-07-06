@@ -134,15 +134,17 @@ configured in-band transport ceiling is nominally 8 KiB; the exact permitted
 assertion length is lower and MUST be derived from the encoded message. Input
 over the effective maximum MUST fail closed before validation where possible.
 
-The MVP does not fragment assertions and does not use out-of-band assertion
-handles. Fragmentation, reassembly, handle transport, and larger libipm messages
-require a future protocol decision.
+The MVP does not fragment assertions and does not use generic out-of-band
+assertion handles. The only permitted handle mechanism is SD-006 one-time
+server-side assertion handles, which do not contain assertions. Fragmentation,
+reassembly, generic bearer handles, and larger libipm messages require a future
+protocol decision.
 
 | ID | Requirement |
 |---|---|
 | AST-013 | A transport MUST enforce its effective assertion bound before forwarding to the validator. |
 | AST-014 | The in-band effective maximum MUST be the minimum of validator, transport, and framed payload limits. |
-| AST-015 | Oversize assertions MUST fail closed; MVP implementations MUST NOT fragment or use out-of-band handles. |
+| AST-015 | Oversize assertions MUST fail closed; MVP implementations MUST NOT fragment or use generic out-of-band handles. The only permitted handle mechanism is SD-006 one-time server-side assertion handles, which MUST NOT contain assertions. |
 
 ## 5. Validation order
 

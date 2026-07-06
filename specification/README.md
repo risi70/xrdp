@@ -58,7 +58,7 @@ is neither necessary nor sufficient for core BAF conformance.
   transport has a nominal 8 KiB message ceiling and MUST subtract framing
   overhead; the effective maximum is the minimum of validator, transport, and
   available payload limits.
-- The MVP has no fragmentation or out-of-band assertion handles.
+- The MVP has no fragmentation and no generic out-of-band assertion handles. The only permitted handle mechanism is SD-006: short-lived, one-time, server-side assertion handles for standard RDP broker compatibility. These handles do not contain assertions and are resolved only by the trusted server-side assertion-handle service.
 - Classic password/PAM login remains default and wire-compatible.
 - Keycloak is a possible broker IdP, not an XRDP dependency.
 - No UDS Enterprise concept appears in the XRDP extension contract.

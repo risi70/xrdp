@@ -41,4 +41,5 @@ The current libipm message ceiling is nominally 8 KiB including framing. Under
 SD-003, Phase 4b derives a lower exact assertion boundary and enforces the
 minimum of validator, transport, and framed payload limits. The validator's
 16 KiB default is not an in-band guarantee. MVP transport has no fragmentation,
-out-of-band handles, or implicit libipm size increase.
+no generic out-of-band handles, and no implicit libipm size increase. SD-006
+one-time server-side assertion handles are the only permitted handle mechanism.

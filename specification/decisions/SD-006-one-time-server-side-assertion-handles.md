@@ -11,3 +11,7 @@ Resolution fails closed when a handle is unknown, expired, consumed, malformed, 
 The store keeps full assertions only in server memory, bounds handle count, assertion/request/response size and lifetime, never logs raw assertions, clears them after consume/expiry, and fails closed on storage or resolution errors. Effective validator and in-band transport limits still apply.
 
 Trusted RDP proxy/fd-handoff and custom endpoint client/plugin transports remain deferred. UDS is a future Phase 5 reference broker and is not part of this generic MVP implementation.
+
+## Related decision
+
+SD-007 defines target mismatch as a consuming failure for known handles: no assertion is returned, the handle is invalidated, and later correct-target resolution cannot recover the assertion.

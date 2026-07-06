@@ -258,23 +258,38 @@ main(void)
           "store assertion");
     CHECK(strlen(handle) == BAF_HANDLE_TEXT_LENGTH, "256-bit hex handle");
     CHECK(strstr(handle, "header") == NULL, "handle does not contain assertion");
-    CHECK(baf_handle_resolve_and_consume(path, 1000, handle, "wrong",
+    CHECK(baf_handle_resolve_and_consume(path, 1000, handle, "wrong-target",
                                          &out, &out_length) ==
           BAF_HANDLE_TARGET_MISMATCH,
           "target mismatch rejected");
+    CHECK(out == NULL && out_length == 0,
+          "target mismatch does not return assertion bytes");
+    CHECK(baf_handle_resolve_and_consume(path, 1000, handle, "target-a",
+                                         &out, &out_length) ==
+          BAF_HANDLE_NOT_FOUND,
+          "target mismatch consumes handle");
+    CHECK(out == NULL && out_length == 0,
+          "consumed mismatched handle cannot recover assertion");
+
+    CHECK(baf_handle_store(path, 1000, assertion, sizeof(assertion) - 1,
+                           time(NULL) + 60, "target-a", handle) ==
+          BAF_HANDLE_OK,
+          "store assertion for valid resolve");
     CHECK(baf_handle_resolve_and_consume(path, 1000, handle, "target-a",
                                          &out, &out_length) ==
           BAF_HANDLE_OK &&
           out_length == sizeof(assertion) - 1 &&
           memcmp(out, assertion, out_length) == 0,
-          "resolve returns assertion");
+          "valid resolve returns assertion");
     baf_handle_assertion_free(out, out_length);
     out = NULL;
     out_length = 0;
     CHECK(baf_handle_resolve_and_consume(path, 1000, handle, "target-a",
                                          &out, &out_length) ==
           BAF_HANDLE_NOT_FOUND,
-          "second resolve rejected");
+          "second valid resolve rejected");
+    CHECK(out == NULL && out_length == 0,
+          "second valid resolve returns no assertion bytes");
     CHECK(baf_handle_resolve_and_consume(path, 1000, "bad", "target-a",
                                          &out, &out_length) ==
           BAF_HANDLE_BAD_REQUEST,

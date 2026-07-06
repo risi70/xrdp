@@ -11,7 +11,7 @@
 | PRO-005 | Secret-bearing input/output buffers MUST be erased after use. |
 | PRO-006 | Status codes MUST be stable, coarse across trust boundaries, and versioned. |
 | PRO-007 | Effective assertion size MUST be the minimum of validator, transport, and framed libipm payload limits. |
-| PRO-008 | MVP SCP/EICP transport MUST reject oversize assertions and MUST NOT fragment or use out-of-band assertion handles. |
+| PRO-008 | MVP SCP/EICP transport MUST reject oversize assertions and MUST NOT fragment or use generic out-of-band assertion handles. The only permitted handle mechanism is SD-006 one-time server-side assertion handles; those handles are lookup keys, not assertion containers. |
 
 ## 2. Internal SCP additions
 
@@ -201,10 +201,16 @@ correlation ID, transferred descriptor metadata, and any other framing. An
 assertion exactly at the derived permitted boundary is accepted for transport;
 one byte over is rejected before allocation/validation where possible.
 
-The MVP defines neither fragmentation nor out-of-band assertion handles. It
-MUST NOT raise libipm message bounds as an implicit substitute. Fragmentation,
-handle transport, and larger messages are deferred to a separate versioned
-protocol/security decision.
+The MVP defines no fragmentation and no generic out-of-band assertion handles.
+The only permitted handle mechanism is SD-006: short-lived, one-time,
+server-side assertion handles used for standard RDP broker compatibility. These
+handles do not contain assertions, are target-bound, and are resolved only by
+the trusted server-side assertion-handle service. Per SD-007,
+target-mismatched resolution of a known handle consumes or invalidates the
+handle, never returns assertion bytes, and cannot be retried later with the
+correct target. The MVP MUST NOT raise libipm message bounds as an implicit
+substitute. Fragmentation, generic bearer handles, and larger messages are
+deferred to a separate versioned protocol/security decision.
 
 RDP TLS is required. Local sockets use existing XRDP permissions and peer
 credentials. Assertion fields cannot be copied into environment variables,
