@@ -100,6 +100,18 @@ status distinguishes invalid, unauthorized, replay, unavailable, resource, and
 internal failures. Only a successful opaque context can reach
 `login_info_prevalidated_broker_user`.
 
+### 5.1 Trusted replay IPC
+
+Phase 4b workers reserve replay digests through a versioned, fixed-size
+Unix-domain-socket protocol to the persistent host-local replay service. A
+request contains an operation, the 32-byte replay-key digest, expiry, and an
+optional correlation identifier; it never contains a JWT, username, or
+broker-specific field. Supported operations are reserve, mark consumed, mark
+released, status, cleanup expired, and ping. Unknown operations, malformed
+lengths, invalid keys, expired or excessive expiry, capacity exhaustion,
+timeouts, and unavailable or ambiguous responses fail closed. The default
+endpoint is `/run/xrdp/baf-replay.sock`, restricted to XRDP/sesman processes.
+
 ## 6. Status codes
 
 | Stable code | Meaning | Retry with same assertion |

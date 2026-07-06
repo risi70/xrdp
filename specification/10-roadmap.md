@@ -85,6 +85,10 @@ Phase 4a identity/PAM prerequisites, and the existing session lifecycle under
 explicit runtime gating. Session authorization requires every BAF stage and
 uses only the NSS-resolved Linux identity.
 
+Phase 4b uses the SD-004 persistent host-local trusted replay service. Direct
+worker-local memory replay is test-only and cannot authorize a live session.
+Cluster-wide and persistent replay storage remain deferred.
+
 Deliverables: completed live broker-login path, exact effective transport-bound
 checks, dynamic PAM denial/session-failure tests, negative protocol tests, and
 classic-mode regression coverage. No fragmentation or out-of-band assertion

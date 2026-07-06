@@ -33,7 +33,9 @@ MaxAssertionBytes=16384
 TransportMaxAssertionBytes=8192
 MaxLifetimeSeconds=300
 ClockSkewSeconds=30
-ReplayBackend=memory
+ReplayBackend=service
+ReplaySocket=/run/xrdp/baf-replay.sock
+ReplayTimeoutMs=1000
 ReplayCapacity=100000
 JwksConnectTimeoutMs=2000
 JwksTotalTimeoutMs=5000
@@ -79,7 +81,9 @@ not guessing whether a password resembles a JWT.
 | `TransportMaxAssertionBytes` | int/8192 | Nominal configured assertion ceiling; the framed libipm capacity may impose a lower effective value. |
 | `MaxLifetimeSeconds` | int/300 | 30–900. |
 | `ClockSkewSeconds` | int/30 | 0–120. |
-| `ReplayBackend` | enum/memory | `memory`, `sqlite`, or future registered adapter. |
+| `ReplayBackend` | enum/service | Phase 4b live activation requires `service`; `memory` is test-only. |
+| `ReplaySocket` | path/`/run/xrdp/baf-replay.sock` | Restricted local Unix-domain socket. |
+| `ReplayTimeoutMs` | int/1000 | 100–30000; timeout fails broker authentication closed. |
 | `ReplayCapacity` | int/100000 | 1000–10,000,000. |
 | timeout values | int | 100–30000 ms. |
 | `AllowStaleJwksSeconds` | int/0 | 0 disables stale use; maximum 86400. |

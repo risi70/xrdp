@@ -17,6 +17,8 @@ cleanup continue through XRDP's existing session path.
 - Classic SCP/EICP password messages remain byte-compatible.
 - The exact assertion payload capacity after SCP/EICP framing is calculated and
   enforced at every hop.
+- A persistent trusted replay service is reachable over its restricted local
+  Unix-domain socket. Live workers never fall back to process-local replay.
 
 ## Transport-size rule
 
@@ -46,3 +48,4 @@ fragmentation nor out-of-band assertion handles.
 - Direct LDAP, FreeIPA, Active Directory, or SSSD APIs.
 - Enabling broker auth by default.
 - Trusting assertion UID, GID, or groups as Linux authorization data.
+- Cluster-wide replay coordination or persistent replay-service storage.

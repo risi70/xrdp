@@ -21,6 +21,7 @@ Normative decisions:
 
 - [SD-002 — Separation of Assertion Validation and Linux Identity Binding](decisions/SD-002-validation-identity-separation.md)
 - [SD-003 — Phase Ownership and Assertion Transport Size](decisions/SD-003-phase-ownership-transport-size.md)
+- [SD-004 — Trusted Replay Service for Live Broker Authentication](decisions/SD-004-trusted-replay-service.md)
 
 ## Conformance
 
@@ -49,6 +50,9 @@ is neither necessary nor sufficient for core BAF conformance.
 - PAM account, credentials, session, environment, and cleanup remain mandatory.
 - Phase 4a produces no live-session authorization; Phase 4b owns activation
   after every validation, replay, identity, UID, and PAM prerequisite passes.
+- Phase 4b replay reservation is host-local and cross-process through the
+  trusted replay service; worker-local memory replay remains test-only and
+  service failure denies broker authentication without affecting classic PAM.
 - The validator's 16 KiB default is an upper validation bound. In-band SCP/EICP
   transport has a nominal 8 KiB message ceiling and MUST subtract framing
   overhead; the effective maximum is the minimum of validator, transport, and

@@ -199,6 +199,11 @@ authorization, PAM account, or session-creation failure does not permit retry.
 `released` is an audit/state marker only; it MUST NOT remove the entry or make
 the assertion reusable. Transient-failure retry is not part of the MVP.
 Cache unavailability fails closed.
+For Phase 4b live activation, reservations MUST use the persistent host-local
+trusted replay service defined by SD-004. Process-local memory is permitted
+only in unit tests and isolated single-process harnesses. A worker MUST fail
+closed on any unavailable or indeterminate service result and MUST NOT fall
+back to its local memory backend.
 Clustered desktops require a shared atomic replay store or target-specific
 assertions that cannot move between hosts.
 

@@ -28,6 +28,7 @@ struct baf_validator_options
     const char *required_role;
     const char *allowed_device_status;
     struct replay_cache *replay_cache;
+    int require_service_replay;
 };
 
 enum auth_provider_status baf_validator_config_create(

@@ -34,7 +34,9 @@ syntax.
 |---|---|
 | `sesman/libsesman/auth_provider.[ch]` | Stable provider request/result operations. |
 | `sesman/libsesman/auth_provider_jwt.[ch]` | Generic BAF validation using libjwt/OpenSSL and Jansson strict parsing. |
-| `sesman/libsesman/replay_cache.[ch]` | Bounded atomic reserve/consume and audit-only release-state abstraction. |
+| `sesman/libsesman/replay_cache.[ch]` | Replay backend abstraction; memory is test-only for live activation. |
+| `sesman/libsesman/replay_cache_service.[ch]` | Fail-closed client for the trusted host-local replay service. |
+| `xrdp-baf-replayd` | Persistent local replay authority with bounded atomic reserve/consume state. |
 | `sesman/sesexec/identity_binding.[ch]` or equivalent | Phase 4a binding of a validated capability to a canonical Linux identity through NSS/SSSD. |
 | `broker-auth/` | Schema, reference issuer, vectors, conformance tools; not linked into XRDP. |
 
@@ -111,6 +113,8 @@ session may be authorized only when all of the following are present:
 7. the existing PAM credential, session, environment, and cleanup lifecycle.
 
 No individual or partial-stage success is session authorization. Phase 4b also
+requires the replay reservation from the SD-004 trusted replay service;
+worker-local memory replay state cannot authorize live activation. Phase 4b
 enforces the effective SCP/EICP assertion boundary defined by SD-003 and the
 protocol specification. The MVP has no fragmentation or out-of-band handles.
 

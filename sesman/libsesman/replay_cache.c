@@ -3,6 +3,7 @@
 #endif
 
 #include "replay_cache.h"
+#include "replay_cache_service.h"
 
 #include <openssl/evp.h>
 #include <pthread.h>
@@ -19,9 +20,18 @@ struct replay_entry
 
 struct replay_cache
 {
+    int backend;
     pthread_mutex_t mutex;
     struct replay_entry *entries;
     size_t capacity;
+    char *socket_path;
+    int timeout_ms;
+};
+
+enum
+{
+    REPLAY_BACKEND_MEMORY = 1,
+    REPLAY_BACKEND_SERVICE = 2
 };
 
 static void
@@ -75,8 +85,37 @@ replay_cache_memory_create(size_t capacity)
         free(cache);
         return NULL;
     }
+    cache->backend = REPLAY_BACKEND_MEMORY;
     cache->capacity = capacity;
     return cache;
+}
+
+struct replay_cache *
+replay_cache_service_create(const char *socket_path, int timeout_ms)
+{
+    struct replay_cache *cache;
+    size_t length;
+    if (socket_path == NULL || socket_path[0] == '\0' || timeout_ms <= 0)
+    {
+        return NULL;
+    }
+    cache = calloc(1, sizeof(*cache));
+    length = strlen(socket_path) + 1;
+    if (cache == NULL || (cache->socket_path = malloc(length)) == NULL)
+    {
+        free(cache);
+        return NULL;
+    }
+    memcpy(cache->socket_path, socket_path, length);
+    cache->backend = REPLAY_BACKEND_SERVICE;
+    cache->timeout_ms = timeout_ms;
+    return cache;
+}
+
+int
+replay_cache_is_service(const struct replay_cache *cache)
+{
+    return cache != NULL && cache->backend == REPLAY_BACKEND_SERVICE;
 }
 
 void
@@ -84,8 +123,12 @@ replay_cache_free(struct replay_cache *cache)
 {
     if (cache != NULL)
     {
-        pthread_mutex_destroy(&cache->mutex);
-        free(cache->entries);
+        if (cache->backend == REPLAY_BACKEND_MEMORY)
+        {
+            pthread_mutex_destroy(&cache->mutex);
+            free(cache->entries);
+        }
+        free(cache->socket_path);
         free(cache);
     }
 }
@@ -125,6 +168,12 @@ replay_cache_reserve(struct replay_cache *cache,
                      int64_t expires_at, int64_t now)
 {
     size_t i;
+    if (cache != NULL && cache->backend == REPLAY_BACKEND_SERVICE)
+    {
+        return replay_cache_service_request(cache->socket_path,
+                   cache->timeout_ms, BAF_REPLAY_OP_RESERVE, key,
+                   expires_at, NULL);
+    }
     if (cache == NULL)
     {
         return REPLAY_CACHE_UNAVAILABLE;
@@ -162,6 +211,24 @@ set_state(struct replay_cache *cache,
           enum replay_cache_state state)
 {
     struct replay_entry *entry;
+    if (cache != NULL && cache->backend == REPLAY_BACKEND_SERVICE)
+    {
+        enum baf_replay_operation operation;
+        if (state == REPLAY_CACHE_CONSUMED)
+        {
+            operation = BAF_REPLAY_OP_MARK_CONSUMED;
+        }
+        else if (state == REPLAY_CACHE_RELEASED)
+        {
+            operation = BAF_REPLAY_OP_MARK_RELEASED;
+        }
+        else
+        {
+            return REPLAY_CACHE_ERROR;
+        }
+        return replay_cache_service_request(cache->socket_path,
+                   cache->timeout_ms, operation, key, 0, NULL);
+    }
     if (cache == NULL)
     {
         return REPLAY_CACHE_UNAVAILABLE;
@@ -204,6 +271,11 @@ replay_cache_get_state(struct replay_cache *cache,
                        int64_t now, enum replay_cache_state *state)
 {
     struct replay_entry *entry;
+    if (cache != NULL && cache->backend == REPLAY_BACKEND_SERVICE)
+    {
+        return replay_cache_service_request(cache->socket_path,
+                   cache->timeout_ms, BAF_REPLAY_OP_STATUS, key, 0, state);
+    }
     if (cache == NULL)
     {
         return REPLAY_CACHE_UNAVAILABLE;

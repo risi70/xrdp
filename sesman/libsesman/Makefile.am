@@ -49,7 +49,8 @@ BROKER_AUTH_SOURCES = \
   baf_authorization.c \
   baf_identity.c \
   baf_transport.c \
-  replay_cache.c
+  replay_cache.c \
+  replay_cache_service.c
 endif
 
 # Possible authentication modules
@@ -71,6 +72,8 @@ libsesman_la_SOURCES = \
   baf_identity.h \
   baf_transport.h \
   replay_cache.h \
+  replay_cache_service.h \
+  replay_service_protocol.h \
   $(BROKER_AUTH_SOURCES) \
   sesman_access.h \
   sesman_access.c \

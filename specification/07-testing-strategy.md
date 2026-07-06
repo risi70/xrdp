@@ -60,6 +60,7 @@ Each row specifies purpose, setup, steps, expected result, and automation.
 | UT-006 Unit | Validate mandatory identity | Missing/empty username, subject, JTI | Validate | Denied before NSS/PAM | Every PR |
 | UT-007 Unit | Replay atomicity | Empty isolated cache, 64 workers | Submit same `(iss,jti)` concurrently | Exactly one reservation succeeds | Every PR/TSAN nightly |
 | UT-008 Unit | Replay lifecycle | Fake clock/cache | Reserve, consume/release, attempt re-reserve, advance time | Released marker cannot retry before expiry; expiry permits a new reservation | Every PR |
+| UT-008A Unit/Phase 4b | Host-local cross-process replay | Real replay service and forked workers | Concurrently reserve one digest, then distinct digests; stop service and send malformed/oversize messages | Exactly one same-key reservation succeeds; distinct keys succeed; unavailable/malformed input fails closed | Every PR |
 | UT-009 Unit | Configuration safety | Valid/invalid files and permissions | Load/reload candidates | Invalid candidate rejected; old config retained | Every PR |
 | UT-010 Unit/Phase 4b | Effective protocol bounds | Validator/transport limits and exact SCP/EICP framing capacity | Encode/decode under-boundary, exact boundary, boundary+1, validator+1, and truncation | Exact boundary round trips; oversize rejected before validation where possible; no fragmentation | Every PR |
 | UT-011 Unit | Secret erasure/redaction | Instrument buffers/logger | Complete success/failure | Buffers erased; token absent from logs | Sanitizer CI |

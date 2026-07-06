@@ -132,6 +132,11 @@ main(void)
     assert(baf_validator_config_create(&options, &rejected_config) ==
            AUTH_PROVIDER_CONFIG_ERROR);
     options.allowed_algorithms = "RS256";
+    options.require_service_replay = 1;
+    assert(baf_validator_config_create(&options, &rejected_config) ==
+           AUTH_PROVIDER_CONFIG_ERROR);
+    assert(rejected_config == NULL);
+    options.require_service_replay = 0;
     assert(baf_validator_config_create(&options, &config) ==
            AUTH_PROVIDER_SUCCESS);
 

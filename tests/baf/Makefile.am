@@ -13,12 +13,16 @@ PY_LOG_COMPILER = python3
 
 if ENABLE_BROKER_AUTH
 TESTS = test_replay_cache test_auth_provider_jwt test_phase2_vectors \
-  test_baf_transport test_baf_identity test_pam_broker_contract.py \
+  test_baf_transport test_baf_identity test_replay_service \
+  test_pam_broker_contract.py \
   test_security_contract.py
 check_PROGRAMS = test_replay_cache test_auth_provider_jwt test_phase2_vectors \
-  test_baf_transport test_baf_identity
+  test_baf_transport test_baf_identity test_replay_service
 test_replay_cache_SOURCES = test_replay_cache.c
 test_replay_cache_LDADD = \
+  $(top_builddir)/sesman/libsesman/libsesman.la
+test_replay_service_SOURCES = test_replay_service.c
+test_replay_service_LDADD = \
   $(top_builddir)/sesman/libsesman/libsesman.la
 test_auth_provider_jwt_SOURCES = test_auth_provider_jwt.c
 test_auth_provider_jwt_LDADD = \
@@ -47,6 +51,7 @@ EXTRA_DIST = \
   test_baf_transport.c \
   test_pam_broker_contract.py \
   test_phase2_vectors.c \
+  test_replay_service.c \
   test_security_contract.py
 
 # Top-level EXTRA_DIST includes broker-auth, preserving vector asset paths.

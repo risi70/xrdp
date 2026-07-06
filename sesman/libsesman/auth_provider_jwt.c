@@ -156,7 +156,9 @@ baf_validator_config_create(const struct baf_validator_options *options,
             strcmp(options->allowed_algorithms, "RS256") != 0 ||
             max_size < 1024 || max_size > 65536 ||
             lifetime < 30 || lifetime > 900 ||
-            skew < 0 || skew > BAF_MAX_CLOCK_SKEW_SECONDS)
+            skew < 0 || skew > BAF_MAX_CLOCK_SKEW_SECONDS ||
+            (options->require_service_replay &&
+             !replay_cache_is_service(options->replay_cache)))
     {
         return AUTH_PROVIDER_CONFIG_ERROR;
     }

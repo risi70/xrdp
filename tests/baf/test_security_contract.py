@@ -16,6 +16,12 @@ PROTOCOL = "\n".join(
     (ROOT / path).read_text(encoding="utf-8")
     for path in ("libipm/scp.c", "libipm/eicp.c")
 )
+REPLAY_SERVICE = (
+    ROOT / "sesman" / "libsesman" / "replay_cache_service.c"
+).read_text(encoding="utf-8")
+REPLAY_HEADER = (
+    ROOT / "sesman" / "libsesman" / "replay_service_protocol.h"
+).read_text(encoding="utf-8")
 
 for logging_call in ("LOG(", "printf(", "fprintf(", "syslog("):
     assert logging_call not in PROVIDER
@@ -41,6 +47,12 @@ assert "assertion" not in REPLAY.lower()
 assert "libipm_msg_out_erase" in PROTOCOL
 assert "LIBIPM_E_MSG_IN_ERASE_AFTER_USE" in PROTOCOL
 assert "password" not in TRANSPORT.lower()
+assert "assertion" not in REPLAY_SERVICE.lower()
+assert "token" not in REPLAY_SERVICE.lower()
+assert "assertion" not in REPLAY_HEADER.lower()
+assert "token" not in REPLAY_HEADER.lower()
+assert "SOCK_SEQPACKET" in REPLAY_SERVICE
+assert "require_service_replay" in PROVIDER
 IDENTITY = (
     ROOT / "sesman" / "libsesman" / "baf_identity.c"
 ).read_text(encoding="utf-8")
