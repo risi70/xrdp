@@ -240,3 +240,7 @@ keys are ignored unless named by a future understood critical policy. New
 mandatory claims require a new profile version and media type. Future
 algorithm support is configuration-gated, never inferred from the token.
 Phase 2 accepts only an exact RS256 configuration.
+
+## SD-006 handle ingress
+
+Phase 4b-1 permits only short-lived, high-entropy, one-time server-side assertion handles as defined by [SD-006](decisions/SD-006-one-time-server-side-assertion-handles.md). Atomic resolution fails closed and is not login authorization; live activation remains deferred.

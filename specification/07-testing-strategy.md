@@ -153,3 +153,7 @@ build modes, classic regression, assertion conformance, static analysis, and
 secret scan. Release requires all system/security tests, 24-hour stress,
 recovery exercise, supported-upgrade test, signed artifacts, and zero open
 critical/high vulnerabilities without documented acceptance.
+
+## SD-006 handle ingress
+
+Phase 4b-1 permits only short-lived, high-entropy, one-time server-side assertion handles as defined by [SD-006](decisions/SD-006-one-time-server-side-assertion-handles.md). Atomic resolution fails closed and is not login authorization; live activation remains deferred.

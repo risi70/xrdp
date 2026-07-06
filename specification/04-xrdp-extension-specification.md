@@ -232,3 +232,7 @@ A compatibility wrapper isolates libjwt APIs from provider interfaces.
 Replacing libjwt in a future release is permitted only when the replacement
 passes the same conformance vectors without changing BAF, provider, or protocol
 contracts.
+
+## SD-006 handle ingress
+
+Phase 4b-1 permits only short-lived, high-entropy, one-time server-side assertion handles as defined by [SD-006](decisions/SD-006-one-time-server-side-assertion-handles.md). Atomic resolution fails closed and is not login authorization; live activation remains deferred.

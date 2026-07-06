@@ -47,6 +47,7 @@ BROKER_AUTH_SOURCES = \
   auth_provider_null.c \
   auth_provider_jwt.c \
   baf_authorization.c \
+  baf_handle_service.c \
   baf_identity.c \
   baf_transport.c \
   replay_cache.c \
@@ -70,6 +71,7 @@ libsesman_la_SOURCES = \
   auth_provider_null.h \
   auth_provider_private.h \
   baf_identity.h \
+  baf_handle_service.h \
   baf_transport.h \
   replay_cache.h \
   replay_cache_service.h \

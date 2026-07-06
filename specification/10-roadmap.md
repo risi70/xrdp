@@ -172,3 +172,7 @@ validator from these documents; all requirements trace to tests; classic PAM,
 LDAP/FreeIPA/AD through SSSD, and optional Keycloak scenarios pass; operational
 rotation/revocation/recovery is demonstrated; and upstream-facing changes are
 minimal, generic, reviewed, and documented.
+
+## SD-006 handle ingress
+
+Phase 4b-1 permits only short-lived, high-entropy, one-time server-side assertion handles as defined by [SD-006](decisions/SD-006-one-time-server-side-assertion-handles.md). Atomic resolution fails closed and is not login authorization; live activation remains deferred.

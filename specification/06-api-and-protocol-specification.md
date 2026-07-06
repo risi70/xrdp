@@ -210,3 +210,7 @@ RDP TLS is required. Local sockets use existing XRDP permissions and peer
 credentials. Assertion fields cannot be copied into environment variables,
 module parameters passed to desktop processes, or command lines. Protocol
 fuzzing and maximum-length tests are release gates.
+
+## SD-006 handle ingress
+
+Phase 4b-1 permits only short-lived, high-entropy, one-time server-side assertion handles as defined by [SD-006](decisions/SD-006-one-time-server-side-assertion-handles.md). Atomic resolution fails closed and is not login authorization; live activation remains deferred.

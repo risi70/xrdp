@@ -49,3 +49,7 @@ fragmentation nor out-of-band assertion handles.
 - Enabling broker auth by default.
 - Trusting assertion UID, GID, or groups as Linux authorization data.
 - Cluster-wide replay coordination or persistent replay-service storage.
+
+## Phase 4b-1 handle ingress
+
+SD-006 permits a standard broker-compatible opaque handle while retaining the full assertion in `xrdp-baf-handled`. Handle resolution is atomic and feeds the existing BAF transport/validator path. The resulting state is `BAF_HANDLE_VALIDATED_NOT_SESSION_AUTHORIZED`: neither resolution nor validation authorizes login. Identity binding, PAM, and live session startup remain Phase 4b-2.
