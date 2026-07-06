@@ -26,7 +26,8 @@ test_replay_service_LDADD = \
   $(top_builddir)/sesman/libsesman/libsesman.la
 test_handle_service_SOURCES = test_handle_service.c
 test_handle_service_LDADD = \
-  $(top_builddir)/sesman/libsesman/libsesman.la
+  $(top_builddir)/sesman/libsesman/libsesman.la \
+  $(BROKER_AUTH_LIBS)
 test_auth_provider_jwt_SOURCES = test_auth_provider_jwt.c
 test_auth_provider_jwt_LDADD = \
   $(top_builddir)/sesman/libsesman/libsesman.la \
@@ -52,6 +53,7 @@ EXTRA_DIST = \
   fuzz/README.md \
   test_baf_identity.c \
   test_baf_transport.c \
+  test_handle_service.c \
   test_pam_broker_contract.py \
   test_phase2_vectors.c \
   test_replay_service.c \
