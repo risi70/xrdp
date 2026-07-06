@@ -116,24 +116,37 @@ protocol specification. The MVP has no fragmentation or out-of-band handles.
 
 ## 5. Authentication state machine
 
+The broker path is phase-aware: Phase 4a terminates at
+`ReadyForActivation` after PAM preconditions are approved and MUST NOT
+transition to `SessionOpen`. `SessionOpen` and `Running` are Phase 4b states.
+The separate classic password/PAM path and its existing session behavior are
+unchanged.
+
 ```mermaid
 stateDiagram-v2
   [*] --> ModeSelected
   ModeSelected --> PasswordLogin: classic
   ModeSelected --> AssertionReceived: broker
   PasswordLogin --> PamAuthenticate
-  PamAuthenticate --> PamAccount: success
+  PamAuthenticate --> ClassicPamAccount: success
+  ClassicPamAccount --> ClassicSessionOpen: allowed
+  ClassicSessionOpen --> ClassicRunning: pam_setcred/open + session_start
   AssertionReceived --> LocalValidation
   LocalValidation --> NssMapping: valid + JTI reserved
-  NssMapping --> PamAccount: mapped
-  PamAccount --> SessionOpen: allowed
-  SessionOpen --> Running: pam_setcred/open + session_start
+  NssMapping --> PamPreconditions: mapped
+  PamPreconditions --> ReadyForActivation: Phase 4a approved
+  ReadyForActivation --> SessionOpen: Phase 4b activation
+  SessionOpen --> Running: Phase 4b pam_setcred/open + session_start
   LocalValidation --> Denied: invalid/replay
   NssMapping --> Denied: no/forbidden account
   PamAuthenticate --> Denied: failure
-  PamAccount --> Denied: failure
+  ClassicPamAccount --> Denied: failure
+  ClassicSessionOpen --> Denied: failure
+  PamPreconditions --> Denied: failure
   SessionOpen --> Denied: failure
   Denied --> [*]
+  ClassicRunning --> ClassicSessionClose
+  ClassicSessionClose --> [*]
   Running --> SessionClose
   SessionClose --> [*]
 ```

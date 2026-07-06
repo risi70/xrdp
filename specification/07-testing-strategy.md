@@ -104,14 +104,25 @@ policy cannot safely be altered in ordinary `make check`, the repository MUST
 provide an isolated harness and explicit integration target; the static split
 contract remains mandatory in normal checks.
 
-## 4. Negative vector minimum
+## 4. Phase-specific negative coverage
 
-The committed corpus includes valid, expired, future `nbf`, excessive lifetime,
-wrong/multi audience, wrong issuer, wrong target, missing/empty username,
-missing/duplicate JTI, wrong `typ`, unknown/empty `kid`, malformed segments,
-bad signature, `none`, HS/RS confusion, duplicate members, excessive nesting,
-oversize arrays, invalid UTF-8, replay, denied UID, PAM rejection, and
-unavailable cache.
+### 4.1 Phase 2 assertion vector corpus
+
+The committed assertion corpus includes valid, expired, future `nbf`,
+excessive-lifetime, wrong-issuer, wrong/multi-audience, wrong-target,
+missing/empty-`preferred_username`, missing/duplicate-`jti`, wrong-`typ`,
+unknown/empty-`kid`, malformed-compact-serialization, invalid-base64url,
+bad-signature, `alg=none`, HS/MAC-algorithm, duplicate-JSON-member,
+token-controlled-key-URL, embedded-`jwk`, replay, cache-unavailable, and
+oversized-assertion cases. These are JOSE, claim, replay, and validator
+configuration cases only; they do not perform Linux identity or PAM testing.
+
+### 4.2 Phase 4a and Phase 4b identity/PAM tests
+
+Identity and PAM coverage includes denied UID and UID 0, unknown or unsafe
+identity, PAM account denial, PAM session failure, and confirmation that replay
+remains consumed after identity, PAM, or session failure. These cases are not
+part of the Phase 2 assertion vector corpus.
 
 ## 5. Traceability
 

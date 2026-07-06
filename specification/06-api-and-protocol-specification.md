@@ -64,6 +64,12 @@ features are capability bits. Peers ignore unknown capability bits. New
 mandatory assertion semantics require a new assertion profile and capability.
 Classic SCP messages are unchanged and require no negotiation.
 
+The following sequence is the Phase 4b target lifecycle, not the completed
+Phase 4a implementation. Phase 3 provides transport scaffolding only; Phase 4a
+provides internal identity-binding and PAM prerequisites only; Phase 4b wires
+the complete sequence into the production login response and session
+authorization path.
+
 ```mermaid
 sequenceDiagram
   participant X as xrdp
@@ -76,7 +82,7 @@ sequenceDiagram
   E->>E: validate assertion + reserve replay
   E->>E: bind identity through NSS/SSSD
   E->>E: PAM account checks
-  E-->>X: SCP_LOGIN_RESPONSE via handed-over FD
+  E-->>X: Phase 4b authorized SCP_LOGIN_RESPONSE via handed-over FD
 ```
 
 ## 5. Provider API contract
