@@ -30,45 +30,50 @@ Malformed JSON, missing `rdp_assertion`, oversized JSON, and oversized assertion
 
 ## 5. Authentication Result sender
 
-`xrdp_sec_rdsaad_exchange()` sends Authentication Result JSON with `rdsaad_encode_authentication_result()`.
+`xrdp_sec_rdsaad_exchange()` sends Authentication Result JSON with
+`rdsaad_encode_authentication_result()`.
 
-The current foundation deliberately sends only failure results. It never emits `S_OK` because `S_OK` means authentication and authorization succeeded and the RDP connection may continue.
+`S_OK` is emitted only when the libxrdp owner callback returns
+`XRDP_RDSAAD_PREAUTH_AUTHORIZED`. That callback result is produced only after
+sesman and xrdp-sesexec complete the BAF preauth chain and create session-ready
+login state. Parser errors, validation errors, replay failures, identity/PAM
+failures, service unavailability, or missing live configuration return failure
+HRESULTs and stop the connection before MCS.
 
 ## 6. BAF validator handoff
 
-The intended production handoff is:
+The production handoff is:
 
-`rdp_assertion` -> BAF transport -> JWT validator -> trusted replay service -> validated capability.
+`rdp_assertion` -> libxrdp owner callback -> xrdp SCP broker preauth request ->
+sesman dispatch -> EICP broker preauth request -> xrdp-sesexec BAF transport ->
+JWT validator -> trusted replay service -> validated capability -> NSS/SSSD
+identity binding -> UID 0 rejection -> PAM broker preconditions ->
+session-ready `login_info`.
 
-The parser and helper tests already prove the `rdp_assertion` value can feed `baf_transport_validate()`. The live XRDP hook currently stops before validation because the current tree now has a trusted sesman/sesexec runtime configuration object, but still lacks the pre-MCS owner bridge and the sesman/sesexec session-ready handoff needed to make validation useful for a live connection.
-
-This is the safe partial foundation state. The hook parses and clears the assertion, returns Authentication Result failure, and terminates before MCS. It must not emit `S_OK` merely because parsing or future validator handoff succeeds.
+Raw assertion bytes are bounded, never logged, erased after handoff/validation,
+and are not stored in xrdp, sesman, sesexec, or `login_info`.
 
 ## 7. sesman/sesexec handoff
 
-The required production handoff is a new, clearly named BAF/RDSAAD login request that does not use username or password fields and does not trust token UID/GID/group material. It must create `login_info` only after:
+The bridge uses the existing broker login request codecs
+`E_SCP_BROKER_LOGIN_REQUEST_V1` and `E_EICP_BROKER_LOGIN_REQUEST_V1`; they carry
+bounded assertion material and metadata and do not overload classic credentials.
+The bridge does not use username or password fields. `sesman` validates
+trusted live BAF configuration, starts xrdp-sesexec, forwards the request, and
+marks successful connections as `E_SLI_LOGIN_BAF`.
 
-1. assertion validation;
-2. trusted replay reservation;
-3. NSS/SSSD-compatible identity binding;
-4. UID 0 rejection by default;
-5. PAM account approval;
-6. PAM credential/session lifecycle readiness.
-
-`sesman/scp_process.c` and `sesman/sesexec/eicp_server.c` currently have no such dispatch path. `login_info` currently represents classic SYS login and UDS login only; it has no broker-authenticated/session-ready variant. That is the remaining live-activation blocker.
-
-A safe implementation must decide where live validation runs:
-
-- If validation runs in sesexec, XRDP/SCP/EICP must carry only the bounded assertion material needed for validation, erase it immediately after handoff, and require trusted replay service configuration.
-- If validation runs before sesexec, the IPC must carry a minimal non-forgeable session-ready representation, not client-controlled claims, and sesexec must still own session startup as the resolved Linux user.
-
-The trusted runtime configuration abstraction now exists. The pre-MCS owner bridge and session-ready login abstraction still do not exist yet, so this foundation intentionally keeps the live path closed.
+`xrdp-sesexec` owns live validation and authorization. It loads trusted
+[BrokerAuth] configuration from local sesman config, requires service-backed
+replay, binds identity through NSS/SSSD-compatible APIs, rejects UID 0 by
+default, runs broker PAM account/session preconditions without
+`pam_authenticate()`, and creates `login_info` for the resolved Linux username.
 
 ## 8. When `S_OK` may be sent
 
-`S_OK` may be sent only after the full live broker-auth authorization path is complete and the existing XRDP session startup can proceed as the resolved Linux user. Validator success alone, replay success alone, identity binding alone, or PAM account approval alone is not sufficient.
-
-Until the sesman/sesexec handoff exists, the RDSAAD exchange must return a controlled failure result and terminate the connection before MCS proceeds.
+`S_OK` may be sent only after the full broker-auth authorization path is complete
+and the authenticated sesman transport is bound to the current xrdp process for
+post-MCS session startup. Validator success alone, replay success alone,
+identity binding alone, or PAM account approval alone is not sufficient.
 
 ## 9. Classic login preservation
 
@@ -81,7 +86,7 @@ Classic behavior is preserved by default:
 
 ## 10. Tests
 
-The current foundation is covered by:
+The pre-MCS bridge foundation is covered by:
 
 - RDSAAD helper tests for nonce/result encoding and Authentication Request parsing;
 - BAF transport/JWT validator tests for `rdp_assertion` handoff at the safe helper boundary;

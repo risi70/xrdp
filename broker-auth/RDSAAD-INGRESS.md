@@ -13,7 +13,7 @@ Implementation note:
 7. The validator reserves replay through the trusted replay service before live activation.
 8. The server sends an Authentication Result PDU containing UTF-8 JSON: `{"authentication_result":"<HRESULT>"}`.
 
-The Authentication Result `S_OK` value means authentication and authorization succeeded and the RDP connection can proceed. Until Phase 4b live activation is proven end-to-end, scaffolding may validate the assertion but must not return false success.
+The Authentication Result `S_OK` value means authentication and authorization succeeded and the RDP connection can proceed. The pre-MCS bridge returns `S_OK` only after sesman/xrdp-sesexec completes the full BAF preauth chain and creates session-ready login state.
 
 The `rdp_assertion` field carries the BAF compact JWT/JWS assertion. It is broker-neutral: XRDP validates the configured BAF issuer/audience/target/trust profile and does not hard-code Microsoft Entra, Keycloak, UDS, or any IdP-specific behavior.
 
@@ -31,12 +31,9 @@ Failure behavior:
 
 Remaining deferred work:
 
-- production BAF/RDSAAD login handoff from XRDP through sesman/sesexec;
-- live assertion validation with complete trust/runtime configuration;
-- `login_info` creation from a fully authorized BAF result;
-- full live session activation;
+- deploy trusted local BrokerAuth configuration and replay service in target environments;
+- broker/client interoperability testing with an RDSAAD-capable client;
 - Phase 5 UDS reference broker integration;
-- broker interoperability testing;
 - optional Microsoft/Entra-specific validation if ever required by deployment policy.
 
 ## Production integration foundation
@@ -45,4 +42,4 @@ The first production hook is now identified in `xrdp_sec_incoming()`: after TLS 
 
 The hook is runtime gated. RDSAAD remains disabled by default and is selected only when broker-auth RDSAAD settings are explicitly enabled and complete. If RDSAAD is requested without valid runtime configuration, negotiation fails closed.
 
-The current foundation intentionally withholds `S_OK`. It parses the Authentication Request and clears `rdp_assertion`, then returns a controlled failure because the sesman/sesexec BAF login handoff is not complete. `S_OK` remains reserved for the future point where the full BAF chain has produced a session-ready authorization state and existing session startup can proceed as the resolved Linux user. See `RDSAAD-INTEGRATION-FOUNDATION.md`.
+The pre-MCS bridge now delegates authorization through the xrdp owner callback to sesman and xrdp-sesexec. `S_OK` is emitted only after the full BAF chain produces session-ready authorization state and the authenticated sesman transport is bound to the current connection. See `RDSAAD-INTEGRATION-FOUNDATION.md` and `RDSAAD-PREMCS-BRIDGE.md`.

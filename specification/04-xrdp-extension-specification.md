@@ -237,7 +237,7 @@ contracts.
 
 ## SD-008 RDSAAD-style ingress
 
-SD-008 supersedes handle-first ingress for the MVP. XRDP must scaffold `PROTOCOL_RDSAAD` negotiation, Server Nonce, Authentication Request parsing, `rdp_assertion` extraction, BAF validation, trusted replay, and Authentication Result mapping. `S_OK` MUST NOT be returned until live authorization/session activation is actually complete. Trusted BAF runtime configuration for that future path is owned by sesman/xrdp-sesexec through the local `[BrokerAuth]` section and remains disabled by default.
+SD-008 supersedes handle-first ingress for the MVP. XRDP implements `PROTOCOL_RDSAAD` negotiation, Server Nonce, Authentication Request parsing, `rdp_assertion` extraction, BAF validation, trusted replay, and Authentication Result mapping through the pre-MCS sesman/sesexec bridge. `S_OK` MUST NOT be returned until live authorization/session-ready preauth state is complete. Trusted BAF runtime configuration is owned by sesman/xrdp-sesexec through the local `[BrokerAuth]` section and remains disabled by default.
 
 
 ### RDSAAD production integration foundation

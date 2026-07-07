@@ -179,4 +179,4 @@ minimal, generic, reviewed, and documented.
 
 ## SD-008 RDSAAD-style ingress
 
-Phase 4b now prefers SD-008 RDSAAD-style pre-logon assertion ingress. Protocol scaffolding covers `PROTOCOL_RDSAAD`, Server Nonce, Authentication Request `rdp_assertion`, Authentication Result HRESULT mapping, and validator/replay handoff. Full live session activation remains separate until the exact XRDP insertion point and authorization handoff are proven.
+Phase 4b now implements SD-008 RDSAAD-style pre-logon assertion ingress through the pre-MCS bridge. Coverage includes `PROTOCOL_RDSAAD`, Server Nonce, Authentication Request `rdp_assertion`, Authentication Result HRESULT mapping, validator/replay handoff, NSS/SSSD identity binding, UID 0 rejection, PAM broker preconditions, session-ready `login_info`, and session-bound transport adoption by `xrdp_mm`. Remaining work is deployment/interoperability validation and Phase 5 broker-specific integration.

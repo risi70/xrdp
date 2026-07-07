@@ -100,29 +100,33 @@ Implemented pieces include:
   Authentication Result JSON payloads.
 - Runtime-gated `PROTOCOL_RDSAAD` selection in `libxrdp/xrdp_iso.c`.
 - A post-TLS/pre-MCS exchange hook in `xrdp_sec_incoming()`.
+- A libxrdp-to-xrdp owner callback for RDSAAD preauth before MCS.
+- SCP/EICP broker preauth dispatch from xrdp through sesman to xrdp-sesexec.
+- Session-ready BAF `login_info` creation after JWT validation, trusted replay,
+  NSS/SSSD identity binding, UID 0 rejection, and PAM broker preconditions.
+- Session-bound adoption of the authenticated sesman transport by `xrdp_mm`
+  after MCS has created the normal session-management layer.
 
-The current production-integration foundation parses the RDSAAD Authentication
-Request and clears `rdp_assertion`, but it deliberately returns controlled
-failure. It does not emit `S_OK`, does not continue to MCS, and does not start a
-session.
+The current production bridge emits `S_OK` only after sesman/xrdp-sesexec
+returns full BAF preauth approval. Failure to parse, validate, reserve replay,
+bind identity, pass PAM account checks, or obtain trusted configuration returns
+an Authentication Result failure and does not continue to MCS.
 
 ## Current Limitations / Deferred Work
 
-Trusted BAF runtime configuration is now owned by sesman/xrdp-sesexec through the local [BrokerAuth] sesman.ini section, not xrdp_client_info. It supplies fail-closed defaults for provider, trust anchor, audience, local target, service replay, UID 0 rejection, assertion size, and the session-start gate.
+Trusted BAF runtime configuration is owned by sesman/xrdp-sesexec through the
+local [BrokerAuth] sesman.ini section, not xrdp_client_info. It supplies
+fail-closed defaults for provider, issuer, key id, trust anchor, audience, local
+target, service replay, UID 0 rejection, assertion size, and the session-start
+gate. `AllowSessionStart` remains false by default and must be enabled by
+trusted local configuration before live RDSAAD activation can succeed.
 
-Full live RDSAAD activation remains deferred. The missing abstraction is a
-production BAF/RDSAAD login handoff that can create a session-ready
-`login_info` from a fully authorized BAF result without using username/password
-fields and without trusting client-provided UID/GID material.
+Remaining work is operational and interoperability focused:
 
-That handoff must define:
-
-- the SCP/EICP request and response shape for BAF/RDSAAD login;
-- where live assertion validation runs;
-- how trusted replay service configuration is supplied;
-- how the resolved Linux username and PAM state become `login_info`;
-- how failures return Authentication Result failure without password fallback;
-- how classic SYS/UDS login dispatch remains unchanged.
+- deploy trusted issuer/key/trust-anchor configuration and replay service;
+- exercise an end-to-end RDSAAD-capable client against the live bridge;
+- keep Phase 5 UDS/Keycloak/reference-broker integration separate;
+- decide when the superseded handle service can be removed from normal builds.
 
 One-time assertion-handle code from SD-006/SD-007 remains in the tree as
 superseded experimental/test coverage until the RDSAAD live path fully replaces

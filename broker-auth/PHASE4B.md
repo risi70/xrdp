@@ -57,14 +57,14 @@ production ingress.
 
 ## Phase 4b ingress replacement
 
-SD-008 supersedes handle-first ingress. The preferred MVP path is now RDS AAD Auth-style pre-logon assertion ingress: `PROTOCOL_RDSAAD` negotiation, Server Nonce PDU, Authentication Request PDU carrying `rdp_assertion`, BAF validation, trusted replay, and Authentication Result PDU. The current safe implementation boundary is protocol/validation scaffolding; `S_OK` must not be sent until live authorization and session activation are complete. SD-006/SD-007 handle code may remain as experimental/fallback/test code but is not the production MVP ingress.
+SD-008 supersedes handle-first ingress. The preferred MVP path is now RDS AAD Auth-style pre-logon assertion ingress: `PROTOCOL_RDSAAD` negotiation, Server Nonce PDU, Authentication Request PDU carrying `rdp_assertion`, BAF validation, trusted replay, and Authentication Result PDU. The pre-MCS bridge sends `S_OK` only after live authorization and session-ready preauth state are complete. SD-006/SD-007 handle code may remain as experimental/fallback/test code but is not the production MVP ingress.
 
 ## RDSAAD production integration foundation
 
 The safe production insertion point is post-TLS and pre-MCS in `xrdp_sec_incoming()`. `PROTOCOL_RDSAAD` negotiation is runtime-gated and disabled by default. When selected, XRDP can perform the Server Nonce / Authentication Request / Authentication Result exchange before MCS starts.
 
-The trusted BAF runtime configuration foundation is now available to sesman and xrdp-sesexec through the local [BrokerAuth] sesman.ini section. It is disabled by default, requires service replay for future preauth use, rejects UID 0 by default, and keeps AllowSessionStart false until the bridge is complete.
+Trusted BAF runtime configuration is available to sesman and xrdp-sesexec through the local [BrokerAuth] sesman.ini section. It is disabled by default, requires service replay for preauth use, rejects UID 0 by default, and keeps AllowSessionStart false until an administrator explicitly enables live session start.
 
-This foundation does not send `S_OK`. The RDSAAD exchange fails closed after parsing because a production sesman/sesexec BAF login handoff has not yet created a session-ready `login_info` from the validated assertion, trusted replay reservation, NSS identity, UID 0 rejection, and PAM account/session lifecycle. `sesman/scp_process.c` and `sesman/sesexec/eicp_server.c` still have no production RDSAAD/BAF dispatch. Classic SYS/UDS login remains unchanged.
+The pre-MCS bridge is implemented. `libxrdp` delegates bounded `rdp_assertion` material to the xrdp owner callback; xrdp sends SCP broker preauth to sesman; sesman forwards EICP broker preauth to xrdp-sesexec; xrdp-sesexec validates the assertion, reserves replay through the trusted service, binds the Linux identity through NSS/SSSD, rejects UID 0, runs broker PAM preconditions, and creates session-ready `login_info`. Classic SYS/UDS login remains unchanged.
 
 Handle ingress remains superseded by SD-008 but is retained as experimental/test code until the RDSAAD live path fully replaces it.
