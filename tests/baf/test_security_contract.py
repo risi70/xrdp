@@ -31,6 +31,10 @@ RDSAAD = (ROOT / "common" / "rdsaad.c").read_text(encoding="utf-8")
 RDSAAD_TEST = (ROOT / "tests" / "baf" / "test_rdsaad_ingress.c").read_text(
     encoding="utf-8")
 
+XRDP_ISO = (ROOT / "libxrdp" / "xrdp_iso.c").read_text(encoding="utf-8")
+XRDP_SEC = (ROOT / "libxrdp" / "xrdp_sec.c").read_text(encoding="utf-8")
+XRDP_RDP = (ROOT / "libxrdp" / "xrdp_rdp.c").read_text(encoding="utf-8")
+
 for logging_call in ("LOG(", "printf(", "fprintf(", "syslog("):
     assert logging_call not in PROVIDER
     assert logging_call not in REPLAY
@@ -108,3 +112,21 @@ assert "auth_prevalidated_broker" in PAM
 assert "pam_acct_mgmt" in PAM
 assert "pam_open_session" in PAM and "pam_close_session" in PAM
 assert "assertion" not in PAM.lower()
+
+assert "broker_auth_config_valid" in XRDP_ISO
+assert "PROTOCOL_RDSAAD" in XRDP_ISO
+assert "Selected RDSAAD security" in XRDP_ISO
+assert "xrdp_sec_rdsaad_exchange" in XRDP_SEC
+assert "xrdp_sec_rdsaad_exchange(self)" in XRDP_SEC
+assert "RDSAAD_HRESULT_S_OK" not in XRDP_SEC
+assert "Authentication Result success is " in XRDP_SEC and "withheld" in XRDP_SEC
+assert "xrdp_mcs_incoming(self->mcs_layer)" in XRDP_SEC
+assert XRDP_SEC.find("xrdp_sec_rdsaad_exchange(self)") < XRDP_SEC.find("xrdp_mcs_incoming(self->mcs_layer)")
+assert "broker_auth_rdsaad_enabled" in XRDP_RDP
+assert "broker_auth_trust_anchor" in XRDP_RDP
+assert "broker_auth_expected_audience" in XRDP_RDP
+assert "broker_auth_local_target" in XRDP_RDP
+assert "broker_auth_replay_backend" in XRDP_RDP
+assert "broker_auth_replay_socket" in XRDP_RDP
+assert "broker_auth_allow_session_start" in XRDP_RDP
+assert "rdp_assertion" not in XRDP_ISO

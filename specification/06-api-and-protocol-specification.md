@@ -222,3 +222,8 @@ fuzzing and maximum-length tests are release gates.
 ## SD-008 RDSAAD-style ingress
 
 Phase 4b now prefers [SD-008](decisions/SD-008-rdsaad-style-prelogon-assertion-ingress.md): RDS AAD Auth-style pre-logon assertion ingress. The Authentication Request PDU `rdp_assertion` feeds the existing BAF validator and trusted replay path. Live activation remains deferred until the full authorization chain is wired.
+
+
+### RDSAAD production integration foundation
+
+XRDP negotiates `PROTOCOL_RDSAAD` only when broker-auth RDSAAD mode is explicitly enabled and runtime BAF configuration is complete. The safe exchange hook is post-TLS and pre-MCS. Until the sesman/sesexec BAF login handoff is complete, Authentication Result `S_OK` is withheld and the exchange fails closed after parsing.

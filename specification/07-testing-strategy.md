@@ -159,3 +159,8 @@ critical/high vulnerabilities without documented acceptance.
 ## SD-008 RDSAAD-style ingress
 
 Phase 4b tests now prioritize SD-008 RDSAAD-style pre-logon assertion ingress. Tests MUST cover `PROTOCOL_RDSAAD` negotiation scaffolding, Server Nonce PDU encoding, Authentication Request parsing, `rdp_assertion` extraction, malformed/duplicate/oversize JSON rejection, validator handoff, trusted replay rejection, and Authentication Result mapping. SD-006 handle tests remain experimental/fallback coverage while that code exists.
+
+
+### RDSAAD integration foundation tests
+
+Tests must cover disabled-by-default RDSAAD negotiation, enabled/configured RDSAAD selection, Server Nonce and Authentication Result encoding, Authentication Request parsing, absence of false `S_OK`, and preservation of classic login paths. Full live-activation tests remain required when the sesman/sesexec BAF login handoff is implemented.

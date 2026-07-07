@@ -128,6 +128,12 @@ xrdp_iso_negotiate_security(struct xrdp_iso *self)
     {
         security_type_mask = PROTOCOL_SSL;
     }
+#if defined(ENABLE_BROKER_AUTH)
+    if (client_info->broker_auth_config_valid)
+    {
+        security_type_mask |= PROTOCOL_RDSAAD;
+    }
+#endif
     /* But VMConnect mode supports everything. */
     if (client_info->vmconnect)
     {
@@ -141,7 +147,22 @@ xrdp_iso_negotiate_security(struct xrdp_iso *self)
         protostr);
     security_type_mask &= self->requestedProtocol;
 
-    if (security_type_mask & PROTOCOL_HYBRID_EX)
+    if ((self->requestedProtocol & PROTOCOL_RDSAAD) != 0 &&
+            (security_type_mask & PROTOCOL_RDSAAD) == 0)
+    {
+        LOG(LOG_LEVEL_ERROR,
+            "Client requested RDSAAD security, but broker-auth RDSAAD "
+            "mode is not runtime-enabled with valid configuration");
+        self->failureCode = SSL_WITH_USER_AUTH_REQUIRED_BY_SERVER;
+        rv = 1;
+    }
+    else if (security_type_mask & PROTOCOL_RDSAAD)
+    {
+        LOG(LOG_LEVEL_INFO, "Selected RDSAAD security");
+        self->selectedProtocol = PROTOCOL_RDSAAD;
+        got_protocol = 1;
+    }
+    else if (security_type_mask & PROTOCOL_HYBRID_EX)
     {
         /* Currently supported by VMConnect mode only */
         LOG(LOG_LEVEL_INFO, "Selected HYBRID_EX security");
@@ -270,13 +291,6 @@ xrdp_iso_process_rdp_neg_req(struct xrdp_iso *self, struct stream *s)
         return 1;
     }
 
-    if ((self->requestedProtocol & PROTOCOL_RDSAAD) != 0)
-    {
-        LOG(LOG_LEVEL_ERROR,
-            "RDSAAD security was requested but broker-auth RDSAAD mode "
-            "is not runtime-enabled");
-        return 1;
-    }
     LOG_DEVEL(LOG_LEVEL_TRACE, "Received struct [MS-RDPBCGR] RDP_NEG_REQ "
               "flags 0x%2.2x, length 8, requestedProtocol 0x%8.8x",
               flags, self->requestedProtocol);

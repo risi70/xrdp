@@ -6,6 +6,11 @@
 
 # xrdp - an open source RDP server
 
+## Broker Authentication Framework
+
+This branch contains an experimental Broker Authentication Framework for XRDP. See [BAF-ARCHITECTURE.md](BAF-ARCHITECTURE.md).
+
+
 ## Overview
 
 **xrdp** provides a graphical login to remote machines using Microsoft

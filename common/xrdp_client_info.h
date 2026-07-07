@@ -261,6 +261,24 @@ struct xrdp_client_info
     int enable_token_login;
     char domain_user_separator[16];
 
+    /*
+     * Broker Authentication Framework / RDSAAD-style pre-logon assertion
+     * ingress. These settings are disabled by default and are only meaningful
+     * in builds configured with --enable-broker-auth.
+     */
+    int broker_auth_enabled;
+    int broker_auth_rdsaad_enabled;
+    int broker_auth_config_valid;
+    int broker_auth_allow_session_start;
+    int broker_auth_reject_uid0;
+    int broker_auth_max_assertion_size;
+    char broker_auth_provider[32];
+    char broker_auth_trust_anchor[1024];
+    char broker_auth_expected_audience[256];
+    char broker_auth_local_target[256];
+    char broker_auth_replay_backend[32];
+    char broker_auth_replay_socket[256];
+
     /* xrdp.override_* values */
     struct xrdp_keyboard_overrides xrdp_keyboard_overrides;
 

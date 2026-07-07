@@ -37,3 +37,11 @@ Remaining deferred work:
 - Phase 5 UDS reference broker integration;
 - broker interoperability testing;
 - optional Microsoft/Entra-specific validation if ever required by deployment policy.
+
+## Production integration foundation
+
+The first production hook is now identified in `xrdp_sec_incoming()`: after TLS has been established for selected `PROTOCOL_RDSAAD`, and before MCS negotiation consumes the next connection PDU. This allows XRDP to send the Server Nonce JSON, receive the Authentication Request JSON, and send an Authentication Result before MCS proceeds.
+
+The hook is runtime gated. RDSAAD remains disabled by default and is selected only when broker-auth RDSAAD settings are explicitly enabled and complete. If RDSAAD is requested without valid runtime configuration, negotiation fails closed.
+
+The current foundation intentionally withholds `S_OK`. It parses the Authentication Request and clears `rdp_assertion`, then returns a controlled failure because the sesman/sesexec BAF login handoff is not complete. `S_OK` remains reserved for the future point where the full BAF chain has produced a session-ready authorization state. See `RDSAAD-INTEGRATION-FOUNDATION.md`.

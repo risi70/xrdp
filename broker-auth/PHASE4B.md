@@ -58,3 +58,11 @@ production ingress.
 ## Phase 4b ingress replacement
 
 SD-008 supersedes handle-first ingress. The preferred MVP path is now RDS AAD Auth-style pre-logon assertion ingress: `PROTOCOL_RDSAAD` negotiation, Server Nonce PDU, Authentication Request PDU carrying `rdp_assertion`, BAF validation, trusted replay, and Authentication Result PDU. The current safe implementation boundary is protocol/validation scaffolding; `S_OK` must not be sent until live authorization and session activation are complete. SD-006/SD-007 handle code may remain as experimental/fallback/test code but is not the production MVP ingress.
+
+## RDSAAD production integration foundation
+
+The safe production insertion point is post-TLS and pre-MCS in `xrdp_sec_incoming()`. `PROTOCOL_RDSAAD` negotiation is runtime-gated and disabled by default. When selected, XRDP can perform the Server Nonce / Authentication Request / Authentication Result exchange before MCS starts.
+
+This foundation does not send `S_OK`. The RDSAAD exchange fails closed after parsing because a production sesman/sesexec BAF login handoff has not yet created a session-ready `login_info` from the validated assertion, trusted replay reservation, NSS identity, UID 0 rejection, and PAM account/session lifecycle. Classic SYS/UDS login remains unchanged.
+
+Handle ingress remains superseded by SD-008 but is retained as experimental/test code until the RDSAAD live path fully replaces it.

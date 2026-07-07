@@ -238,3 +238,8 @@ contracts.
 ## SD-008 RDSAAD-style ingress
 
 SD-008 supersedes handle-first ingress for the MVP. XRDP must scaffold `PROTOCOL_RDSAAD` negotiation, Server Nonce, Authentication Request parsing, `rdp_assertion` extraction, BAF validation, trusted replay, and Authentication Result mapping. `S_OK` MUST NOT be returned until live authorization/session activation is actually complete.
+
+
+### RDSAAD production integration foundation
+
+The XRDP extension point for RDSAAD-style ingress is after TLS setup in the security layer and before MCS negotiation. This preserves classic TLS/RDP behavior for clients that do not request RDSAAD. Runtime-disabled or incomplete RDSAAD configuration fails closed rather than falling back to password login for the same RDSAAD request.

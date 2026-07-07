@@ -26,6 +26,7 @@
 
 #include "libxrdp.h"
 #include "ms-rdpbcgr.h"
+#include "rdsaad.h"
 #include "log.h"
 #include "string_calls.h"
 
@@ -121,6 +122,160 @@ static const tui8 g_fips_ivec[8] =
 {
     0x12, 0x34, 0x56, 0x78, 0x90, 0xAB, 0xCD, 0xEF
 };
+
+/*****************************************************************************/
+static void
+secure_erase_bytes(char *data, size_t length)
+{
+    volatile char *p = data;
+
+    while (p != NULL && length-- != 0)
+    {
+        *p++ = 0;
+    }
+}
+
+/*****************************************************************************/
+static int
+xrdp_sec_send_rdsaad_json(struct xrdp_sec *self,
+                          const char *json,
+                          size_t json_length)
+{
+    struct stream *s;
+    size_t total_length;
+
+    if (json == NULL || json_length == 0 || json_length > RDSAAD_MAX_JSON_BYTES)
+    {
+        return 1;
+    }
+    total_length = json_length + 4;
+    if (total_length > 0xffffU)
+    {
+        return 1;
+    }
+    make_stream(s);
+    init_stream(s, (int)total_length);
+    out_uint8(s, 3);
+    out_uint8(s, 0);
+    out_uint16_be(s, (int)total_length);
+    out_uint8a(s, json, (int)json_length);
+    s_mark_end(s);
+    if (trans_write_copy_s(self->mcs_layer->iso_layer->trans, s) != 0)
+    {
+        free_stream(s);
+        return 1;
+    }
+    free_stream(s);
+    return 0;
+}
+
+/*****************************************************************************/
+static int
+xrdp_sec_send_rdsaad_result(struct xrdp_sec *self, uint32_t hresult)
+{
+    char result_json[128];
+    size_t result_length;
+
+    if (rdsaad_encode_authentication_result(hresult, result_json,
+                                            sizeof(result_json),
+                                            &result_length) != RDSAAD_STATUS_OK)
+    {
+        return 1;
+    }
+    return xrdp_sec_send_rdsaad_json(self, result_json, result_length);
+}
+
+/*****************************************************************************/
+static void
+make_rdsaad_nonce(char nonce[RDSAAD_MAX_NONCE_BYTES + 1])
+{
+    unsigned char bytes[32];
+    static const char hex[] = "0123456789abcdef";
+    unsigned int i;
+
+    g_random((char *)bytes, sizeof(bytes));
+    for (i = 0; i < sizeof(bytes); ++i)
+    {
+        nonce[i * 2] = hex[(bytes[i] >> 4) & 0x0f];
+        nonce[i * 2 + 1] = hex[bytes[i] & 0x0f];
+    }
+    nonce[sizeof(bytes) * 2] = '\0';
+    secure_erase_bytes((char *)bytes, sizeof(bytes));
+}
+
+/*****************************************************************************/
+static int
+xrdp_sec_rdsaad_exchange(struct xrdp_sec *self)
+{
+    char nonce[RDSAAD_MAX_NONCE_BYTES + 1];
+    char nonce_json[RDSAAD_MAX_NONCE_BYTES + 32];
+    char assertion[RDSAAD_MAX_ASSERTION_BYTES + 1];
+    size_t nonce_json_length;
+    size_t assertion_length = 0;
+    struct stream *s;
+    char *json;
+    size_t json_length;
+    uint32_t result = RDSAAD_HRESULT_E_ACCESSDENIED;
+    enum rdsaad_status parse_status;
+
+    make_rdsaad_nonce(nonce);
+    if (rdsaad_encode_server_nonce(nonce, nonce_json, sizeof(nonce_json),
+                                   &nonce_json_length) != RDSAAD_STATUS_OK)
+    {
+        secure_erase_bytes(nonce, sizeof(nonce));
+        return 1;
+    }
+    secure_erase_bytes(nonce, sizeof(nonce));
+
+    if (xrdp_sec_send_rdsaad_json(self, nonce_json, nonce_json_length) != 0)
+    {
+        secure_erase_bytes(nonce_json, sizeof(nonce_json));
+        return 1;
+    }
+    secure_erase_bytes(nonce_json, sizeof(nonce_json));
+
+    s = libxrdp_force_read(self->mcs_layer->iso_layer->trans);
+    if (s == NULL)
+    {
+        (void)xrdp_sec_send_rdsaad_result(self,
+                                          RDSAAD_HRESULT_SEC_E_INVALID_TOKEN);
+        return 1;
+    }
+    if (!s_check_rem_and_log(s, 4, "Parsing RDSAAD Authentication Request TPKT"))
+    {
+        (void)xrdp_sec_send_rdsaad_result(self,
+                                          RDSAAD_HRESULT_SEC_E_INVALID_TOKEN);
+        return 1;
+    }
+    json = s->data + 4;
+    json_length = (size_t)(s->end - json);
+    parse_status = rdsaad_parse_authentication_request(json, json_length,
+                                                       assertion,
+                                                       sizeof(assertion),
+                                                       &assertion_length);
+    if (parse_status != RDSAAD_STATUS_OK)
+    {
+        result = RDSAAD_HRESULT_SEC_E_INVALID_TOKEN;
+    }
+    else
+    {
+        LOG(LOG_LEVEL_INFO,
+            "RDSAAD Authentication Request parsed; live BAF authorization "
+            "handoff is not enabled, so Authentication Result success is "
+            "withheld");
+    }
+    secure_erase_bytes(assertion, assertion_length);
+
+    /*
+     * S_OK is intentionally not sent here. SD-008 defines S_OK as meaning
+     * that authentication and authorization succeeded and that the RDP
+     * connection may continue. The sesman/sesexec live BAF handoff is not yet
+     * implemented, so this foundation hook must fail closed after proving the
+     * post-TLS/pre-MCS exchange point.
+     */
+    (void)xrdp_sec_send_rdsaad_result(self, result);
+    return 1;
+}
 
 /*****************************************************************************/
 static void
@@ -2420,6 +2575,16 @@ xrdp_sec_incoming(struct xrdp_sec *self)
         self->crypt_level = CRYPT_LEVEL_NONE;
         self->crypt_method = CRYPT_METHOD_NONE;
         self->rsa_key_bytes = 0;
+
+        if (iso->selectedProtocol == PROTOCOL_RDSAAD)
+        {
+            if (xrdp_sec_rdsaad_exchange(self) != 0)
+            {
+                LOG(LOG_LEVEL_ERROR,
+                    "xrdp_sec_incoming: RDSAAD pre-logon exchange failed closed");
+                return 1;
+            }
+        }
 
     }
     else
