@@ -40,11 +40,13 @@ The intended production handoff is:
 
 `rdp_assertion` -> BAF transport -> JWT validator -> trusted replay service -> validated capability.
 
-The parser and helper tests already prove the `rdp_assertion` value can feed `baf_transport_validate()`. The live XRDP hook currently stops before validation because a production trust/runtime configuration object and sesman/sesexec session-ready handoff are not complete.
+The parser and helper tests already prove the `rdp_assertion` value can feed `baf_transport_validate()`. The live XRDP hook currently stops before validation because the current tree lacks the production trust/runtime configuration object and the sesman/sesexec session-ready handoff needed to make validation useful for a live connection.
+
+This is the safe partial foundation state. The hook parses and clears the assertion, returns Authentication Result failure, and terminates before MCS. It must not emit `S_OK` merely because parsing or future validator handoff succeeds.
 
 ## 7. sesman/sesexec handoff
 
-The required production handoff is a new, clearly named BAF/RDSAAD login request that does not use username or password fields. It must create `login_info` only after:
+The required production handoff is a new, clearly named BAF/RDSAAD login request that does not use username or password fields and does not trust token UID/GID/group material. It must create `login_info` only after:
 
 1. assertion validation;
 2. trusted replay reservation;
@@ -53,7 +55,14 @@ The required production handoff is a new, clearly named BAF/RDSAAD login request
 5. PAM account approval;
 6. PAM credential/session lifecycle readiness.
 
-`sesman/sesexec/eicp_server.c` currently has no such dispatch path. It accepts SYS login, UDS login, logout, and create-session only. That is the remaining live-activation blocker.
+`sesman/scp_process.c` and `sesman/sesexec/eicp_server.c` currently have no such dispatch path. `login_info` currently represents classic SYS login and UDS login only; it has no broker-authenticated/session-ready variant. That is the remaining live-activation blocker.
+
+A safe implementation must decide where live validation runs:
+
+- If validation runs in sesexec, XRDP/SCP/EICP must carry only the bounded assertion material needed for validation, erase it immediately after handoff, and require trusted replay service configuration.
+- If validation runs before sesexec, the IPC must carry a minimal non-forgeable session-ready representation, not client-controlled claims, and sesexec must still own session startup as the resolved Linux user.
+
+Neither abstraction exists yet, so this foundation intentionally keeps the live path closed.
 
 ## 8. When `S_OK` may be sent
 

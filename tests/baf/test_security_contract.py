@@ -34,6 +34,15 @@ RDSAAD_TEST = (ROOT / "tests" / "baf" / "test_rdsaad_ingress.c").read_text(
 XRDP_ISO = (ROOT / "libxrdp" / "xrdp_iso.c").read_text(encoding="utf-8")
 XRDP_SEC = (ROOT / "libxrdp" / "xrdp_sec.c").read_text(encoding="utf-8")
 XRDP_RDP = (ROOT / "libxrdp" / "xrdp_rdp.c").read_text(encoding="utf-8")
+SCP_PROCESS = (ROOT / "sesman" / "scp_process.c").read_text(encoding="utf-8")
+EICP_SERVER = (ROOT / "sesman" / "sesexec" / "eicp_server.c").read_text(
+    encoding="utf-8")
+LOGIN_INFO_H = (ROOT / "sesman" / "sesexec" / "login_info.h").read_text(
+    encoding="utf-8")
+BAF_ARCH = (ROOT / "BAF-ARCHITECTURE.md").read_text(encoding="utf-8")
+RDSAAD_FOUNDATION = (
+    ROOT / "broker-auth" / "RDSAAD-INTEGRATION-FOUNDATION.md"
+).read_text(encoding="utf-8")
 
 for logging_call in ("LOG(", "printf(", "fprintf(", "syslog("):
     assert logging_call not in PROVIDER
@@ -130,3 +139,20 @@ assert "broker_auth_replay_backend" in XRDP_RDP
 assert "broker_auth_replay_socket" in XRDP_RDP
 assert "broker_auth_allow_session_start" in XRDP_RDP
 assert "rdp_assertion" not in XRDP_ISO
+
+assert "RDSAAD Authentication Request parsed" in XRDP_SEC
+assert "RDSAAD_HRESULT_E_ACCESSDENIED" in XRDP_SEC
+assert "return 1;" in XRDP_SEC[XRDP_SEC.find("xrdp_sec_rdsaad_exchange"):XRDP_SEC.find("hex_str_to_bin")]
+assert "session-ready handoff" in BAF_ARCH
+assert "Full live RDSAAD activation remains deferred" in BAF_ARCH
+assert "does not emit `S_OK`" in BAF_ARCH
+assert "controlled failure" in RDSAAD_FOUNDATION
+assert "login_info` currently represents classic SYS login and UDS login only" in RDSAAD_FOUNDATION
+assert "Neither abstraction exists yet" in RDSAAD_FOUNDATION
+assert "E_SCP_SYS_LOGIN_REQUEST" in SCP_PROCESS
+assert "E_SCP_UDS_LOGIN_REQUEST" in SCP_PROCESS
+assert "E_EICP_SYS_LOGIN_REQUEST" in EICP_SERVER
+assert "E_EICP_UDS_LOGIN_REQUEST" in EICP_SERVER
+assert "login_info_sys_login_user" in LOGIN_INFO_H
+assert "login_info_uds_login_user" in LOGIN_INFO_H
+assert "password" not in RDSAAD_FOUNDATION.lower().split("## 7. sesman/sesexec handoff", 1)[1].split("## 8.", 1)[0] or "does not use username or password fields" in RDSAAD_FOUNDATION

@@ -63,6 +63,6 @@ SD-008 supersedes handle-first ingress. The preferred MVP path is now RDS AAD Au
 
 The safe production insertion point is post-TLS and pre-MCS in `xrdp_sec_incoming()`. `PROTOCOL_RDSAAD` negotiation is runtime-gated and disabled by default. When selected, XRDP can perform the Server Nonce / Authentication Request / Authentication Result exchange before MCS starts.
 
-This foundation does not send `S_OK`. The RDSAAD exchange fails closed after parsing because a production sesman/sesexec BAF login handoff has not yet created a session-ready `login_info` from the validated assertion, trusted replay reservation, NSS identity, UID 0 rejection, and PAM account/session lifecycle. Classic SYS/UDS login remains unchanged.
+This foundation does not send `S_OK`. The RDSAAD exchange fails closed after parsing because a production sesman/sesexec BAF login handoff has not yet created a session-ready `login_info` from the validated assertion, trusted replay reservation, NSS identity, UID 0 rejection, and PAM account/session lifecycle. `sesman/scp_process.c` and `sesman/sesexec/eicp_server.c` still have no production RDSAAD/BAF dispatch. Classic SYS/UDS login remains unchanged.
 
 Handle ingress remains superseded by SD-008 but is retained as experimental/test code until the RDSAAD live path fully replaces it.

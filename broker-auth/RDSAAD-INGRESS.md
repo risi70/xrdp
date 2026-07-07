@@ -31,8 +31,9 @@ Failure behavior:
 
 Remaining deferred work:
 
-- exact XRDP insertion point for the post-TLS/pre-MCS RDSAAD PDU exchange;
-- runtime configuration for enabling RDSAAD mode and BAF trust parameters;
+- production BAF/RDSAAD login handoff from XRDP through sesman/sesexec;
+- live assertion validation with complete trust/runtime configuration;
+- `login_info` creation from a fully authorized BAF result;
 - full live session activation;
 - Phase 5 UDS reference broker integration;
 - broker interoperability testing;
@@ -44,4 +45,4 @@ The first production hook is now identified in `xrdp_sec_incoming()`: after TLS 
 
 The hook is runtime gated. RDSAAD remains disabled by default and is selected only when broker-auth RDSAAD settings are explicitly enabled and complete. If RDSAAD is requested without valid runtime configuration, negotiation fails closed.
 
-The current foundation intentionally withholds `S_OK`. It parses the Authentication Request and clears `rdp_assertion`, then returns a controlled failure because the sesman/sesexec BAF login handoff is not complete. `S_OK` remains reserved for the future point where the full BAF chain has produced a session-ready authorization state. See `RDSAAD-INTEGRATION-FOUNDATION.md`.
+The current foundation intentionally withholds `S_OK`. It parses the Authentication Request and clears `rdp_assertion`, then returns a controlled failure because the sesman/sesexec BAF login handoff is not complete. `S_OK` remains reserved for the future point where the full BAF chain has produced a session-ready authorization state and existing session startup can proceed as the resolved Linux user. See `RDSAAD-INTEGRATION-FOUNDATION.md`.
