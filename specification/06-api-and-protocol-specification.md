@@ -11,9 +11,13 @@
 | PRO-005 | Secret-bearing input/output buffers MUST be erased after use. |
 | PRO-006 | Status codes MUST be stable, coarse across trust boundaries, and versioned. |
 | PRO-007 | Effective assertion size MUST be the minimum of validator, transport, and framed libipm payload limits. |
-| PRO-008 | MVP SCP/EICP transport MUST reject oversize assertions and MUST NOT fragment or use generic out-of-band assertion handles. The only permitted handle mechanism is SD-006 one-time server-side assertion handles; those handles are lookup keys, not assertion containers. |
+| PRO-008 | MVP ingress MUST use SD-008 RDSAAD-style pre-logon `rdp_assertion` by preference. It MUST reject oversize assertions, MUST NOT fragment, MUST NOT overload username/password fields, and MUST NOT use generic out-of-band assertion handles. SD-006 handles are superseded for production MVP ingress. |
 
-## 2. Internal SCP additions
+## 2. RDSAAD-style RDP ingress
+
+SD-008 selects RDS AAD Auth-style pre-logon ingress. `PROTOCOL_RDSAAD` (`0x00000010`) is negotiated with `RDP_NEG_REQ.requestedProtocols` and `RDP_NEG_RSP.selectedProtocol`. After TLS, the server sends a Server Nonce PDU containing `{"ts_nonce":"<nonce>"}`. The client sends an Authentication Request PDU containing `{"rdp_assertion":"<compact-jws>"}`. The `rdp_assertion` value is parsed as bounded UTF-8 JSON and passed unchanged to the existing BAF transport/JWT validator and trusted replay path. The server sends an Authentication Result PDU containing `{"authentication_result":"<HRESULT>"}`. `S_OK` means authentication and authorization succeeded and MUST NOT be sent until live activation is complete.
+
+## 3. Internal SCP additions
 
 ### 2.1 Capability exchange
 
@@ -44,7 +48,7 @@ NSS/SSSD identity binding and required local authorization/PAM processing may
 a successful broker-login response return the canonical UID as current system
 login does.
 
-## 3. EICP additions
+## 4. EICP additions
 
 `EICP_BROKER_LOGIN_REQUEST_V1` carries the same profile, assertion, client
 address, correlation ID, and transferred SCP file descriptor from sesman to
@@ -202,21 +206,19 @@ assertion exactly at the derived permitted boundary is accepted for transport;
 one byte over is rejected before allocation/validation where possible.
 
 The MVP defines no fragmentation and no generic out-of-band assertion handles.
-The only permitted handle mechanism is SD-006: short-lived, one-time,
-server-side assertion handles used for standard RDP broker compatibility. These
-handles do not contain assertions, are target-bound, and are resolved only by
-the trusted server-side assertion-handle service. Per SD-007,
-target-mismatched resolution of a known handle consumes or invalidates the
-handle, never returns assertion bytes, and cannot be retried later with the
-correct target. The MVP MUST NOT raise libipm message bounds as an implicit
-substitute. Fragmentation, generic bearer handles, and larger messages are
-deferred to a separate versioned protocol/security decision.
+SD-008 RDSAAD-style pre-logon `rdp_assertion` is the selected production MVP
+ingress. SD-006 one-time server-side handles and SD-007 target-mismatch consume
+semantics are superseded for production ingress and may remain only
+experimental/fallback/test code. The MVP MUST NOT raise libipm message bounds
+as an implicit substitute. Fragmentation, routing-token bearer handles,
+username/password assertion overloading, and larger messages are deferred to a
+separate versioned protocol/security decision.
 
 RDP TLS is required. Local sockets use existing XRDP permissions and peer
 credentials. Assertion fields cannot be copied into environment variables,
 module parameters passed to desktop processes, or command lines. Protocol
 fuzzing and maximum-length tests are release gates.
 
-## SD-006 handle ingress
+## SD-008 RDSAAD-style ingress
 
-Phase 4b-1 permits only short-lived, high-entropy, one-time server-side assertion handles as defined by [SD-006](decisions/SD-006-one-time-server-side-assertion-handles.md). Atomic resolution fails closed and is not login authorization; live activation remains deferred.
+Phase 4b now prefers [SD-008](decisions/SD-008-rdsaad-style-prelogon-assertion-ingress.md): RDS AAD Auth-style pre-logon assertion ingress. The Authentication Request PDU `rdp_assertion` feeds the existing BAF validator and trusted replay path. Live activation remains deferred until the full authorization chain is wired.

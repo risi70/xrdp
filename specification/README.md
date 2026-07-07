@@ -23,6 +23,7 @@ Normative decisions:
 - [SD-003 — Phase Ownership and Assertion Transport Size](decisions/SD-003-phase-ownership-transport-size.md)
 - [SD-006 — One-time Server-side Assertion Handles](decisions/SD-006-one-time-server-side-assertion-handles.md)
 - [SD-004 — Trusted Replay Service for Live Broker Authentication](decisions/SD-004-trusted-replay-service.md)
+- [SD-008 — RDS AAD Auth-style Pre-logon Assertion Ingress](decisions/SD-008-rdsaad-style-prelogon-assertion-ingress.md)
 
 ## Conformance
 
@@ -58,7 +59,7 @@ is neither necessary nor sufficient for core BAF conformance.
   transport has a nominal 8 KiB message ceiling and MUST subtract framing
   overhead; the effective maximum is the minimum of validator, transport, and
   available payload limits.
-- The MVP has no fragmentation and no generic out-of-band assertion handles. The only permitted handle mechanism is SD-006: short-lived, one-time, server-side assertion handles for standard RDP broker compatibility. These handles do not contain assertions and are resolved only by the trusted server-side assertion-handle service.
+- SD-008 selects RDS AAD Auth-style pre-logon assertion ingress as the preferred MVP ingress. The assertion enters through RDP protocol `rdp_assertion` material, not username/password fields, routing-token handles, custom plugins, or dynamic virtual channels. SD-006/SD-007 one-time handles are superseded for production MVP ingress and may remain only experimental/fallback/test code. The MVP still has no fragmentation and no generic out-of-band bearer handles.
 - Classic password/PAM login remains default and wire-compatible.
 - Keycloak is a possible broker IdP, not an XRDP dependency.
 - No UDS Enterprise concept appears in the XRDP extension contract.

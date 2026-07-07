@@ -1,6 +1,6 @@
 # Trusted Replay Service
 
-Phase 4b uses `xrdp-baf-replayd` as the host-local replay authority. Separate
+Phase 4b uses `xrdp-baf-replayd` as the host-local replay authority for SD-008 RDSAAD-style pre-logon assertions and any retained experimental handle path. Separate
 `xrdp-sesexec` workers connect to its Unix-domain socket and submit only the
 32-byte SHA-256 replay digest, expiry, operation, and an optional correlation
 identifier. JWTs, usernames, and claims are neither transmitted nor stored.

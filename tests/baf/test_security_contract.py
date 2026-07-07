@@ -27,12 +27,17 @@ HANDLE_SERVICE = (
 ).read_text(encoding="utf-8")
 HANDLE_TEST = (ROOT / "tests" / "baf" / "test_handle_service.c").read_text(
     encoding="utf-8")
+RDSAAD = (ROOT / "common" / "rdsaad.c").read_text(encoding="utf-8")
+RDSAAD_TEST = (ROOT / "tests" / "baf" / "test_rdsaad_ingress.c").read_text(
+    encoding="utf-8")
 
 for logging_call in ("LOG(", "printf(", "fprintf(", "syslog("):
     assert logging_call not in PROVIDER
     assert logging_call not in REPLAY
     assert logging_call not in TRANSPORT
     assert logging_call not in HANDLE_SERVICE
+for logging_call in ("LOG(", "fprintf(", "syslog("):
+    assert logging_call not in RDSAAD
 
 for forbidden in (
     "getpwnam",
@@ -70,6 +75,15 @@ assert "fprintf(" not in HANDLE_SERVICE
 assert "BAF_TRANSPORT_VALIDATED_IDENTITY_BINDING_REQUIRED" in HANDLE_TEST
 assert "pam_" not in HANDLE_TEST
 assert "session_start" not in HANDLE_TEST
+assert "rdp_assertion" in RDSAAD
+assert "ts_nonce" in RDSAAD
+assert "authentication_result" in RDSAAD
+assert "password" not in RDSAAD.lower()
+assert "baf_handle" not in RDSAAD
+assert "getpwnam" not in RDSAAD and "getpwuid" not in RDSAAD
+assert "pam_" not in RDSAAD and "session_start" not in RDSAAD
+assert "BAF_TRANSPORT_VALIDATED_IDENTITY_BINDING_REQUIRED" in RDSAAD_TEST
+assert "pam_" not in RDSAAD_TEST and "session_start" not in RDSAAD_TEST
 IDENTITY = (
     ROOT / "sesman" / "libsesman" / "baf_identity.c"
 ).read_text(encoding="utf-8")

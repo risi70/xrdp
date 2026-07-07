@@ -114,9 +114,11 @@ session may be authorized only when all of the following are present:
 
 No individual or partial-stage success is session authorization. Phase 4b also
 requires the replay reservation from the SD-004 trusted replay service;
-worker-local memory replay state cannot authorize live activation. Phase 4b
-enforces the effective SCP/EICP assertion boundary defined by SD-003 and the
-protocol specification. The MVP has no fragmentation and no generic out-of-band handles; only SD-006 short-lived, one-time, server-side assertion handles are permitted.
+worker-local memory replay state cannot authorize live activation. SD-008
+selects RDS AAD Auth-style pre-logon `rdp_assertion` ingress as the preferred
+MVP path. The MVP has no fragmentation, no username/password assertion
+overloading, and no generic out-of-band bearer handles; SD-006 handles are
+superseded for production ingress.
 
 ## 5. Authentication state machine
 
@@ -167,8 +169,8 @@ owns production wiring and the transition into step 8.
 
 1. `xrdp_mm` selects `classic`, `broker`, or `auto` based only on server
    configuration and selected login profile.
-2. Broker mode requires an assertion field. It sends a broker SCP request.
-3. sesman creates sesexec and forwards the assertion using EICP.
+2. Broker mode prefers SD-008 RDSAAD-style pre-logon ingress. After `PROTOCOL_RDSAAD` selection and TLS, XRDP receives an Authentication Request PDU carrying `rdp_assertion`.
+3. The extracted assertion is handed to the existing BAF validation path; any internal forwarding must preserve opaque bytes and must not use username/password fields.
 4. sesexec validates and reserves replay state.
 5. The Phase 4a identity-binding path maps `preferred_username` through NSS and
    reverse UID lookup, producing a resolved Linux identity or denying login.
@@ -233,6 +235,6 @@ Replacing libjwt in a future release is permitted only when the replacement
 passes the same conformance vectors without changing BAF, provider, or protocol
 contracts.
 
-## SD-006 handle ingress
+## SD-008 RDSAAD-style ingress
 
-Phase 4b-1 permits only short-lived, high-entropy, one-time server-side assertion handles as defined by [SD-006](decisions/SD-006-one-time-server-side-assertion-handles.md). Atomic resolution fails closed and is not login authorization; live activation remains deferred.
+SD-008 supersedes handle-first ingress for the MVP. XRDP must scaffold `PROTOCOL_RDSAAD` negotiation, Server Nonce, Authentication Request parsing, `rdp_assertion` extraction, BAF validation, trusted replay, and Authentication Result mapping. `S_OK` MUST NOT be returned until live authorization/session activation is actually complete.

@@ -2,9 +2,11 @@
 
 ## Scope
 
-Phase 4b is the next implementation phase. It connects the Phase 3 opaque
-SCP/EICP transport and the completed Phase 4a authorization prerequisites to
-the existing XRDP login and session lifecycle. A broker login may become
+Phase 4b is the next implementation phase. SD-008 changes the preferred MVP
+ingress from handle-first SCP/EICP transport to RDS AAD Auth-style pre-logon
+RDP assertion ingress. Phase 4b still connects validated broker assertions and
+the completed Phase 4a authorization prerequisites to the existing XRDP login
+and session lifecycle. A broker login may become
 session-authorized only after a valid assertion, atomic replay reservation,
 validated capability, NSS/SSSD-resolved identity, default UID 0 rejection, and
 PAM account approval. PAM credentials, session open/close, environment, and
@@ -26,9 +28,11 @@ The effective maximum is the minimum of the configured validator maximum, the
 configured transport maximum, and libipm/SCP/EICP payload capacity after
 framing overhead. The nominal MVP in-band transport ceiling is 8 KiB; usable
 assertion bytes are necessarily lower. Oversize assertions fail closed before
-allocation or validation where possible. Phase 4b implements no fragmentation
-and no generic out-of-band assertion handles. The only permitted handle
-mechanism is SD-006 one-time server-side assertion handles.
+allocation or validation where possible. Phase 4b implements no fragmentation,
+no username/password assertion overloading, no custom client/plugin transport,
+and no generic out-of-band assertion handles. SD-008 RDSAAD-style
+`rdp_assertion` is the selected MVP ingress; SD-006 handles are superseded for
+production ingress.
 
 ## Acceptance criteria
 
@@ -45,12 +49,12 @@ mechanism is SD-006 one-time server-side assertion handles.
 ## Non-goals
 
 - UDS-specific or Keycloak-specific XRDP logic.
-- Fragmentation, reassembly, or generic out-of-band assertion handles. SD-006 one-time server-side assertion handles are the only permitted handle mechanism.
+- Fragmentation, reassembly, username/password assertion overloading, custom client/plugin transport, or generic out-of-band assertion handles. SD-008 RDSAAD-style pre-logon ingress is the selected MVP path; SD-006 handles are experimental/fallback only.
 - Direct LDAP, FreeIPA, Active Directory, or SSSD APIs.
 - Enabling broker auth by default.
 - Trusting assertion UID, GID, or groups as Linux authorization data.
 - Cluster-wide replay coordination or persistent replay-service storage.
 
-## Phase 4b-1 handle ingress
+## Phase 4b ingress replacement
 
-SD-006 permits a standard broker-compatible opaque handle while retaining the full assertion in `xrdp-baf-handled`. Handle resolution is atomic and feeds the existing BAF transport/validator path. SD-007 requires target-mismatched resolution of a known handle to consume or invalidate that handle without returning assertion bytes; a later correct-target retry must not recover the assertion. The resulting state is `BAF_HANDLE_VALIDATED_NOT_SESSION_AUTHORIZED`: neither resolution nor validation authorizes login. Identity binding, PAM, and live session startup remain Phase 4b-2.
+SD-008 supersedes handle-first ingress. The preferred MVP path is now RDS AAD Auth-style pre-logon assertion ingress: `PROTOCOL_RDSAAD` negotiation, Server Nonce PDU, Authentication Request PDU carrying `rdp_assertion`, BAF validation, trusted replay, and Authentication Result PDU. The current safe implementation boundary is protocol/validation scaffolding; `S_OK` must not be sent until live authorization and session activation are complete. SD-006/SD-007 handle code may remain as experimental/fallback/test code but is not the production MVP ingress.

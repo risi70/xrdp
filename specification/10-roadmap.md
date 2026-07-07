@@ -91,9 +91,11 @@ Cluster-wide and persistent replay storage remain deferred.
 
 Deliverables: completed live broker-login path, exact effective transport-bound
 checks, dynamic PAM denial/session-failure tests, negative protocol tests, and
-classic-mode regression coverage. No fragmentation or generic out-of-band assertion
-handles are in scope. The only permitted handle mechanism is SD-006 one-time
-server-side assertion handles, with SD-007 target-mismatch consume semantics.
+classic-mode regression coverage. SD-008 RDSAAD-style pre-logon assertion
+ingress is the selected MVP ingress. No fragmentation, username/password
+assertion overloading, custom endpoint plugins, or generic out-of-band bearer
+handles are in scope. SD-006/SD-007 one-time handles are superseded for
+production ingress and remain experimental/fallback only.
 Dependencies: Phase 3 and Phase 4a. Acceptance: UT-010–012,
 IT-002–003, IT-006, and ST-001 pass; UID 0 is denied; PAM denial is final;
 session cleanup occurs exactly once. Complexity L. Risks: handover races,
@@ -175,6 +177,6 @@ LDAP/FreeIPA/AD through SSSD, and optional Keycloak scenarios pass; operational
 rotation/revocation/recovery is demonstrated; and upstream-facing changes are
 minimal, generic, reviewed, and documented.
 
-## SD-006 handle ingress
+## SD-008 RDSAAD-style ingress
 
-Phase 4b-1 permits only short-lived, high-entropy, one-time server-side assertion handles as defined by [SD-006](decisions/SD-006-one-time-server-side-assertion-handles.md). Atomic resolution fails closed and is not login authorization; live activation remains deferred.
+Phase 4b now prefers SD-008 RDSAAD-style pre-logon assertion ingress. Protocol scaffolding covers `PROTOCOL_RDSAAD`, Server Nonce, Authentication Request `rdp_assertion`, Authentication Result HRESULT mapping, and validator/replay handoff. Full live session activation remains separate until the exact XRDP insertion point and authorization handoff are proven.

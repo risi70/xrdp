@@ -1,5 +1,6 @@
 AM_CPPFLAGS = \
   -I$(top_builddir) \
+  -I$(top_srcdir)/common \
   -I$(top_srcdir)/sesman/libsesman \
   -I$(top_srcdir)/libipm \
   $(BROKER_AUTH_CFLAGS) \
@@ -14,10 +15,11 @@ PY_LOG_COMPILER = python3
 if ENABLE_BROKER_AUTH
 TESTS = test_replay_cache test_auth_provider_jwt test_phase2_vectors \
   test_baf_transport test_baf_identity test_replay_service test_handle_service \
+  test_rdsaad_ingress \
   test_pam_broker_contract.py \
   test_security_contract.py
 check_PROGRAMS = test_replay_cache test_auth_provider_jwt test_phase2_vectors \
-  test_baf_transport test_baf_identity test_replay_service test_handle_service
+  test_baf_transport test_baf_identity test_replay_service test_handle_service test_rdsaad_ingress
 test_replay_cache_SOURCES = test_replay_cache.c
 test_replay_cache_LDADD = \
   $(top_builddir)/sesman/libsesman/libsesman.la
@@ -44,6 +46,11 @@ test_baf_identity_SOURCES = test_baf_identity.c
 test_baf_identity_LDADD = \
   $(top_builddir)/sesman/libsesman/libsesman.la \
   $(BROKER_AUTH_LIBS)
+test_rdsaad_ingress_SOURCES = test_rdsaad_ingress.c
+test_rdsaad_ingress_LDADD = \
+  $(top_builddir)/sesman/libsesman/libsesman.la \
+  $(top_builddir)/common/libcommon.la \
+  $(BROKER_AUTH_LIBS)
 endif
 
 EXTRA_DIST = \
@@ -56,6 +63,7 @@ EXTRA_DIST = \
   test_handle_service.c \
   test_pam_broker_contract.py \
   test_phase2_vectors.c \
+  test_rdsaad_ingress.c \
   test_replay_service.c \
   test_security_contract.py
 

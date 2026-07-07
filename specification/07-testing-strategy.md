@@ -63,7 +63,8 @@ Each row specifies purpose, setup, steps, expected result, and automation.
 | UT-008A Unit/Phase 4b | Host-local cross-process replay | Real replay service and forked workers | Concurrently reserve one digest, then distinct digests; stop service and send malformed/oversize messages | Exactly one same-key reservation succeeds; distinct keys succeed; unavailable/malformed input fails closed | Every PR |
 | UT-009 Unit | Configuration safety | Valid/invalid files and permissions | Load/reload candidates | Invalid candidate rejected; old config retained | Every PR |
 | UT-010 Unit/Phase 4b | Effective protocol bounds | Validator/transport limits and exact SCP/EICP framing capacity | Encode/decode under-boundary, exact boundary, boundary+1, validator+1, and truncation | Exact boundary round trips; oversize rejected before validation where possible; no fragmentation | Every PR |
-| UT-015 Unit/Phase 4b-1 | Assertion-handle target mismatch | SD-006 handle service and SD-007 target binding | Store target-bound handle, resolve with wrong target, retry with correct target | Wrong-target resolve returns no assertion and consumes/invalidates the handle; later correct-target resolve fails | Every PR |
+| UT-015 Unit/Experimental | Assertion-handle target mismatch | SD-006 handle service and SD-007 target binding | Store target-bound handle, resolve with wrong target, retry with correct target | Wrong-target resolve returns no assertion and consumes/invalidates the handle; later correct-target resolve fails | Every PR while fallback code remains |
+| UT-016 Unit/Phase 4b | RDSAAD-style ingress parser | MS-RDPBCGR 2.2.18 JSON PDUs | Encode nonce/result, parse Authentication Request, reject malformed/missing/duplicate/oversize `rdp_assertion` | Valid assertion reaches BAF validator; invalid input fails closed; no raw assertion logging | Every PR |
 | UT-011 Unit | Secret erasure/redaction | Instrument buffers/logger | Complete success/failure | Buffers erased; token absent from logs | Sanitizer CI |
 | UT-012 Unit | PAM split contract | Mock PAM calls | Classic and prevalidated login | Classic calls authenticate; both call account/session | Every PR |
 | IT-001 Integration/Phase 4a | NSS/SSSD identity binding | SSSD against LDAP test realm | Map valid, unknown, ambiguous, and disabled users; remove or deny groups; fail SSSD and time out LDAP | Canonical UID/name or denial; reservation consumed by default after failure | Nightly |
@@ -155,6 +156,6 @@ secret scan. Release requires all system/security tests, 24-hour stress,
 recovery exercise, supported-upgrade test, signed artifacts, and zero open
 critical/high vulnerabilities without documented acceptance.
 
-## SD-006 handle ingress
+## SD-008 RDSAAD-style ingress
 
-Phase 4b-1 permits only short-lived, high-entropy, one-time server-side assertion handles as defined by [SD-006](decisions/SD-006-one-time-server-side-assertion-handles.md). Atomic resolution fails closed and is not login authorization; live activation remains deferred.
+Phase 4b tests now prioritize SD-008 RDSAAD-style pre-logon assertion ingress. Tests MUST cover `PROTOCOL_RDSAAD` negotiation scaffolding, Server Nonce PDU encoding, Authentication Request parsing, `rdp_assertion` extraction, malformed/duplicate/oversize JSON rejection, validator handoff, trusted replay rejection, and Authentication Result mapping. SD-006 handle tests remain experimental/fallback coverage while that code exists.

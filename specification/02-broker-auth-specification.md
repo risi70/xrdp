@@ -127,24 +127,25 @@ accepted by the validator API. It is not a transport guarantee. Each active
 transport MUST enforce its own, potentially stricter bound before allocation or
 forwarding.
 
-For the Phase 4b in-band SCP/EICP path, the effective assertion maximum is the
-minimum of the configured validator maximum, configured transport maximum, and
-libipm/SCP/EICP payload capacity remaining after all framing overhead. The MVP
-configured in-band transport ceiling is nominally 8 KiB; the exact permitted
-assertion length is lower and MUST be derived from the encoded message. Input
-over the effective maximum MUST fail closed before validation where possible.
+For Phase 4b RDSAAD-style ingress, the effective assertion maximum is the
+minimum of the configured validator maximum, the RDSAAD Authentication Request
+JSON/parser bound, and any downstream internal transport bound if the assertion
+is handed to SCP/EICP machinery. The MVP MUST NOT truncate assertions and MUST
+reject oversize assertions before validation where possible.
 
-The MVP does not fragment assertions and does not use generic out-of-band
-assertion handles. The only permitted handle mechanism is SD-006 one-time
-server-side assertion handles, which do not contain assertions. Fragmentation,
-reassembly, generic bearer handles, and larger libipm messages require a future
-protocol decision.
+The MVP does not fragment assertions, does not overload username/password
+fields, and does not use generic out-of-band assertion handles. SD-008
+RDSAAD-style pre-logon `rdp_assertion` is the selected production MVP ingress.
+SD-006 one-time server-side handles are superseded for production ingress and
+may remain only experimental/fallback/test code. Fragmentation, reassembly,
+generic bearer handles, and larger internal messages require a future protocol
+decision.
 
 | ID | Requirement |
 |---|---|
 | AST-013 | A transport MUST enforce its effective assertion bound before forwarding to the validator. |
 | AST-014 | The in-band effective maximum MUST be the minimum of validator, transport, and framed payload limits. |
-| AST-015 | Oversize assertions MUST fail closed; MVP implementations MUST NOT fragment or use generic out-of-band handles. The only permitted handle mechanism is SD-006 one-time server-side assertion handles, which MUST NOT contain assertions. |
+| AST-015 | Oversize assertions MUST fail closed; MVP implementations MUST NOT fragment, overload username/password fields, or use generic out-of-band handles. SD-008 RDSAAD-style pre-logon `rdp_assertion` is the selected MVP ingress; SD-006 handles are superseded for production ingress. |
 
 ## 5. Validation order
 
@@ -243,6 +244,6 @@ mandatory claims require a new profile version and media type. Future
 algorithm support is configuration-gated, never inferred from the token.
 Phase 2 accepts only an exact RS256 configuration.
 
-## SD-006 handle ingress
+## SD-008 RDSAAD-style ingress
 
-Phase 4b-1 permits only short-lived, high-entropy, one-time server-side assertion handles as defined by [SD-006](decisions/SD-006-one-time-server-side-assertion-handles.md). Atomic resolution fails closed and is not login authorization; live activation remains deferred.
+SD-008 selects RDS AAD Auth-style pre-logon assertion ingress as the preferred MVP path. The client Authentication Request PDU carries `rdp_assertion`, a compact JWT/JWS BAF assertion, which feeds the existing BAF validator and trusted replay path. SD-006/SD-007 handles are superseded for production MVP ingress and may remain only experimental/fallback/test code. Live session activation still requires the full validation, replay, identity, UID, and PAM chain.

@@ -66,6 +66,8 @@ libcommon_la_SOURCES = \
   parse.c \
   parse.h \
   rail.h \
+  rdsaad.c \
+  rdsaad.h \
   scancode.c \
   scancode.h \
   set_int.c \

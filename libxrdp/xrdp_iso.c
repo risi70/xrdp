@@ -57,6 +57,7 @@ protocol_mask_to_str(int protocol, char *buff, int bufflen)
         { PROTOCOL_HYBRID, "HYBRID" },
         { PROTOCOL_RDSTLS, "RDSTLS" },
         { PROTOCOL_HYBRID_EX, "HYBRID_EX"},
+        { PROTOCOL_RDSAAD, "RDSAAD"},
         BITMASK_STRING_END_OF_LIST
     };
 
@@ -259,12 +260,21 @@ xrdp_iso_process_rdp_neg_req(struct xrdp_iso *self, struct stream *s)
 
     in_uint32_le(s, self->requestedProtocol); /* requestedProtocols */
 
-    /* TODO: why is requestedProtocols flag value bigger than 0xb invalid? */
-    if (self->requestedProtocol > 0xb)
+    if ((self->requestedProtocol & ~(PROTOCOL_SSL | PROTOCOL_HYBRID |
+                                      PROTOCOL_RDSTLS | PROTOCOL_HYBRID_EX |
+                                      PROTOCOL_RDSAAD)) != 0)
     {
         LOG(LOG_LEVEL_ERROR,
             "Unknown requested protocol flag [MS-RDPBCGR] RDP_NEG_REQ, "
             "requestedProtocol 0x%8.8x", self->requestedProtocol);
+        return 1;
+    }
+
+    if ((self->requestedProtocol & PROTOCOL_RDSAAD) != 0)
+    {
+        LOG(LOG_LEVEL_ERROR,
+            "RDSAAD security was requested but broker-auth RDSAAD mode "
+            "is not runtime-enabled");
         return 1;
     }
     LOG_DEVEL(LOG_LEVEL_TRACE, "Received struct [MS-RDPBCGR] RDP_NEG_REQ "
