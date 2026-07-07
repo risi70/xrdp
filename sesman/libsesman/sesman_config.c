@@ -55,6 +55,19 @@
 
 #define SESMAN_CFG_SESSION_VARIABLES "SessionVariables"
 
+#define SESMAN_CFG_BROKER_AUTH "BrokerAuth"
+#define SESMAN_CFG_BAF_ENABLED "BrokerAuthEnabled"
+#define SESMAN_CFG_BAF_RDSAAD_ENABLED "RDSAADEnabled"
+#define SESMAN_CFG_BAF_PROVIDER "Provider"
+#define SESMAN_CFG_BAF_TRUST_ANCHOR "TrustAnchor"
+#define SESMAN_CFG_BAF_EXPECTED_AUDIENCE "ExpectedAudience"
+#define SESMAN_CFG_BAF_LOCAL_TARGET "LocalTarget"
+#define SESMAN_CFG_BAF_MAX_ASSERTION_SIZE "MaxAssertionSize"
+#define SESMAN_CFG_BAF_REPLAY_BACKEND "ReplayBackend"
+#define SESMAN_CFG_BAF_REPLAY_SOCKET "ReplaySocket"
+#define SESMAN_CFG_BAF_REJECT_UID0 "RejectUid0"
+#define SESMAN_CFG_BAF_ALLOW_SESSION_START "AllowSessionStart"
+
 /*
 #define SESMAN_CFG_LOGGING           "Logging"
 #define SESMAN_CFG_LOG_FILE          "LogFile"
@@ -612,6 +625,81 @@ config_read_session_variables(int file, struct config_sesman *cs,
 }
 
 /******************************************************************************/
+static int
+config_read_broker_auth(int file, struct baf_runtime_config *baf,
+                        struct list *param_n, struct list *param_v)
+{
+    int i;
+
+    list_clear(param_v);
+    list_clear(param_n);
+
+    baf_runtime_config_init(baf);
+
+    file_read_section(file, SESMAN_CFG_BROKER_AUTH, param_n, param_v);
+
+    for (i = 0; i < param_n->count; i++)
+    {
+        const char *name = (const char *)list_get_item(param_n, i);
+        const char *value = (const char *)list_get_item(param_v, i);
+
+        if (0 == g_strcasecmp(name, SESMAN_CFG_BAF_ENABLED))
+        {
+            baf->broker_auth_enabled = g_text2bool(value);
+        }
+        else if (0 == g_strcasecmp(name, SESMAN_CFG_BAF_RDSAAD_ENABLED))
+        {
+            baf->broker_auth_rdsaad_enabled = g_text2bool(value);
+        }
+        else if (0 == g_strcasecmp(name, SESMAN_CFG_BAF_PROVIDER))
+        {
+            g_free(baf->provider);
+            baf->provider = g_strdup(value);
+        }
+        else if (0 == g_strcasecmp(name, SESMAN_CFG_BAF_TRUST_ANCHOR))
+        {
+            g_free(baf->trust_anchor);
+            baf->trust_anchor = g_strdup(value);
+        }
+        else if (0 == g_strcasecmp(name, SESMAN_CFG_BAF_EXPECTED_AUDIENCE))
+        {
+            g_free(baf->expected_audience);
+            baf->expected_audience = g_strdup(value);
+        }
+        else if (0 == g_strcasecmp(name, SESMAN_CFG_BAF_LOCAL_TARGET))
+        {
+            g_free(baf->local_target);
+            baf->local_target = g_strdup(value);
+        }
+        else if (0 == g_strcasecmp(name, SESMAN_CFG_BAF_MAX_ASSERTION_SIZE))
+        {
+            int size = g_atoi(value);
+            baf->max_assertion_size = size < 0 ? 0 : (unsigned int)size;
+        }
+        else if (0 == g_strcasecmp(name, SESMAN_CFG_BAF_REPLAY_BACKEND))
+        {
+            g_free(baf->replay_backend);
+            baf->replay_backend = g_strdup(value);
+        }
+        else if (0 == g_strcasecmp(name, SESMAN_CFG_BAF_REPLAY_SOCKET))
+        {
+            g_free(baf->replay_socket);
+            baf->replay_socket = g_strdup(value);
+        }
+        else if (0 == g_strcasecmp(name, SESMAN_CFG_BAF_REJECT_UID0))
+        {
+            baf->reject_uid0 = g_text2bool(value);
+        }
+        else if (0 == g_strcasecmp(name, SESMAN_CFG_BAF_ALLOW_SESSION_START))
+        {
+            baf->allow_session_start = g_text2bool(value);
+        }
+    }
+
+    return 0;
+}
+
+/******************************************************************************/
 struct config_sesman *
 config_read(const char *sesman_ini)
 {
@@ -651,6 +739,8 @@ config_read(const char *sesman_ini)
                 config_read_sessions(fd, &(cfg->sess), param_n, param_v);
 
                 config_read_session_variables(fd, cfg, param_n, param_v);
+
+                config_read_broker_auth(fd, &(cfg->baf), param_n, param_v);
 
                 /* cleanup */
                 list_delete(sec);
@@ -728,6 +818,27 @@ config_dump(struct config_sesman *config)
     g_writeln("    TSAdminsGroup:             %s", sc->ts_admins);
     g_writeln("    SessionSockdirGroup:       %s", sc->session_sockdir_group);
 
+    g_writeln("BrokerAuth configuration:");
+    g_writeln("    BrokerAuthEnabled:         %d",
+              config->baf.broker_auth_enabled);
+    g_writeln("    RDSAADEnabled:             %d",
+              config->baf.broker_auth_rdsaad_enabled);
+    g_writeln("    Provider:                  %s", config->baf.provider);
+    g_writeln("    TrustAnchor:               %s",
+              config->baf.trust_anchor[0] == '\0' ? "disabled" : "set");
+    g_writeln("    ExpectedAudience:          %s",
+              config->baf.expected_audience);
+    g_writeln("    LocalTarget:               %s", config->baf.local_target);
+    g_writeln("    MaxAssertionSize:          %u",
+              config->baf.max_assertion_size);
+    g_writeln("    ReplayBackend:             %s", config->baf.replay_backend);
+    g_writeln("    ReplaySocket:              %s",
+              config->baf.replay_socket[0] == '\0' ? "disabled" :
+              config->baf.replay_socket);
+    g_writeln("    RejectUid0:                %d", config->baf.reject_uid0);
+    g_writeln("    AllowSessionStart:         %d",
+              config->baf.allow_session_start);
+
 
     /* Xorg */
     if (config->xorg_params->count)
@@ -786,6 +897,7 @@ config_free(struct config_sesman *cs)
         g_free(cs->sec.ts_users);
         g_free(cs->sec.ts_admins);
         g_free(cs->sec.session_sockdir_group);
+        baf_runtime_config_free(&(cs->baf));
         g_free(cs);
     }
 }

@@ -15,7 +15,7 @@ cleanup continue through XRDP's existing session path.
 ## Prerequisites
 
 - Phases 1–3 and Phase 4a are complete.
-- Runtime broker configuration is valid and explicitly enables broker auth.
+- Trusted sesman/sesexec broker configuration is valid, explicitly enables broker auth, and is loaded from local sesman.ini rather than xrdp_client_info.
 - Classic SCP/EICP password messages remain byte-compatible.
 - The exact assertion payload capacity after SCP/EICP framing is calculated and
   enforced at every hop.
@@ -62,6 +62,8 @@ SD-008 supersedes handle-first ingress. The preferred MVP path is now RDS AAD Au
 ## RDSAAD production integration foundation
 
 The safe production insertion point is post-TLS and pre-MCS in `xrdp_sec_incoming()`. `PROTOCOL_RDSAAD` negotiation is runtime-gated and disabled by default. When selected, XRDP can perform the Server Nonce / Authentication Request / Authentication Result exchange before MCS starts.
+
+The trusted BAF runtime configuration foundation is now available to sesman and xrdp-sesexec through the local [BrokerAuth] sesman.ini section. It is disabled by default, requires service replay for future preauth use, rejects UID 0 by default, and keeps AllowSessionStart false until the bridge is complete.
 
 This foundation does not send `S_OK`. The RDSAAD exchange fails closed after parsing because a production sesman/sesexec BAF login handoff has not yet created a session-ready `login_info` from the validated assertion, trusted replay reservation, NSS identity, UID 0 rejection, and PAM account/session lifecycle. `sesman/scp_process.c` and `sesman/sesexec/eicp_server.c` still have no production RDSAAD/BAF dispatch. Classic SYS/UDS login remains unchanged.
 

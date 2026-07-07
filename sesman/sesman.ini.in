@@ -136,6 +136,29 @@ Policy=Default
 ; Milliseconds to wait to ensure the session has started
 StartupWaitTime=1500
 
+[BrokerAuth]
+; Trusted Broker Authentication Framework configuration for sesman and
+; xrdp-sesexec. These values are read from this local configuration file and
+; are not taken from RDP client input or xrdp_client_info.
+BrokerAuthEnabled=false
+RDSAADEnabled=false
+Provider=jwt
+; TrustAnchor is mandatory when BrokerAuthEnabled and RDSAADEnabled are true.
+; It must identify the local trust anchor configured by the administrator.
+TrustAnchor=
+; ExpectedAudience is mandatory when BrokerAuthEnabled and RDSAADEnabled are true.
+ExpectedAudience=
+; LocalTarget is mandatory when BrokerAuthEnabled and RDSAADEnabled are true.
+LocalTarget=
+MaxAssertionSize=16384
+; Live/preauth broker authorization requires the trusted replay service.
+ReplayBackend=service
+; ReplaySocket is mandatory when BrokerAuthEnabled and RDSAADEnabled are true.
+ReplaySocket=
+RejectUid0=true
+; Remains false until the pre-MCS RDSAAD bridge proves full authorization.
+AllowSessionStart=false
+
 [Logging]
 ; Note: Log levels can be any of: core, error, warning, info, debug, or trace
 LogFile=xrdp-sesman.log

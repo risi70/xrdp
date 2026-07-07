@@ -32,6 +32,7 @@
 #include "log.h"
 
 #include "xrdp_sockets.h"
+#include "baf_runtime_config.h"
 
 enum SESMAN_CFG_SESS_POLICY_BITS
 {
@@ -262,6 +263,12 @@ struct config_sesman
      * @brief Session configuration options struct
      */
     struct config_sessions sess;
+
+    /**
+     * @var baf
+     * @brief Trusted Broker Authentication Framework configuration
+     */
+    struct baf_runtime_config baf;
 
     /**
      * @var env_names

@@ -108,6 +108,8 @@ session.
 
 ## Current Limitations / Deferred Work
 
+Trusted BAF runtime configuration is now owned by sesman/xrdp-sesexec through the local [BrokerAuth] sesman.ini section, not xrdp_client_info. It supplies fail-closed defaults for provider, trust anchor, audience, local target, service replay, UID 0 rejection, assertion size, and the session-start gate.
+
 Full live RDSAAD activation remains deferred. The missing abstraction is a
 production BAF/RDSAAD login handoff that can create a session-ready
 `login_info` from a fully authorized BAF result without using username/password

@@ -30,6 +30,14 @@ HANDLE_TEST = (ROOT / "tests" / "baf" / "test_handle_service.c").read_text(
 RDSAAD = (ROOT / "common" / "rdsaad.c").read_text(encoding="utf-8")
 RDSAAD_TEST = (ROOT / "tests" / "baf" / "test_rdsaad_ingress.c").read_text(
     encoding="utf-8")
+BAF_RUNTIME_CONFIG = (
+    ROOT / "sesman" / "libsesman" / "baf_runtime_config.c"
+).read_text(encoding="utf-8")
+BAF_RUNTIME_CONFIG_H = (
+    ROOT / "sesman" / "libsesman" / "baf_runtime_config.h"
+).read_text(encoding="utf-8")
+SESMAN_CONFIG = (ROOT / "sesman" / "libsesman" / "sesman_config.c").read_text(
+    encoding="utf-8")
 
 XRDP_ISO = (ROOT / "libxrdp" / "xrdp_iso.c").read_text(encoding="utf-8")
 XRDP_SEC = (ROOT / "libxrdp" / "xrdp_sec.c").read_text(encoding="utf-8")
@@ -122,6 +130,19 @@ assert "pam_acct_mgmt" in PAM
 assert "pam_open_session" in PAM and "pam_close_session" in PAM
 assert "assertion" not in PAM.lower()
 
+assert "xrdp_client_info" not in BAF_RUNTIME_CONFIG
+assert "xrdp_client_info" not in SESMAN_CONFIG
+assert "broker_auth_enabled = 0" in BAF_RUNTIME_CONFIG
+assert "broker_auth_rdsaad_enabled = 0" in BAF_RUNTIME_CONFIG
+assert "reject_uid0 = 1" in BAF_RUNTIME_CONFIG
+assert "allow_session_start = 0" in BAF_RUNTIME_CONFIG
+assert "BAF_RUNTIME_DEFAULT_REPLAY_BACKEND \"service\"" in BAF_RUNTIME_CONFIG_H
+assert "config->allow_session_start" in BAF_RUNTIME_CONFIG
+assert "config->replay_backend" in BAF_RUNTIME_CONFIG
+assert "BAF_RUNTIME_CONFIG_DISABLED" in BAF_RUNTIME_CONFIG
+assert "SESMAN_CFG_BROKER_AUTH" in SESMAN_CONFIG
+assert "config_read_broker_auth" in SESMAN_CONFIG
+
 assert "broker_auth_config_valid" in XRDP_ISO
 assert "PROTOCOL_RDSAAD" in XRDP_ISO
 assert "Selected RDSAAD security" in XRDP_ISO
@@ -148,7 +169,8 @@ assert "Full live RDSAAD activation remains deferred" in BAF_ARCH
 assert "does not emit `S_OK`" in BAF_ARCH
 assert "controlled failure" in RDSAAD_FOUNDATION
 assert "login_info` currently represents classic SYS login and UDS login only" in RDSAAD_FOUNDATION
-assert "Neither abstraction exists yet" in RDSAAD_FOUNDATION
+assert "trusted runtime configuration abstraction now exists" in RDSAAD_FOUNDATION
+assert "pre-MCS owner bridge and session-ready login abstraction still do not exist yet" in RDSAAD_FOUNDATION
 assert "E_SCP_SYS_LOGIN_REQUEST" in SCP_PROCESS
 assert "E_SCP_UDS_LOGIN_REQUEST" in SCP_PROCESS
 assert "E_EICP_SYS_LOGIN_REQUEST" in EICP_SERVER

@@ -72,6 +72,8 @@ libsesman_la_SOURCES = \
   auth_provider_private.h \
   baf_identity.h \
   baf_handle_service.h \
+  baf_runtime_config.c \
+  baf_runtime_config.h \
   baf_transport.h \
   replay_cache.h \
   replay_cache_service.h \

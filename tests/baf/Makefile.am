@@ -3,6 +3,7 @@ AM_CPPFLAGS = \
   -I$(top_srcdir)/common \
   -I$(top_srcdir)/sesman/libsesman \
   -I$(top_srcdir)/libipm \
+  -DXRDP_SOCKET_ROOT_PATH=\"/tmp\" \
   $(BROKER_AUTH_CFLAGS) \
   -DTEST_PRIVATE_KEY=\"$(srcdir)/data/test-private.pem\" \
   -DTEST_PUBLIC_KEY=\"$(srcdir)/data/test-public.pem\" \
@@ -14,18 +15,22 @@ PY_LOG_COMPILER = python3
 
 if ENABLE_BROKER_AUTH
 TESTS = test_replay_cache test_auth_provider_jwt test_phase2_vectors \
-  test_baf_transport test_baf_identity test_replay_service test_handle_service \
+  test_baf_runtime_config test_baf_transport test_baf_identity test_replay_service test_handle_service \
   test_rdsaad_ingress \
   test_pam_broker_contract.py \
   test_security_contract.py
 check_PROGRAMS = test_replay_cache test_auth_provider_jwt test_phase2_vectors \
-  test_baf_transport test_baf_identity test_replay_service test_handle_service test_rdsaad_ingress
+  test_baf_runtime_config test_baf_transport test_baf_identity test_replay_service test_handle_service test_rdsaad_ingress
 test_replay_cache_SOURCES = test_replay_cache.c
 test_replay_cache_LDADD = \
   $(top_builddir)/sesman/libsesman/libsesman.la
 test_replay_service_SOURCES = test_replay_service.c
 test_replay_service_LDADD = \
   $(top_builddir)/sesman/libsesman/libsesman.la
+test_baf_runtime_config_SOURCES = test_baf_runtime_config.c
+test_baf_runtime_config_LDADD = \
+  $(top_builddir)/sesman/libsesman/libsesman.la \
+  $(top_builddir)/common/libcommon.la
 test_handle_service_SOURCES = test_handle_service.c
 test_handle_service_LDADD = \
   $(top_builddir)/sesman/libsesman/libsesman.la \
@@ -59,6 +64,7 @@ EXTRA_DIST = \
   fuzz/fuzz_baf_compact.c \
   fuzz/README.md \
   test_baf_identity.c \
+  test_baf_runtime_config.c \
   test_baf_transport.c \
   test_handle_service.c \
   test_pam_broker_contract.py \

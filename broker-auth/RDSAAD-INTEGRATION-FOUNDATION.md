@@ -40,7 +40,7 @@ The intended production handoff is:
 
 `rdp_assertion` -> BAF transport -> JWT validator -> trusted replay service -> validated capability.
 
-The parser and helper tests already prove the `rdp_assertion` value can feed `baf_transport_validate()`. The live XRDP hook currently stops before validation because the current tree lacks the production trust/runtime configuration object and the sesman/sesexec session-ready handoff needed to make validation useful for a live connection.
+The parser and helper tests already prove the `rdp_assertion` value can feed `baf_transport_validate()`. The live XRDP hook currently stops before validation because the current tree now has a trusted sesman/sesexec runtime configuration object, but still lacks the pre-MCS owner bridge and the sesman/sesexec session-ready handoff needed to make validation useful for a live connection.
 
 This is the safe partial foundation state. The hook parses and clears the assertion, returns Authentication Result failure, and terminates before MCS. It must not emit `S_OK` merely because parsing or future validator handoff succeeds.
 
@@ -62,7 +62,7 @@ A safe implementation must decide where live validation runs:
 - If validation runs in sesexec, XRDP/SCP/EICP must carry only the bounded assertion material needed for validation, erase it immediately after handoff, and require trusted replay service configuration.
 - If validation runs before sesexec, the IPC must carry a minimal non-forgeable session-ready representation, not client-controlled claims, and sesexec must still own session startup as the resolved Linux user.
 
-Neither abstraction exists yet, so this foundation intentionally keeps the live path closed.
+The trusted runtime configuration abstraction now exists. The pre-MCS owner bridge and session-ready login abstraction still do not exist yet, so this foundation intentionally keeps the live path closed.
 
 ## 8. When `S_OK` may be sent
 

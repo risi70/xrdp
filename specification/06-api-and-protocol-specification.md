@@ -5,7 +5,7 @@
 | ID | Requirement |
 |---|---|
 | PRO-001 | Broker assertion transport MUST be distinct from classic password login. |
-| PRO-002 | The assertion MUST remain opaque until local validation in sesexec. |
+| PRO-002 | The assertion MUST remain opaque until local validation in sesexec. Trusted validation policy MUST come from sesman/xrdp-sesexec local config, not `xrdp_client_info`. |
 | PRO-003 | Protocol capability negotiation MUST prevent new messages being sent to old peers. |
 | PRO-004 | All length fields MUST be bounded and checked before allocation. |
 | PRO-005 | Secret-bearing input/output buffers MUST be erased after use. |
@@ -226,4 +226,4 @@ Phase 4b now prefers [SD-008](decisions/SD-008-rdsaad-style-prelogon-assertion-i
 
 ### RDSAAD production integration foundation
 
-XRDP negotiates `PROTOCOL_RDSAAD` only when broker-auth RDSAAD mode is explicitly enabled and runtime BAF configuration is complete. The safe exchange hook is post-TLS and pre-MCS. Until the sesman/sesexec BAF login handoff is complete, Authentication Result `S_OK` is withheld and the exchange fails closed after parsing.
+XRDP negotiates `PROTOCOL_RDSAAD` only when broker-auth RDSAAD mode is explicitly enabled and runtime BAF configuration is complete. The trusted sesman/xrdp-sesexec runtime config is loaded from local `sesman.ini`; client-adjacent `xrdp_client_info` values do not authorize sesexec validation. The safe exchange hook is post-TLS and pre-MCS. Until the sesman/sesexec BAF login handoff is complete, Authentication Result `S_OK` is withheld and the exchange fails closed after parsing.
