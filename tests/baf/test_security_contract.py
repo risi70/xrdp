@@ -43,6 +43,7 @@ XRDP_ISO = (ROOT / "libxrdp" / "xrdp_iso.c").read_text(encoding="utf-8")
 XRDP_SEC = (ROOT / "libxrdp" / "xrdp_sec.c").read_text(encoding="utf-8")
 XRDP_RDP = (ROOT / "libxrdp" / "xrdp_rdp.c").read_text(encoding="utf-8")
 SCP_PROCESS = (ROOT / "sesman" / "scp_process.c").read_text(encoding="utf-8")
+SCP_LIST_H = (ROOT / "sesman" / "scp_list.h").read_text(encoding="utf-8")
 EICP_SERVER = (ROOT / "sesman" / "sesexec" / "eicp_server.c").read_text(
     encoding="utf-8")
 LOGIN_INFO_H = (ROOT / "sesman" / "sesexec" / "login_info.h").read_text(
@@ -50,6 +51,9 @@ LOGIN_INFO_H = (ROOT / "sesman" / "sesexec" / "login_info.h").read_text(
 BAF_ARCH = (ROOT / "BAF-ARCHITECTURE.md").read_text(encoding="utf-8")
 RDSAAD_FOUNDATION = (
     ROOT / "broker-auth" / "RDSAAD-INTEGRATION-FOUNDATION.md"
+).read_text(encoding="utf-8")
+RDSAAD_PREMCS_BRIDGE = (
+    ROOT / "broker-auth" / "RDSAAD-PREMCS-BRIDGE.md"
 ).read_text(encoding="utf-8")
 
 for logging_call in ("LOG(", "printf(", "fprintf(", "syslog("):
@@ -137,7 +141,8 @@ assert "broker_auth_rdsaad_enabled = 0" in BAF_RUNTIME_CONFIG
 assert "reject_uid0 = 1" in BAF_RUNTIME_CONFIG
 assert "allow_session_start = 0" in BAF_RUNTIME_CONFIG
 assert "BAF_RUNTIME_DEFAULT_REPLAY_BACKEND \"service\"" in BAF_RUNTIME_CONFIG_H
-assert "config->allow_session_start" in BAF_RUNTIME_CONFIG
+assert "BAF_RUNTIME_DEFAULT_ALLOWED_ALGORITHMS \"RS256\"" in BAF_RUNTIME_CONFIG_H
+assert "baf_runtime_config_validate_live" in BAF_RUNTIME_CONFIG
 assert "config->replay_backend" in BAF_RUNTIME_CONFIG
 assert "BAF_RUNTIME_CONFIG_DISABLED" in BAF_RUNTIME_CONFIG
 assert "SESMAN_CFG_BROKER_AUTH" in SESMAN_CONFIG
@@ -148,8 +153,10 @@ assert "PROTOCOL_RDSAAD" in XRDP_ISO
 assert "Selected RDSAAD security" in XRDP_ISO
 assert "xrdp_sec_rdsaad_exchange" in XRDP_SEC
 assert "xrdp_sec_rdsaad_exchange(self)" in XRDP_SEC
-assert "RDSAAD_HRESULT_S_OK" not in XRDP_SEC
-assert "Authentication Result success is " in XRDP_SEC and "withheld" in XRDP_SEC
+assert "XRDP_CALLBACK_RDSAAD_PREAUTH" in XRDP_SEC
+assert "response.status == XRDP_RDSAAD_PREAUTH_AUTHORIZED" in XRDP_SEC
+assert "result = RDSAAD_HRESULT_S_OK" in XRDP_SEC
+assert XRDP_SEC.find("response.status == XRDP_RDSAAD_PREAUTH_AUTHORIZED") < XRDP_SEC.find("result = RDSAAD_HRESULT_S_OK")
 assert "xrdp_mcs_incoming(self->mcs_layer)" in XRDP_SEC
 assert XRDP_SEC.find("xrdp_sec_rdsaad_exchange(self)") < XRDP_SEC.find("xrdp_mcs_incoming(self->mcs_layer)")
 assert "broker_auth_rdsaad_enabled" in XRDP_RDP
@@ -161,16 +168,14 @@ assert "broker_auth_replay_socket" in XRDP_RDP
 assert "broker_auth_allow_session_start" in XRDP_RDP
 assert "rdp_assertion" not in XRDP_ISO
 
-assert "RDSAAD Authentication Request parsed" in XRDP_SEC
 assert "RDSAAD_HRESULT_E_ACCESSDENIED" in XRDP_SEC
-assert "return 1;" in XRDP_SEC[XRDP_SEC.find("xrdp_sec_rdsaad_exchange"):XRDP_SEC.find("hex_str_to_bin")]
-assert "session-ready handoff" in BAF_ARCH
-assert "Full live RDSAAD activation remains deferred" in BAF_ARCH
-assert "does not emit `S_OK`" in BAF_ARCH
-assert "controlled failure" in RDSAAD_FOUNDATION
-assert "login_info` currently represents classic SYS login and UDS login only" in RDSAAD_FOUNDATION
-assert "trusted runtime configuration abstraction now exists" in RDSAAD_FOUNDATION
-assert "pre-MCS owner bridge and session-ready login abstraction still do not exist yet" in RDSAAD_FOUNDATION
+rdsaad_exchange = XRDP_SEC[XRDP_SEC.find("xrdp_sec_rdsaad_exchange"):XRDP_SEC.find("hex_str_to_bin")]
+assert "return result == RDSAAD_HRESULT_S_OK ? 0 : 1;" in rdsaad_exchange
+assert "xrdp_session` owner callback" in RDSAAD_PREMCS_BRIDGE
+assert "AllowSessionStart` defaults to `false`" in RDSAAD_PREMCS_BRIDGE
+assert "Client-provided" in RDSAAD_PREMCS_BRIDGE and "not trusted validation" in RDSAAD_PREMCS_BRIDGE
+assert "E_SLI_LOGIN_BAF" in SCP_LIST_H
+assert "login_info_baf_preauth_user" in LOGIN_INFO_H
 assert "E_SCP_SYS_LOGIN_REQUEST" in SCP_PROCESS
 assert "E_SCP_UDS_LOGIN_REQUEST" in SCP_PROCESS
 assert "E_EICP_SYS_LOGIN_REQUEST" in EICP_SERVER

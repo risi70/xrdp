@@ -2136,6 +2136,16 @@ callback(struct xrdp_process *id, int msg, intptr_t param1, intptr_t param2,
         return 0;
     }
 
+#if defined(ENABLE_BROKER_AUTH)
+    if (msg == XRDP_CALLBACK_RDSAAD_PREAUTH)
+    {
+        return xrdp_process_rdsaad_preauth(
+                   id,
+                   (const struct xrdp_rdsaad_preauth_request *)param1,
+                   (struct xrdp_rdsaad_preauth_response *)param2);
+    }
+#endif
+
     wm = ((struct xrdp_process *)id)->wm;
 
     if (wm == 0)

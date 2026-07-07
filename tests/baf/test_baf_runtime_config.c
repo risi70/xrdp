@@ -26,6 +26,9 @@ make_valid(struct baf_runtime_config *config)
     baf_runtime_config_init(config);
     config->broker_auth_enabled = 1;
     config->broker_auth_rdsaad_enabled = 1;
+    replace(&config->issuer, "https://broker.example.test");
+    replace(&config->key_id, "baf-key-1");
+    replace(&config->allowed_algorithms, "RS256");
     replace(&config->trust_anchor, "/etc/xrdp/baf/trust-anchor.pem");
     replace(&config->expected_audience, "xrdp-baf");
     replace(&config->local_target, "xrdp-session");
@@ -65,6 +68,24 @@ static void
 test_required_fields_fail_closed(void)
 {
     struct baf_runtime_config config = {0};
+
+    make_valid(&config);
+    replace(&config.issuer, "");
+    assert(baf_runtime_config_validate(&config) ==
+           BAF_RUNTIME_CONFIG_INVALID);
+    baf_runtime_config_free(&config);
+
+    make_valid(&config);
+    replace(&config.key_id, "");
+    assert(baf_runtime_config_validate(&config) ==
+           BAF_RUNTIME_CONFIG_INVALID);
+    baf_runtime_config_free(&config);
+
+    make_valid(&config);
+    replace(&config.allowed_algorithms, "HS256");
+    assert(baf_runtime_config_validate(&config) ==
+           BAF_RUNTIME_CONFIG_INVALID);
+    baf_runtime_config_free(&config);
 
     make_valid(&config);
     replace(&config.trust_anchor, "");
@@ -109,9 +130,13 @@ test_session_start_stays_disabled(void)
     struct baf_runtime_config config = {0};
 
     make_valid(&config);
-    config.allow_session_start = 1;
     assert(baf_runtime_config_validate(&config) ==
+           BAF_RUNTIME_CONFIG_OK);
+    assert(baf_runtime_config_validate_live(&config) ==
            BAF_RUNTIME_CONFIG_INVALID);
+    config.allow_session_start = 1;
+    assert(baf_runtime_config_validate_live(&config) ==
+           BAF_RUNTIME_CONFIG_OK);
     baf_runtime_config_free(&config);
 }
 
@@ -131,6 +156,9 @@ test_sesexec_config_path(void)
             "BrokerAuthEnabled=true\n"
             "RDSAADEnabled=true\n"
             "Provider=jwt\n"
+            "Issuer=https://broker.example.test\n"
+            "KeyId=baf-key-1\n"
+            "AllowedAlgorithms=RS256\n"
             "TrustAnchor=/etc/xrdp/baf/trust-anchor.pem\n"
             "ExpectedAudience=xrdp-baf\n"
             "LocalTarget=xrdp-session\n"

@@ -143,6 +143,10 @@ StartupWaitTime=1500
 BrokerAuthEnabled=false
 RDSAADEnabled=false
 Provider=jwt
+; Issuer, KeyId, and AllowedAlgorithms are trusted JWT provider settings.
+Issuer=
+KeyId=
+AllowedAlgorithms=RS256
 ; TrustAnchor is mandatory when BrokerAuthEnabled and RDSAADEnabled are true.
 ; It must identify the local trust anchor configured by the administrator.
 TrustAnchor=

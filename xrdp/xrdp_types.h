@@ -32,6 +32,8 @@
 #include "xrdp_client_info.h"
 #include "xrdp_tconfig.h"
 
+#include <sys/types.h>
+
 #define MAX_NR_CHANNELS 16
 #define MAX_CHANNEL_NAME 16
 
@@ -608,6 +610,11 @@ struct xrdp_process
     //int app_sck;
     tbus done_event;
     int session_id;
+#if defined(ENABLE_BROKER_AUTH)
+    struct trans *baf_preauth_sesman_trans;
+    uid_t baf_preauth_uid;
+    int baf_preauth_authorized;
+#endif
 };
 
 /* rdp listener */

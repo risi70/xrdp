@@ -57,8 +57,18 @@ process_sys_login_response(struct scp_list_item *sli)
                                      &uid, &scp_fd);
     if (rv == 0)
     {
-        LOG(LOG_LEVEL_INFO, "Received sys login status for %s : %s",
-            sli->username,
+        if (is_logged_in && sli->broker_login_in_progress &&
+                sli->username == NULL &&
+                g_getuser_info_by_uid(uid, &sli->username,
+                                      NULL, NULL, NULL, NULL) != 0)
+        {
+            LOG(LOG_LEVEL_ERROR, "Can't reverse lookup BAF preauth UID %d",
+                (int)uid);
+            is_logged_in = 0;
+        }
+
+        LOG(LOG_LEVEL_INFO, "Received login status for %s : %s",
+            sli->username == NULL ? "broker-auth" : sli->username,
             (is_logged_in) ? "logged in" : "not logged in");
 
         if (!is_logged_in)
@@ -83,7 +93,9 @@ process_sys_login_response(struct scp_list_item *sli)
             {
                 sli->client_trans->trans_data_in = sesman_scp_data_in;
                 sli->client_trans->callback_data = (void *)sli;
-                sli->login_state = E_SLI_LOGIN_SYS;
+                sli->login_state = sli->broker_login_in_progress ?
+                                   E_SLI_LOGIN_BAF : E_SLI_LOGIN_SYS;
+                sli->broker_login_in_progress = 0;
                 sli->uid = uid;
                 // For system logins, don't allow admin access
                 //sli->is_admin = access_login_mng_allowed(&g_cfg->sec,

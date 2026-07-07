@@ -1,17 +1,36 @@
 # RDSAAD Pre-MCS Bridge
 
-The pre-MCS RDSAAD bridge is still intentionally incomplete. The required owner
-mechanism must connect the libxrdp RDSAAD exchange to trusted xrdp-side code,
-then to sesman and xrdp-sesexec, without using `xrdp_mm` before it exists.
+RDSAAD Authentication Request processing runs inside `libxrdp` before MCS and
+before `xrdp_wm` / `xrdp_mm` exist. Direct use of `xrdp_mm` at this point is
+unsafe because the module/session state and client MCS parameters needed for
+session creation have not been negotiated yet.
 
-## Trusted Runtime Config
+The selected bridge uses the existing `xrdp_session` owner callback. `libxrdp`
+parses a bounded `rdp_assertion`, calls the trusted xrdp owner, clears the raw
+assertion, and sends Authentication Result. `libxrdp` does not call sesman,
+sesexec, NSS, PAM, or session startup directly.
 
-The trusted BAF runtime configuration foundation now lives in the sesman config
-model. sesman and xrdp-sesexec load the local `[BrokerAuth]` section from
-`sesman.ini`; they do not use `xrdp_client_info` as a trust source.
+The xrdp owner connects to sesman over SCP and sends the dedicated broker login
+request. Sesman validates that trusted live BrokerAuth config is enabled, starts
+sesexec, and forwards the bounded assertion over EICP. Sesexec loads only
+trusted sesman configuration from `[BrokerAuth]`, creates the JWT validator with
+service-backed replay, binds the identity through NSS, rejects UID 0 by default,
+and runs the broker PAM account/session preconditions. Client-provided
+`xrdp_client_info` values are metadata only and are not trusted validation
+configuration.
 
-This gives future preauth dispatch code a local source for provider, trust
-anchor, audience, local target, assertion size, service replay socket, UID 0
-rejection, and the session-start gate. `AllowSessionStart` remains false and
-validation rejects true in this phase, so the current RDSAAD hook still withholds
-`S_OK`.
+On success, sesexec creates session-ready `login_info` for the resolved Linux
+user. Sesman marks the SCP connection as `E_SLI_LOGIN_BAF`. The xrdp owner keeps
+that authenticated SCP transport bound to the current `xrdp_process`; no raw
+assertion, token UID/GID, token groups, or password placeholder is stored. After
+MCS creates `xrdp_wm` and `xrdp_mm`, `xrdp_mm` adopts the authenticated sesman
+transport and continues with the normal create-session path.
+
+`S_OK` may be emitted only after the callback receives a successful sesman /
+sesexec authorization result. Any parser, replay, identity, PAM, config, or
+service failure maps to an Authentication Result failure and the RDP connection
+does not continue to MCS.
+
+Live activation remains gated by trusted sesman config. `AllowSessionStart` defaults to `false`; enabling live RDSAAD activation requires the administrator
+to configure the complete trusted JWT, replay-service, target, and session-start
+settings locally on the server.

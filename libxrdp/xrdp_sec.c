@@ -217,6 +217,7 @@ xrdp_sec_rdsaad_exchange(struct xrdp_sec *self)
     size_t json_length;
     uint32_t result = RDSAAD_HRESULT_E_ACCESSDENIED;
     enum rdsaad_status parse_status;
+    struct xrdp_session *session = self->rdp_layer->session;
 
     make_rdsaad_nonce(nonce);
     if (rdsaad_encode_server_nonce(nonce, nonce_json, sizeof(nonce_json),
@@ -259,22 +260,44 @@ xrdp_sec_rdsaad_exchange(struct xrdp_sec *self)
     }
     else
     {
-        LOG(LOG_LEVEL_INFO,
-            "RDSAAD Authentication Request parsed; live BAF authorization "
-            "handoff is not enabled, so Authentication Result success is "
-            "withheld");
+        struct xrdp_rdsaad_preauth_request request = {0};
+        struct xrdp_rdsaad_preauth_response response = {0};
+        int cb_status = 1;
+
+        request.assertion = (const unsigned char *)assertion;
+        request.assertion_length = (unsigned int)assertion_length;
+        request.client_address = NULL;
+        request.local_target = self->rdp_layer->client_info.broker_auth_local_target;
+        request.server_nonce = NULL;
+        response.status = XRDP_RDSAAD_PREAUTH_INTERNAL_ERROR;
+
+        if (session != NULL && session->callback != NULL)
+        {
+            cb_status = session->callback(session->id,
+                                          XRDP_CALLBACK_RDSAAD_PREAUTH,
+                                          (intptr_t)&request,
+                                          (intptr_t)&response, 0, 0);
+        }
+
+        if (cb_status == 0 &&
+                response.status == XRDP_RDSAAD_PREAUTH_AUTHORIZED)
+        {
+            result = RDSAAD_HRESULT_S_OK;
+            self->rdp_layer->client_info.rdp_autologin = 1;
+        }
+        else if (response.status == XRDP_RDSAAD_PREAUTH_MALFORMED)
+        {
+            result = RDSAAD_HRESULT_SEC_E_INVALID_TOKEN;
+        }
+        else
+        {
+            result = RDSAAD_HRESULT_E_ACCESSDENIED;
+        }
     }
     secure_erase_bytes(assertion, assertion_length);
 
-    /*
-     * S_OK is intentionally not sent here. SD-008 defines S_OK as meaning
-     * that authentication and authorization succeeded and that the RDP
-     * connection may continue. The sesman/sesexec live BAF handoff is not yet
-     * implemented, so this foundation hook must fail closed after proving the
-     * post-TLS/pre-MCS exchange point.
-     */
     (void)xrdp_sec_send_rdsaad_result(self, result);
-    return 1;
+    return result == RDSAAD_HRESULT_S_OK ? 0 : 1;
 }
 
 /*****************************************************************************/

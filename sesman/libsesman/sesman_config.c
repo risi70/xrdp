@@ -59,6 +59,9 @@
 #define SESMAN_CFG_BAF_ENABLED "BrokerAuthEnabled"
 #define SESMAN_CFG_BAF_RDSAAD_ENABLED "RDSAADEnabled"
 #define SESMAN_CFG_BAF_PROVIDER "Provider"
+#define SESMAN_CFG_BAF_ISSUER "Issuer"
+#define SESMAN_CFG_BAF_KEY_ID "KeyId"
+#define SESMAN_CFG_BAF_ALLOWED_ALGORITHMS "AllowedAlgorithms"
 #define SESMAN_CFG_BAF_TRUST_ANCHOR "TrustAnchor"
 #define SESMAN_CFG_BAF_EXPECTED_AUDIENCE "ExpectedAudience"
 #define SESMAN_CFG_BAF_LOCAL_TARGET "LocalTarget"
@@ -656,6 +659,21 @@ config_read_broker_auth(int file, struct baf_runtime_config *baf,
             g_free(baf->provider);
             baf->provider = g_strdup(value);
         }
+        else if (0 == g_strcasecmp(name, SESMAN_CFG_BAF_ISSUER))
+        {
+            g_free(baf->issuer);
+            baf->issuer = g_strdup(value);
+        }
+        else if (0 == g_strcasecmp(name, SESMAN_CFG_BAF_KEY_ID))
+        {
+            g_free(baf->key_id);
+            baf->key_id = g_strdup(value);
+        }
+        else if (0 == g_strcasecmp(name, SESMAN_CFG_BAF_ALLOWED_ALGORITHMS))
+        {
+            g_free(baf->allowed_algorithms);
+            baf->allowed_algorithms = g_strdup(value);
+        }
         else if (0 == g_strcasecmp(name, SESMAN_CFG_BAF_TRUST_ANCHOR))
         {
             g_free(baf->trust_anchor);
@@ -824,6 +842,11 @@ config_dump(struct config_sesman *config)
     g_writeln("    RDSAADEnabled:             %d",
               config->baf.broker_auth_rdsaad_enabled);
     g_writeln("    Provider:                  %s", config->baf.provider);
+    g_writeln("    Issuer:                    %s", config->baf.issuer);
+    g_writeln("    KeyId:                     %s",
+              config->baf.key_id[0] == '\0' ? "disabled" : "set");
+    g_writeln("    AllowedAlgorithms:         %s",
+              config->baf.allowed_algorithms);
     g_writeln("    TrustAnchor:               %s",
               config->baf.trust_anchor[0] == '\0' ? "disabled" : "set");
     g_writeln("    ExpectedAudience:          %s",

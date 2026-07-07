@@ -7,6 +7,7 @@
 
 #define BAF_RUNTIME_DEFAULT_PROVIDER "jwt"
 #define BAF_RUNTIME_DEFAULT_REPLAY_BACKEND "service"
+#define BAF_RUNTIME_DEFAULT_ALLOWED_ALGORITHMS "RS256"
 #define BAF_RUNTIME_MAX_ASSERTION_BYTES 16384U
 
 enum baf_runtime_config_status
@@ -24,6 +25,9 @@ struct baf_runtime_config
     int allow_session_start;
     unsigned int max_assertion_size;
     char *provider;
+    char *issuer;
+    char *key_id;
+    char *allowed_algorithms;
     char *trust_anchor;
     char *expected_audience;
     char *local_target;
@@ -39,6 +43,9 @@ baf_runtime_config_free(struct baf_runtime_config *config);
 
 enum baf_runtime_config_status
 baf_runtime_config_validate(const struct baf_runtime_config *config);
+
+enum baf_runtime_config_status
+baf_runtime_config_validate_live(const struct baf_runtime_config *config);
 
 int
 baf_runtime_config_copy(struct baf_runtime_config *dst,

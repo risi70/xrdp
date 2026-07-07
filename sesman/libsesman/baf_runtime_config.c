@@ -31,6 +31,9 @@ baf_runtime_config_init(struct baf_runtime_config *config)
         config->allow_session_start = 0;
         config->max_assertion_size = BAF_RUNTIME_MAX_ASSERTION_BYTES;
         config->provider = g_strdup(BAF_RUNTIME_DEFAULT_PROVIDER);
+        config->issuer = g_strdup("");
+        config->key_id = g_strdup("");
+        config->allowed_algorithms = g_strdup(BAF_RUNTIME_DEFAULT_ALLOWED_ALGORITHMS);
         config->trust_anchor = g_strdup("");
         config->expected_audience = g_strdup("");
         config->local_target = g_strdup("");
@@ -45,12 +48,18 @@ baf_runtime_config_free(struct baf_runtime_config *config)
     if (config != NULL)
     {
         g_free(config->provider);
+        g_free(config->issuer);
+        g_free(config->key_id);
+        g_free(config->allowed_algorithms);
         g_free(config->trust_anchor);
         g_free(config->expected_audience);
         g_free(config->local_target);
         g_free(config->replay_backend);
         g_free(config->replay_socket);
         config->provider = NULL;
+        config->issuer = NULL;
+        config->key_id = NULL;
+        config->allowed_algorithms = NULL;
         config->trust_anchor = NULL;
         config->expected_audience = NULL;
         config->local_target = NULL;
@@ -77,19 +86,38 @@ baf_runtime_config_validate(const struct baf_runtime_config *config)
             g_strcasecmp(config->provider, BAF_RUNTIME_DEFAULT_PROVIDER) != 0 ||
             g_strcasecmp(config->replay_backend,
                          BAF_RUNTIME_DEFAULT_REPLAY_BACKEND) != 0 ||
+            !is_nonempty(config->issuer) ||
+            !is_nonempty(config->key_id) ||
+            !is_nonempty(config->allowed_algorithms) ||
+            g_strcasecmp(config->allowed_algorithms,
+                         BAF_RUNTIME_DEFAULT_ALLOWED_ALGORITHMS) != 0 ||
             !is_nonempty(config->trust_anchor) ||
             !is_nonempty(config->expected_audience) ||
             !is_nonempty(config->local_target) ||
             !is_nonempty(config->replay_socket) ||
             config->max_assertion_size == 0 ||
             config->max_assertion_size > BAF_RUNTIME_MAX_ASSERTION_BYTES ||
-            !config->reject_uid0 ||
-            config->allow_session_start)
+            !config->reject_uid0)
     {
         return BAF_RUNTIME_CONFIG_INVALID;
     }
 
     return BAF_RUNTIME_CONFIG_OK;
+}
+
+enum baf_runtime_config_status
+baf_runtime_config_validate_live(const struct baf_runtime_config *config)
+{
+    enum baf_runtime_config_status status;
+
+    status = baf_runtime_config_validate(config);
+    if (status != BAF_RUNTIME_CONFIG_OK)
+    {
+        return status;
+    }
+
+    return config->allow_session_start ?
+           BAF_RUNTIME_CONFIG_OK : BAF_RUNTIME_CONFIG_INVALID;
 }
 
 int
@@ -108,6 +136,9 @@ baf_runtime_config_copy(struct baf_runtime_config *dst,
     dst->allow_session_start = src->allow_session_start;
     dst->max_assertion_size = src->max_assertion_size;
     dst->provider = NULL;
+    dst->issuer = NULL;
+    dst->key_id = NULL;
+    dst->allowed_algorithms = NULL;
     dst->trust_anchor = NULL;
     dst->expected_audience = NULL;
     dst->local_target = NULL;
@@ -115,13 +146,17 @@ baf_runtime_config_copy(struct baf_runtime_config *dst,
     dst->replay_socket = NULL;
 
     replace_string(&dst->provider, src->provider);
+    replace_string(&dst->issuer, src->issuer);
+    replace_string(&dst->key_id, src->key_id);
+    replace_string(&dst->allowed_algorithms, src->allowed_algorithms);
     replace_string(&dst->trust_anchor, src->trust_anchor);
     replace_string(&dst->expected_audience, src->expected_audience);
     replace_string(&dst->local_target, src->local_target);
     replace_string(&dst->replay_backend, src->replay_backend);
     replace_string(&dst->replay_socket, src->replay_socket);
 
-    return dst->provider == NULL || dst->trust_anchor == NULL ||
-           dst->expected_audience == NULL || dst->local_target == NULL ||
+    return dst->provider == NULL || dst->issuer == NULL ||
+           dst->key_id == NULL || dst->allowed_algorithms == NULL ||
+           dst->trust_anchor == NULL || dst->expected_audience == NULL || dst->local_target == NULL ||
            dst->replay_backend == NULL || dst->replay_socket == NULL;
 }
