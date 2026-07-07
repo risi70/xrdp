@@ -227,3 +227,19 @@ Phase 4b uses [SD-008](decisions/SD-008-rdsaad-style-prelogon-assertion-ingress.
 ### RDSAAD production integration foundation
 
 XRDP negotiates `PROTOCOL_RDSAAD` only when broker-auth RDSAAD mode is explicitly enabled and runtime BAF configuration is complete. The trusted sesman/xrdp-sesexec runtime config is loaded from local `sesman.ini`; client-adjacent `xrdp_client_info` values do not authorize sesexec validation. The safe exchange hook is post-TLS and pre-MCS. Authentication Result `S_OK` is emitted only after sesman/xrdp-sesexec returns full BAF preauth approval and session-ready login state is bound to the current xrdp process.
+
+## Phase 5 dual-mode broker interoperability
+
+The BAF protocol model supports two deployment modes. Mode A uses a native
+RDSAAD-capable client to send the Authentication Request with `rdp_assertion` to
+XRDP. Mode B uses a broker gateway that receives broker authorization and then
+performs RDSAAD/BAF toward XRDP as the southbound RDP client.
+
+Both modes use RDSAAD as the common XRDP-side ingress. XRDP core remains
+broker-neutral and does not include UDS-specific, Keycloak-specific, or
+Entra-specific protocol behavior. UDS is a reference broker adapter, not a core
+protocol dependency. Mode B is the preferred fallback when RD Core / IGEL cannot
+inject a custom `rdp_assertion`.
+
+CredSSP/NLA, smartcard redirection, WebAuthn redirection, and LoadBalanceInfo are
+supporting or alternative mechanisms, not primary BAF assertion ingress.

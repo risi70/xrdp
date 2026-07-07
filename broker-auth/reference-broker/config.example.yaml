@@ -1,0 +1,15 @@
+# Minimal Phase 5 reference broker issuer config.
+# The parser supports simple key: value lines and comma-separated lists.
+
+private_key: tests/baf/data/test-private.pem
+kid: test-key
+issuer: https://broker.example.test
+audience: xrdp-sesman
+target: ubuntu-vdi-01
+subject: user-alice
+preferred_username: alice
+broker_session_id: session-123
+auth_method: broker,mfa
+assurance_level: mfa
+lifetime: 300
+device_trust: unknown

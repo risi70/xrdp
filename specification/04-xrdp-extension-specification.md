@@ -243,3 +243,17 @@ SD-008 supersedes handle-first ingress for the MVP. XRDP implements `PROTOCOL_RD
 ### RDSAAD production integration foundation
 
 The XRDP extension point for RDSAAD-style ingress is after TLS setup in the security layer and before MCS negotiation. This preserves classic TLS/RDP behavior for clients that do not request RDSAAD. Runtime-disabled or incomplete RDSAAD configuration fails closed rather than falling back to password login for the same RDSAAD request.
+
+## Phase 5 dual-mode RDSAAD ingress
+
+Phase 5 defines two interoperability modes for the existing XRDP RDSAAD ingress:
+Mode A native RDSAAD client mode and Mode B broker gateway RDSAAD mode. In both
+modes XRDP receives the same RDSAAD Authentication Request carrying
+`rdp_assertion`; the difference is whether the endpoint client sends it directly
+or a broker-controlled gateway sends it southbound to XRDP.
+
+XRDP core remains broker-neutral. UDS is a reference broker, not a core
+dependency. Mode B is the preferred fallback when RD Core / IGEL cannot inject a
+custom `rdp_assertion`. CredSSP/NLA, smartcard redirection, WebAuthn redirection,
+and LoadBalanceInfo are supporting or alternative mechanisms, not primary BAF
+assertion ingress.

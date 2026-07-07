@@ -164,3 +164,16 @@ Phase 4b tests now prioritize SD-008 RDSAAD-style pre-logon assertion ingress. T
 ### RDSAAD integration foundation tests
 
 Tests cover disabled-by-default RDSAAD negotiation, enabled/configured RDSAAD selection, Server Nonce and Authentication Result encoding, Authentication Request parsing, absence of false `S_OK`, and preservation of classic login paths. Trusted runtime-config tests also cover default-disabled BrokerAuth, mandatory issuer/key/trust anchor/audience/local target, service-backed replay, UID 0 rejection default, and `AllowSessionStart=false`. Bridge tests and security contracts cover callback-gated `S_OK`, SCP/EICP broker preauth dispatch, and sesexec-owned BAF authorization. Phase 5 adds reference broker conformance tests for valid issuance, wrong audience/target, expiry, replay, unknown/unsafe/UID 0/PAM-denied users, and UDS adapter isolation; full wire-level client interoperability remains a release/system test item.
+
+## Phase 5 dual-mode interoperability tests
+
+Phase 5 tests cover Mode A native RDSAAD client behavior and Mode B broker
+gateway RDSAAD behavior. Normal CI uses deterministic reference broker and
+gateway contract tests rather than requiring a real IGEL or UDS server. Release
+interoperability must still prove RDSAAD negotiation, Authentication Request
+`rdp_assertion`, XRDP BAF validation, replay failure, wrong audience/target,
+expiry, unknown user, UID 0, PAM denial, and replay-service outage.
+
+RDSAAD remains the common XRDP-side ingress for both modes. CredSSP/NLA,
+smartcard redirection, WebAuthn redirection, and LoadBalanceInfo are supporting
+or alternative mechanisms, not primary BAF assertion ingress.

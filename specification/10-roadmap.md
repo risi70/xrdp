@@ -181,3 +181,18 @@ minimal, generic, reviewed, and documented.
 ## SD-008 RDSAAD-style ingress
 
 Phase 4b now implements SD-008 RDSAAD-style pre-logon assertion ingress through the pre-MCS bridge. Coverage includes `PROTOCOL_RDSAAD`, Server Nonce, Authentication Request `rdp_assertion`, Authentication Result HRESULT mapping, validator/replay handoff, NSS/SSSD identity binding, UID 0 rejection, PAM broker preconditions, session-ready `login_info`, and session-bound transport adoption by `xrdp_mm`. Phase 5 now adds a broker-neutral reference broker and isolated UDS simulator adapter under broker-auth/reference-broker. Remaining work is production UDS API integration and external wire-level client automation.
+
+## Phase 5 dual-mode interoperability update
+
+Phase 5 now validates two broker-auth interoperability modes. Mode A is native
+RDSAAD client mode, where IGEL / RD Core / a compatible RDP client sends the
+RDSAAD Authentication Request with `rdp_assertion` directly to XRDP. Mode B is
+broker gateway RDSAAD mode, where a broker-controlled gateway performs the
+RDSAAD/BAF exchange toward XRDP when the endpoint client cannot inject a custom
+`rdp_assertion`.
+
+RDSAAD remains the common XRDP-side ingress for both modes. XRDP core remains
+broker-neutral; UDS is a reference broker, not a core dependency. Mode B is the
+preferred fallback when RD Core / IGEL cannot inject a custom `rdp_assertion`.
+CredSSP/NLA, smartcard redirection, WebAuthn redirection, and LoadBalanceInfo are
+supporting or alternative mechanisms, not primary BAF assertion ingress.

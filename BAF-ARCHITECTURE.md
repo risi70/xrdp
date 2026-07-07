@@ -108,7 +108,9 @@ Implemented pieces include:
   after MCS has created the normal session-management layer.
 - A Phase 5 broker-neutral reference broker and isolated UDS simulator adapter
   under `broker-auth/reference-broker/`, proving broker interoperability
-  without adding UDS-specific behavior to XRDP core.
+  without adding UDS-specific behavior to XRDP core. Phase 5 supports Mode A
+  native RDSAAD clients and Mode B broker gateway RDSAAD; both use the same
+  XRDP-side RDSAAD ingress.
 
 The current production bridge emits `S_OK` only after sesman/xrdp-sesexec
 returns full BAF preauth approval. Failure to parse, validate, reserve replay,

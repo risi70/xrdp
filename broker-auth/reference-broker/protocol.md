@@ -82,3 +82,16 @@ RDSAAD rdp_assertion
 ```
 
 Validator success alone is not a session authorization result.
+
+## Mode A and Mode B
+
+Mode A native RDSAAD client mode and Mode B broker gateway RDSAAD mode use the
+same broker-neutral assertion contract. In Mode A the endpoint client carries
+`rdp_assertion` to XRDP. In Mode B a broker gateway receives the broker session
+and assertion, then performs RDSAAD toward XRDP.
+
+The reference broker stays UDS-neutral. UDS-specific mapping belongs only in the
+`uds-adapter/` reference adapter.
+
+This contract is not SCP/EICP.
+No username/password assertion transport is allowed.

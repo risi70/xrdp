@@ -213,3 +213,45 @@ assert "FreeRDP plugin" not in REFERENCE_BROKER
 assert "dynamic virtual channel" not in REFERENCE_BROKER
 assert "test_uds_adapter_isolated_to_reference_broker" in REFERENCE_BROKER_TEST
 assert "test_xrdp_core_does_not_import_reference_adapter" in REFERENCE_BROKER_TEST
+
+ISSUE_ASSERTION = (
+    REFERENCE_BROKER_DIR / "issue_assertion.py"
+).read_text(encoding="utf-8")
+GATEWAY_DIR = ROOT / "broker-auth" / "gateway"
+GATEWAY_DOCS = "\n".join(
+    path.read_text(encoding="utf-8")
+    for path in (
+        GATEWAY_DIR / "README.md",
+        GATEWAY_DIR / "protocol.md",
+        GATEWAY_DIR / "freeRDP-assertion-injection.md",
+    )
+)
+PHASE5 = (ROOT / "broker-auth" / "PHASE5.md").read_text(encoding="utf-8")
+MODE_A = (ROOT / "broker-auth" / "MODE-A-NATIVE-RDSAAD.md").read_text(
+    encoding="utf-8")
+MODE_B = (ROOT / "broker-auth" / "MODE-B-GATEWAY-RDSAAD.md").read_text(
+    encoding="utf-8")
+
+assert "sign_claims" in ISSUE_ASSERTION
+assert "RS256" not in ISSUE_ASSERTION or "algorithm" not in ISSUE_ASSERTION
+for logging_call in ("LOG(", "printf(", "fprintf(", "syslog("):
+    assert logging_call not in ISSUE_ASSERTION
+assert "print(" not in ISSUE_ASSERTION
+assert "sys.stdout.write(token)" in ISSUE_ASSERTION
+assert "rdp_assertion" in MODE_A
+assert "rdp_assertion" in MODE_B
+assert "Mode A: native RDSAAD client" in PHASE5
+assert "Mode B: broker gateway RDSAAD" in PHASE5
+assert "RDSAAD remains the common XRDP-side ingress" in PHASE5
+assert "CredSSP/NLA" in PHASE5
+assert "LoadBalanceInfo" in PHASE5
+assert "must not log raw assertions" in MODE_B
+assert "must not require a custom IGEL client" in MODE_B
+assert "username/password assertion overloading" in GATEWAY_DOCS
+assert "never log raw assertions" in GATEWAY_DOCS
+for core_path in ("libxrdp", "xrdp", "sesman", "libipm", "common"):
+    for source in (ROOT / core_path).rglob("*.[ch]"):
+        text = source.read_text(encoding="utf-8")
+        assert "broker-auth/gateway" not in text
+        assert "UdsBrokerRecord" not in text
+        assert "Mode B - Broker Gateway" not in text

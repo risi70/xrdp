@@ -39,3 +39,14 @@ UDS Enterprise can be a broker implementation, but XRDP core remains generic.
 UDS, Keycloak, Entra, or other provider-specific behavior belongs in external
 broker adapters or deployment policy, not in `libxrdp`, `xrdp`, `sesman`,
 `sesexec`, `libipm`, the BAF validator, or the RDSAAD parser.
+
+## Phase 5 Deployment Modes
+
+Mode A uses an IGEL / RD Core / compatible client that can carry the RDSAAD
+Authentication Request with `rdp_assertion` directly to XRDP. Mode B uses a
+broker gateway when the endpoint client cannot inject a custom assertion; the
+IGEL client remains standard and the gateway performs RDSAAD/BAF toward XRDP.
+
+RDSAAD remains the common XRDP-side ingress for both modes. CredSSP/NLA,
+smartcard redirection, WebAuthn redirection, and LoadBalanceInfo are supporting
+or alternative mechanisms, not primary BAF assertion ingress.

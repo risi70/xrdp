@@ -2,6 +2,18 @@
 
 ## Implemented
 
+Phase 5 validates two interoperability modes:
+
+- Mode A: native RDSAAD client;
+- Mode B: broker gateway RDSAAD.
+
+RDSAAD remains the common XRDP-side ingress for both modes. XRDP core remains
+broker-neutral. UDS is a reference broker, not a core dependency. Mode B is the
+preferred fallback when RD Core / IGEL cannot inject a custom `rdp_assertion`.
+
+CredSSP/NLA, smartcard redirection, WebAuthn redirection, and LoadBalanceInfo
+are supporting or alternative mechanisms, not the primary BAF assertion ingress.
+
 Phase 5 adds a broker-neutral reference broker under
 `broker-auth/reference-broker/`.
 
@@ -72,5 +84,7 @@ group-to-Unix-group trust is introduced.
 - Production UDS API adapter implementation.
 - JWKS rotation service for the reference broker.
 - Full external wire-level RDSAAD client automation.
+- Mode A proof with actual IGEL / RD Core client behavior.
+- Mode B production gateway implementation.
 - Cluster-wide replay policy.
 - Production packaging and operational hardening.
