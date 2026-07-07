@@ -19,7 +19,7 @@ Phase 4a tests own NSS/SSSD identity-binding adapters and PAM precondition
 contracts. Phase 4b tests own live activation, effective transport boundaries,
 and dynamic PAM denial/session-failure behavior. Integration tests use real
 PAM/SSSD/JWKS/replay services. System tests use a
-real XRDP desktop and FreeRDP. Security tests include adversarial input, races,
+real XRDP desktop and FreeRDP. Phase 5 reference-broker tests cover broker-neutral assertion issuance, UDS simulator isolation, RDSAAD Authentication Request construction, and adapter-level negative authorization without changing XRDP core. Security tests include adversarial input, races,
 compromise assumptions, and log inspection.
 
 ### 2.1 Phase ownership
@@ -163,4 +163,4 @@ Phase 4b tests now prioritize SD-008 RDSAAD-style pre-logon assertion ingress. T
 
 ### RDSAAD integration foundation tests
 
-Tests cover disabled-by-default RDSAAD negotiation, enabled/configured RDSAAD selection, Server Nonce and Authentication Result encoding, Authentication Request parsing, absence of false `S_OK`, and preservation of classic login paths. Trusted runtime-config tests also cover default-disabled BrokerAuth, mandatory issuer/key/trust anchor/audience/local target, service-backed replay, UID 0 rejection default, and `AllowSessionStart=false`. Bridge tests and security contracts cover callback-gated `S_OK`, SCP/EICP broker preauth dispatch, and sesexec-owned BAF authorization; full wire-level client interoperability remains a release/system test item.
+Tests cover disabled-by-default RDSAAD negotiation, enabled/configured RDSAAD selection, Server Nonce and Authentication Result encoding, Authentication Request parsing, absence of false `S_OK`, and preservation of classic login paths. Trusted runtime-config tests also cover default-disabled BrokerAuth, mandatory issuer/key/trust anchor/audience/local target, service-backed replay, UID 0 rejection default, and `AllowSessionStart=false`. Bridge tests and security contracts cover callback-gated `S_OK`, SCP/EICP broker preauth dispatch, and sesexec-owned BAF authorization. Phase 5 adds reference broker conformance tests for valid issuance, wrong audience/target, expiry, replay, unknown/unsafe/UID 0/PAM-denied users, and UDS adapter isolation; full wire-level client interoperability remains a release/system test item.

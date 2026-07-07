@@ -106,6 +106,9 @@ Implemented pieces include:
   NSS/SSSD identity binding, UID 0 rejection, and PAM broker preconditions.
 - Session-bound adoption of the authenticated sesman transport by `xrdp_mm`
   after MCS has created the normal session-management layer.
+- A Phase 5 broker-neutral reference broker and isolated UDS simulator adapter
+  under `broker-auth/reference-broker/`, proving broker interoperability
+  without adding UDS-specific behavior to XRDP core.
 
 The current production bridge emits `S_OK` only after sesman/xrdp-sesexec
 returns full BAF preauth approval. Failure to parse, validate, reserve replay,
@@ -125,7 +128,8 @@ Remaining work is operational and interoperability focused:
 
 - deploy trusted issuer/key/trust-anchor configuration and replay service;
 - exercise an end-to-end RDSAAD-capable client against the live bridge;
-- keep Phase 5 UDS/Keycloak/reference-broker integration separate;
+- replace the Phase 5 UDS simulator with a production UDS API adapter if
+  required by deployment policy;
 - decide when the superseded handle service can be removed from normal builds.
 
 One-time assertion-handle code from SD-006/SD-007 remains in the tree as

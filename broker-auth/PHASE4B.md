@@ -68,3 +68,7 @@ Trusted BAF runtime configuration is available to sesman and xrdp-sesexec throug
 The pre-MCS bridge is implemented. `libxrdp` delegates bounded `rdp_assertion` material to the xrdp owner callback; xrdp sends SCP broker preauth to sesman; sesman forwards EICP broker preauth to xrdp-sesexec; xrdp-sesexec validates the assertion, reserves replay through the trusted service, binds the Linux identity through NSS/SSSD, rejects UID 0, runs broker PAM preconditions, and creates session-ready `login_info`. Classic SYS/UDS login remains unchanged.
 
 Handle ingress remains superseded by SD-008 but is retained as experimental/test code until the RDSAAD live path fully replaces it.
+
+## Phase 5 handoff
+
+Phase 5 reference broker work lives outside XRDP core under `broker-auth/reference-broker/`. The UDS reference path is a simulator adapter that translates UDS-like users, sessions, and resources into broker-neutral BAF concepts. Phase 4b remains broker-neutral: no UDS, Keycloak, or Entra-specific behavior is added to `libxrdp`, `xrdp`, `sesman`, `sesexec`, `libipm`, the BAF validator, or the RDSAAD parser.

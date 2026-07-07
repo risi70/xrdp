@@ -103,14 +103,15 @@ transport framing capacity, and PAM lifecycle variance.
 
 ### Phase 5 — Reference Broker and Interoperability
 
-**Status: future.**
+**Status: reference broker and UDS simulator implemented.**
 
 Objectives: broker-neutral reference issuer/API, UDS Enterprise reference
 broker integration, generic broker interoperability, static vectors,
 administrator documentation, and compatibility testing.
 
-Deliverables: container services, REST API, JWKS rotation, example policies,
-and broker interoperability evidence. Dependencies: BAF 1.0 profile. Acceptance:
+Deliverables: broker-neutral reference interface, isolated UDS simulator adapter,
+conformance tests, IGEL/RDP flow documentation, and deployment notes. Container
+services, production UDS API integration, and JWKS rotation remain deferred. Dependencies: BAF 1.0 profile. Acceptance:
 INT-001, IT-004, no reference-specific XRDP core code. Complexity M. Risks:
 examples mistaken for production defaults. Parallel: reference broker and
 issuer/vector work.
@@ -179,4 +180,4 @@ minimal, generic, reviewed, and documented.
 
 ## SD-008 RDSAAD-style ingress
 
-Phase 4b now implements SD-008 RDSAAD-style pre-logon assertion ingress through the pre-MCS bridge. Coverage includes `PROTOCOL_RDSAAD`, Server Nonce, Authentication Request `rdp_assertion`, Authentication Result HRESULT mapping, validator/replay handoff, NSS/SSSD identity binding, UID 0 rejection, PAM broker preconditions, session-ready `login_info`, and session-bound transport adoption by `xrdp_mm`. Remaining work is deployment/interoperability validation and Phase 5 broker-specific integration.
+Phase 4b now implements SD-008 RDSAAD-style pre-logon assertion ingress through the pre-MCS bridge. Coverage includes `PROTOCOL_RDSAAD`, Server Nonce, Authentication Request `rdp_assertion`, Authentication Result HRESULT mapping, validator/replay handoff, NSS/SSSD identity binding, UID 0 rejection, PAM broker preconditions, session-ready `login_info`, and session-bound transport adoption by `xrdp_mm`. Phase 5 now adds a broker-neutral reference broker and isolated UDS simulator adapter under broker-auth/reference-broker. Remaining work is production UDS API integration and external wire-level client automation.

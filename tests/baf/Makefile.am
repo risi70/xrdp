@@ -18,6 +18,7 @@ TESTS = test_replay_cache test_auth_provider_jwt test_phase2_vectors \
   test_baf_runtime_config test_baf_transport test_baf_identity test_replay_service test_handle_service \
   test_rdsaad_ingress \
   test_premcs_bridge_contract.py \
+  test_reference_broker_contract.py \
   test_pam_broker_contract.py \
   test_security_contract.py
 check_PROGRAMS = test_replay_cache test_auth_provider_jwt test_phase2_vectors \
@@ -71,6 +72,7 @@ EXTRA_DIST = \
   test_pam_broker_contract.py \
   test_premcs_bridge_contract.py \
   test_phase2_vectors.c \
+  test_reference_broker_contract.py \
   test_rdsaad_ingress.c \
   test_replay_service.c \
   test_security_contract.py

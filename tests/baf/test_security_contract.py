@@ -183,3 +183,33 @@ assert "E_EICP_UDS_LOGIN_REQUEST" in EICP_SERVER
 assert "login_info_sys_login_user" in LOGIN_INFO_H
 assert "login_info_uds_login_user" in LOGIN_INFO_H
 assert "password" not in RDSAAD_FOUNDATION.lower().split("## 7. sesman/sesexec handoff", 1)[1].split("## 8.", 1)[0] or "does not use username or password fields" in RDSAAD_FOUNDATION
+
+REFERENCE_BROKER_DIR = ROOT / "broker-auth" / "reference-broker"
+REFERENCE_BROKER = (REFERENCE_BROKER_DIR / "reference_broker.py").read_text(
+    encoding="utf-8")
+UDS_ADAPTER = (
+    REFERENCE_BROKER_DIR / "uds-adapter" / "uds_adapter.py"
+).read_text(encoding="utf-8")
+REFERENCE_BROKER_TEST = (
+    ROOT / "tests" / "baf" / "test_reference_broker_contract.py"
+).read_text(encoding="utf-8")
+
+assert "class ReferenceBroker" in REFERENCE_BROKER
+assert "create_session_assertion" in REFERENCE_BROKER
+assert "launch_connection" in REFERENCE_BROKER
+assert "rdp_assertion" in REFERENCE_BROKER
+assert "password" not in REFERENCE_BROKER.lower()
+for logging_call in ("LOG(", "printf(", "fprintf(", "syslog("):
+    assert logging_call not in REFERENCE_BROKER
+    assert logging_call not in UDS_ADAPTER
+assert "UdsSimulatorAdapter" in UDS_ADAPTER
+for core_path in ("libxrdp", "xrdp", "sesman", "libipm"):
+    for source in (ROOT / core_path).rglob("*.[ch]"):
+        text = source.read_text(encoding="utf-8")
+        assert "uds_adapter" not in text
+        assert "reference_broker" not in text
+assert "custom IGEL" not in REFERENCE_BROKER
+assert "FreeRDP plugin" not in REFERENCE_BROKER
+assert "dynamic virtual channel" not in REFERENCE_BROKER
+assert "test_uds_adapter_isolated_to_reference_broker" in REFERENCE_BROKER_TEST
+assert "test_xrdp_core_does_not_import_reference_adapter" in REFERENCE_BROKER_TEST

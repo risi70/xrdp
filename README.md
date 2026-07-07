@@ -8,7 +8,7 @@
 
 ## Broker Authentication Framework
 
-This branch contains an experimental Broker Authentication Framework for XRDP. See [BAF-ARCHITECTURE.md](BAF-ARCHITECTURE.md).
+This branch contains an experimental Broker Authentication Framework for XRDP. See [BAF-ARCHITECTURE.md](BAF-ARCHITECTURE.md), [broker-auth/PHASE5.md](broker-auth/PHASE5.md), and [broker-auth/reference-broker/README.md](broker-auth/reference-broker/README.md).
 
 
 ## Overview
