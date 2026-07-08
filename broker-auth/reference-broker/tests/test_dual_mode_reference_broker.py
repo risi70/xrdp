@@ -6,6 +6,9 @@ import sys
 import tempfile
 import unittest
 
+import jwt
+from jsonschema import ValidationError
+
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "broker-auth" / "reference-broker"))
 sys.path.insert(0, str(ROOT / "broker-auth" / "reference-broker" / "uds-adapter"))
@@ -13,8 +16,8 @@ sys.path.insert(0, str(ROOT / "broker-auth" / "conformance"))
 sys.path.insert(0, str(ROOT / "broker-auth" / "reference-issuer"))
 
 from adapter_skeleton import UdsBrokerRecord, map_uds_record
-from broker_issuer import generate_rsa_keypair
-from reference_broker import build_rdsaad_authentication_request
+from broker_issuer import build_claims, generate_rsa_keypair, sign_claims
+from reference_broker import BrokerError, ReplayLedger, build_rdsaad_authentication_request
 from verifier import ConformanceError, verify_assertion
 
 
@@ -103,6 +106,73 @@ class DualModeReferenceBrokerTests(unittest.TestCase):
                 target="ubuntu-vdi-01",
                 leeway=10,
             )
+
+    def test_expired_assertion_rejected(self):
+        private_key, public_key = generate_rsa_keypair()
+        claims = build_claims(
+            issuer="https://broker.example.test",
+            audience="xrdp-sesman",
+            subject="user-alice",
+            preferred_username="alice",
+            groups=[],
+            roles=["desktop-user"],
+            target="ubuntu-vdi-01",
+            session_id="session-123",
+            auth_context={"amr": ["broker"], "acr": "mfa"},
+            now=1_700_000_000,
+            lifetime=60,
+            jti="jti-dual-mode-expired",
+        )
+        token = sign_claims(claims, private_key, key_id="reference-key")
+        with self.assertRaises(ConformanceError):
+            verify_assertion(
+                token,
+                public_key,
+                issuer="https://broker.example.test",
+                audience="xrdp-sesman",
+                target="ubuntu-vdi-01",
+            )
+
+    def test_replayed_assertion_rejected(self):
+        replay = ReplayLedger()
+        replay.reserve("https://broker.example.test", "jti-dual-mode-replay")
+        with self.assertRaises(BrokerError):
+            replay.reserve("https://broker.example.test", "jti-dual-mode-replay")
+
+    def test_missing_preferred_username_rejected_before_signing(self):
+        private_key, _ = generate_rsa_keypair()
+        claims = build_claims(
+            issuer="https://broker.example.test",
+            audience="xrdp-sesman",
+            subject="user-alice",
+            preferred_username="alice",
+            groups=[],
+            roles=["desktop-user"],
+            target="ubuntu-vdi-01",
+            session_id="session-123",
+            auth_context={"amr": ["broker"], "acr": "mfa"},
+            jti="jti-dual-mode-missing-user",
+        )
+        del claims["preferred_username"]
+        with self.assertRaises(ValidationError):
+            sign_claims(claims, private_key, key_id="reference-key")
+
+    def test_uid0_is_not_encoded_as_authority(self):
+        mapped = map_uds_record(
+            UdsBrokerRecord(
+                user_id="uds-root-like-user",
+                local_username="root",
+                service_or_pool="ubuntu-pool",
+                assigned_vm="ubuntu-vdi-01",
+                session_id="uds-session-root",
+                auth_methods=("broker",),
+                assurance_level="mfa",
+            )
+        )
+        self.assertEqual(mapped["preferred_username"], "root")
+        self.assertNotIn("uid", mapped)
+        self.assertNotIn("gid", mapped)
+        self.assertNotIn("unix_groups", mapped)
 
     def test_mode_a_and_mode_b_share_rdsaad_request_body(self):
         request = build_rdsaad_authentication_request("header.payload.sig")
