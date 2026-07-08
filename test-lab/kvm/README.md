@@ -48,6 +48,27 @@ OpenUDS-like user/session/resource objects and routes them through the
 broker-neutral BAF reference broker. A real OpenUDS deployment can replace this
 adapter without XRDP core changes.
 
+## Libvirt Storage
+
+VM overlays and cloud-init seed ISOs default to:
+
+```text
+/var/lib/libvirt/images/xrdp-baf-lab
+```
+
+This avoids QEMU permission failures when libvirt runs guests as an
+unprivileged user that cannot traverse a developer home directory. Override the
+location only if the chosen path is accessible to the libvirt QEMU user:
+
+```bash
+export LIBVIRT_LAB_STORAGE_DIR=/path/visible/to/libvirt
+```
+
+`create-vm.sh` may use `sudo` to create this directory, copy the base cloud
+image there, create qcow2 overlays, and set group-readable/writable lab
+permissions. The repository still keeps generated XML/user-data copies under
+`test-lab/kvm/artifacts/`, which is ignored by git.
+
 ## Operational Helpers
 
 Run `scripts/check-prereqs.sh` before provisioning. It verifies required host

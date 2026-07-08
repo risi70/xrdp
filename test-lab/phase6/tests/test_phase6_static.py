@@ -4,6 +4,14 @@ import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 
+SKIP_DIRS = {'.git', '__pycache__', 'artifacts', 'images', 'isos', 'reports'}
+
+
+def iter_lab_files():
+    for path in ROOT.rglob('*'):
+        if path.is_file() and not (set(path.parts) & SKIP_DIRS):
+            yield path
+
 class Phase6StaticTests(unittest.TestCase):
     def test_required_kvm_artifacts_exist(self):
         required = [
@@ -23,17 +31,16 @@ class Phase6StaticTests(unittest.TestCase):
             self.assertTrue((ROOT / rel).exists(), rel)
 
     def test_no_docker_variant(self):
-        for path in ROOT.rglob('*'):
-            if path.is_file() and '.git' not in path.parts and '__pycache__' not in path.parts:
-                if path == pathlib.Path(__file__).resolve():
-                    continue
-                text = path.read_text(errors='ignore')
-                self.assertNotRegex(text, r'docker\s+(run|compose)|docker' + '-compose')
+        for path in iter_lab_files():
+            if path == pathlib.Path(__file__).resolve():
+                continue
+            text = path.read_text(errors='ignore')
+            self.assertNotRegex(text, r'docker\s+(run|compose)|docker' + '-compose')
 
     def test_no_credential_field_overload(self):
         texts = []
-        for item in ROOT.rglob('*'):
-            if item.is_file() and '__pycache__' not in item.parts and item != pathlib.Path(__file__).resolve():
+        for item in iter_lab_files():
+            if item != pathlib.Path(__file__).resolve():
                 texts.append(item.read_text(errors='ignore'))
         combined = '\n'.join(texts)
         left = 'pass' + 'word'
