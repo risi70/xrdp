@@ -1,0 +1,32 @@
+---
+- name: Install OpenUDS-compatible reference-mode dependencies
+  ansible.builtin.apt:
+    name:
+      - python3
+      - python3-venv
+      - python3-pip
+      - python3-cryptography
+      - python3-jwt
+      - nginx
+    state: present
+    update_cache: true
+  become: true
+
+- name: Create OpenUDS-compatible reference directory
+  ansible.builtin.file:
+    path: /opt/openuds-baf-reference
+    state: directory
+    owner: ansible
+    group: ansible
+    mode: "0755"
+  become: true
+
+- name: Document OpenUDS-compatible mode
+  ansible.builtin.copy:
+    dest: /opt/openuds-baf-reference/README.txt
+    mode: "0644"
+    content: |
+      Phase 6 currently provisions an OpenUDS-compatible reference mode. It maps
+      OpenUDS-like user/session/resource objects to broker-neutral BAF assertions.
+      Replace this directory with a real OpenUDS adapter when stable deployment
+      API details are available. XRDP core remains broker-neutral.

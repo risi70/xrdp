@@ -1,0 +1,13 @@
+images/*
+!images/.gitkeep
+isos/*
+!isos/.gitkeep
+artifacts/*
+!artifacts/.gitkeep
+*.iso
+*.img
+*.qcow2
+*.raw
+*.log
+*.pid
+*.sock

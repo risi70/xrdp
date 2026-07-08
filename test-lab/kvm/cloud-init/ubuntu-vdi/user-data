@@ -1,0 +1,23 @@
+#cloud-config
+hostname: ubuntu-vdi-01
+manage_etc_hosts: true
+users:
+  - default
+  - name: ansible
+    gecos: Ansible Lab User
+    groups: sudo
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    lock_passwd: true
+    ssh_authorized_keys:
+      - $LAB_SSH_PUBLIC_KEY
+package_update: true
+packages:
+  - openssh-server
+  - python3
+  - python3-apt
+  - sudo
+  - ca-certificates
+ssh_pwauth: false
+runcmd:
+  - [ systemctl, enable, --now, ssh ]

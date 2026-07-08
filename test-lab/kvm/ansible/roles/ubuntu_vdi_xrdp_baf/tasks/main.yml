@@ -1,0 +1,72 @@
+---
+- name: Install VDI desktop and XRDP runtime dependencies
+  ansible.builtin.apt:
+    name:
+      - xfce4
+      - dbus-x11
+      - xorgxrdp
+      - ssl-cert
+      - python3-jwt
+      - python3-cryptography
+    state: present
+    update_cache: true
+  become: true
+
+- name: Create BAF runtime directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - /etc/xrdp/baf
+    - /run/xrdp-baf
+  become: true
+
+- name: Install trusted BAF runtime config for lab
+  ansible.builtin.copy:
+    dest: /etc/xrdp/baf/runtime.conf
+    owner: root
+    group: root
+    mode: "0640"
+    content: |
+      # Lab-only trusted local configuration. Values are never read from RDP clients.
+      BrokerAuthEnabled=true
+      RDSAADEnabled=true
+      Provider=jwt
+      TrustAnchor=/etc/xrdp/baf/reference-broker.pub
+      ExpectedAudience={{ baf_audience }}
+      LocalTarget={{ baf_target }}
+      MaxAssertionSize=16384
+      ReplayBackend=service
+      ReplaySocket={{ baf_replay_socket }}
+      RejectUid0=true
+      AllowSessionStart=true
+  become: true
+
+- name: Install replay service systemd placeholder
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/xrdp-baf-replayd.service
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=XRDP BAF trusted replay service placeholder for Phase 6 lab
+      After=network.target
+
+      [Service]
+      Type=simple
+      ExecStart=/usr/local/sbin/xrdp-baf-replayd --socket {{ baf_replay_socket }}
+      Restart=on-failure
+
+      [Install]
+      WantedBy=multi-user.target
+  become: true
+
+- name: Ensure XRDP service is enabled when installed
+  ansible.builtin.systemd:
+    name: xrdp
+    enabled: true
+    state: started
+  become: true
+  failed_when: false

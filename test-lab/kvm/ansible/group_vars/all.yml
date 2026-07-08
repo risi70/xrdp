@@ -1,0 +1,11 @@
+lab_domain: xrdp-baf.test
+lab_openuds_ip: 192.168.126.10
+lab_vdi_ip: 192.168.126.20
+lab_test_user: bafuser
+lab_test_uid: 24010
+baf_issuer: https://openuds-broker.xrdp-baf.test/baf
+baf_audience: xrdp://ubuntu-vdi-01
+baf_target: ubuntu-vdi-01
+baf_replay_socket: /run/xrdp-baf/replay.sock
+xrdp_source_dir: /opt/xrdp-src
+xrdp_build_configure_flags: "--enable-broker-auth --disable-rfxcodec"

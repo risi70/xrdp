@@ -146,3 +146,18 @@ Deferred work also includes:
   policy;
 - cluster-wide replay, if needed;
 - production configuration hardening.
+
+## Phase 6 KVM Integration Lab
+
+Phase 6 adds a KVM/libvirt integration lab under `test-lab/` for exercising the
+BAF/RDSAAD architecture with a host `xfreerdp` client, an OpenUDS-compatible
+broker VM, and an Ubuntu 24.04 VDI VM running XRDP from this source tree. The
+lab remains outside XRDP core and does not introduce OpenUDS-specific behavior
+into `libxrdp`, `xrdp`, `sesman`, `sesexec`, `libipm`, or `common`.
+
+The initial Phase 6 implementation provides an OpenUDS-compatible reference
+mode. Real OpenUDS deployment can replace the adapter/configuration in the
+`openuds-broker` VM while preserving the broker-neutral XRDP-side BAF/RDSAAD
+ingress. Stock `xfreerdp` client assertion injection is documented as a skipped
+wire-level test unless a deployment provides a compatible RDSAAD-capable client
+or gateway path.

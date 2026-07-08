@@ -196,3 +196,16 @@ broker-neutral; UDS is a reference broker, not a core dependency. Mode B is the
 preferred fallback when RD Core / IGEL cannot inject a custom `rdp_assertion`.
 CredSSP/NLA, smartcard redirection, WebAuthn redirection, and LoadBalanceInfo are
 supporting or alternative mechanisms, not primary BAF assertion ingress.
+
+## Phase 6 - KVM Integration Lab
+
+Phase 6 introduces a KVM/libvirt-only integration lab in `test-lab/`. The lab
+provisions an OpenUDS-compatible broker VM and an Ubuntu 24.04 XRDP/BAF VDI VM
+with cloud-init and Ansible. It deliberately avoids a container variant and keeps
+OpenUDS-specific behavior outside XRDP core.
+
+The first supported mode is an OpenUDS-compatible reference mode with documented
+replacement points for a real OpenUDS deployment. Full RDSAAD wire-level client
+injection is skipped with an explicit reason when stock `xfreerdp` cannot inject
+custom `rdp_assertion`; broker assertion and XRDP-side BAF validation remain
+testable at deterministic boundaries.

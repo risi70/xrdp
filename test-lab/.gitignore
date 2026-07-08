@@ -1,0 +1,21 @@
+# Phase 6 local lab artifacts
+*.iso
+*.img
+*.qcow2
+*.raw
+*.log
+*.pid
+*.sock
+
+kvm/images/*
+!kvm/images/.gitkeep
+kvm/isos/*
+!kvm/isos/.gitkeep
+kvm/artifacts/*
+!kvm/artifacts/.gitkeep
+phase6/reports/*
+!phase6/reports/.gitkeep
+
+__pycache__/
+**/__pycache__/
+*.pyc

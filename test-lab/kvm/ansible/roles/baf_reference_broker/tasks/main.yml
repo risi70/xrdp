@@ -1,0 +1,33 @@
+---
+- name: Create reference broker key directory
+  ansible.builtin.file:
+    path: /etc/openuds-baf-reference
+    state: directory
+    owner: root
+    group: root
+    mode: "0750"
+  become: true
+
+- name: Generate lab-only signing key if absent
+  ansible.builtin.command:
+    cmd: openssl genrsa -out /etc/openuds-baf-reference/baf-reference.key 2048
+    creates: /etc/openuds-baf-reference/baf-reference.key
+  become: true
+
+- name: Export lab public key
+  ansible.builtin.command:
+    cmd: openssl rsa -in /etc/openuds-baf-reference/baf-reference.key -pubout -out /etc/openuds-baf-reference/baf-reference.pub
+    creates: /etc/openuds-baf-reference/baf-reference.pub
+  become: true
+
+- name: Install reference broker config
+  ansible.builtin.copy:
+    dest: /etc/openuds-baf-reference/config.yml
+    mode: "0640"
+    content: |
+      issuer: {{ baf_issuer }}
+      audience: {{ baf_audience }}
+      target: {{ baf_target }}
+      lifetime_seconds: 120
+      kid: phase6-reference
+  become: true

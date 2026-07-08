@@ -1,0 +1,7 @@
+---
+- name: Configure OpenUDS-compatible broker VM
+  hosts: openuds
+  roles:
+    - common
+    - openuds_broker
+    - baf_reference_broker

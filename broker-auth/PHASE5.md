@@ -88,3 +88,12 @@ group-to-Unix-group trust is introduced.
 - Mode B production gateway implementation.
 - Cluster-wide replay policy.
 - Production packaging and operational hardening.
+
+## Phase 6 Handoff
+
+Phase 5 broker-neutral artifacts are now consumed by the Phase 6 KVM lab under
+`test-lab/`. Phase 6 uses OpenUDS as the broker target through an isolated
+OpenUDS-compatible reference mode and keeps XRDP core broker-neutral. The lab
+validates host-side `xfreerdp` reachability, broker assertion boundaries, trusted
+replay/NSS/PAM expectations, and explicit skip behavior when stock `xfreerdp`
+cannot inject arbitrary `rdp_assertion`.

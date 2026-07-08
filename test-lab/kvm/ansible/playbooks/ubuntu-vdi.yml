@@ -1,0 +1,8 @@
+---
+- name: Configure Ubuntu VDI XRDP BAF VM
+  hosts: vdi
+  roles:
+    - common
+    - test_users
+    - xrdp_build
+    - ubuntu_vdi_xrdp_baf

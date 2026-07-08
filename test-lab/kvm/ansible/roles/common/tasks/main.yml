@@ -1,0 +1,24 @@
+---
+- name: Install common lab packages
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - git
+      - jq
+      - python3
+      - python3-venv
+      - python3-pip
+      - chrony
+    state: present
+    update_cache: true
+  become: true
+
+- name: Add lab hosts entries
+  ansible.builtin.blockinfile:
+    path: /etc/hosts
+    marker: "# {mark} XRDP BAF PHASE6 LAB"
+    block: |
+      {{ lab_openuds_ip }} openuds-broker openuds-broker.{{ lab_domain }}
+      {{ lab_vdi_ip }} ubuntu-vdi-01 ubuntu-vdi-01.{{ lab_domain }}
+  become: true

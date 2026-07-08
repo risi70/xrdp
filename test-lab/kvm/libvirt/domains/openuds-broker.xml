@@ -1,0 +1,31 @@
+<domain type='kvm'>
+  <name>openuds-broker</name>
+  <memory unit='MiB'>4096</memory>
+  <vcpu placement='static'>2</vcpu>
+  <os>
+    <type arch='x86_64' machine='pc'>hvm</type>
+    <boot dev='hd'/>
+  </os>
+  <features><acpi/><apic/></features>
+  <cpu mode='host-passthrough' check='none'/>
+  <devices>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2'/>
+      <source file='__LAB_IMAGE_DIR__/openuds-broker.qcow2'/>
+      <target dev='vda' bus='virtio'/>
+    </disk>
+    <disk type='file' device='cdrom'>
+      <driver name='qemu' type='raw'/>
+      <source file='__LAB_ARTIFACT_DIR__/openuds-broker-seed.iso'/>
+      <target dev='sda' bus='sata'/>
+      <readonly/>
+    </disk>
+    <interface type='network'>
+      <mac address='52:54:00:ba:f0:10'/>
+      <source network='xrdp-baf-lab'/>
+      <model type='virtio'/>
+    </interface>
+    <graphics type='vnc' autoport='yes' listen='127.0.0.1'/>
+    <console type='pty'/>
+  </devices>
+</domain>

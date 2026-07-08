@@ -1,0 +1,12 @@
+<network>
+  <name>xrdp-baf-lab</name>
+  <forward mode='nat'/>
+  <bridge name='virbr-baf' stp='on' delay='0'/>
+  <ip address='192.168.126.1' netmask='255.255.255.0'>
+    <dhcp>
+      <range start='192.168.126.100' end='192.168.126.199'/>
+      <host mac='52:54:00:ba:f0:10' name='openuds-broker' ip='192.168.126.10'/>
+      <host mac='52:54:00:ba:f0:20' name='ubuntu-vdi-01' ip='192.168.126.20'/>
+    </dhcp>
+  </ip>
+</network>

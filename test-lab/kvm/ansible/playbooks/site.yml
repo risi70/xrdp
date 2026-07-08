@@ -1,0 +1,15 @@
+---
+- name: Configure OpenUDS-compatible broker VM
+  hosts: openuds
+  roles:
+    - common
+    - openuds_broker
+    - baf_reference_broker
+
+- name: Configure Ubuntu VDI XRDP BAF VM
+  hosts: vdi
+  roles:
+    - common
+    - test_users
+    - xrdp_build
+    - ubuntu_vdi_xrdp_baf

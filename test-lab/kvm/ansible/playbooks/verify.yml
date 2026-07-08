@@ -1,0 +1,27 @@
+---
+- name: Verify Phase 6 lab connectivity
+  hosts: phase6
+  gather_facts: false
+  tasks:
+    - name: Check SSH connectivity
+      ansible.builtin.ping:
+
+- name: Verify VDI services
+  hosts: vdi
+  gather_facts: false
+  tasks:
+    - name: Check XRDP service state
+      ansible.builtin.command: systemctl is-active xrdp
+      register: xrdp_state
+      changed_when: false
+      failed_when: xrdp_state.rc != 0
+
+    - name: Check trusted BAF runtime config exists
+      ansible.builtin.stat:
+        path: /etc/xrdp/baf/runtime.conf
+      register: baf_runtime
+      failed_when: not baf_runtime.stat.exists
+
+    - name: Check test user resolves through NSS
+      ansible.builtin.command: getent passwd {{ lab_test_user }}
+      changed_when: false

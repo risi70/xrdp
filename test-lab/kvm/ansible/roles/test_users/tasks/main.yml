@@ -1,0 +1,18 @@
+---
+- name: Create lab-only Linux test user
+  ansible.builtin.user:
+    name: "{{ lab_test_user }}"
+    uid: "{{ lab_test_uid }}"
+    shell: /bin/bash
+    create_home: true
+    password_lock: true
+  become: true
+
+- name: Install lab PAM account marker
+  ansible.builtin.copy:
+    dest: /etc/security/xrdp-baf-lab.conf
+    mode: "0644"
+    content: |
+      # Lab-only marker used by Phase 6 verification.
+      allow_user={{ lab_test_user }}
+  become: true

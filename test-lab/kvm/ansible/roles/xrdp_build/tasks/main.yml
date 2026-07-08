@@ -1,0 +1,52 @@
+---
+- name: Install XRDP build dependencies
+  ansible.builtin.apt:
+    name:
+      - autoconf
+      - automake
+      - build-essential
+      - libtool
+      - pkg-config
+      - libssl-dev
+      - libpam0g-dev
+      - libx11-dev
+      - libxfixes-dev
+      - libxrandr-dev
+      - libjwt-dev
+      - libjansson-dev
+      - libcheck-dev
+      - libcmocka-dev
+      - nasm
+    state: present
+    update_cache: true
+  become: true
+
+- name: Ensure source directory exists
+  ansible.builtin.file:
+    path: "{{ xrdp_source_dir }}"
+    state: directory
+    owner: ansible
+    group: ansible
+    mode: "0755"
+  become: true
+
+- name: Document source synchronization requirement
+  ansible.builtin.copy:
+    dest: "{{ xrdp_source_dir }}/PHASE6_SOURCE_SYNC_REQUIRED.txt"
+    mode: "0644"
+    content: |
+      Copy or rsync the current XRDP source tree here before running the build
+      tasks in a real lab. This role does not fetch source from the network and
+      does not trust client-provided artifacts.
+
+- name: Build XRDP from synchronized source when explicitly enabled
+  ansible.builtin.shell: |
+    set -eu
+    ./bootstrap
+    ./configure {{ xrdp_build_configure_flags }}
+    make -j"$(nproc)"
+    sudo make install
+  args:
+    chdir: "{{ xrdp_source_dir }}"
+    creates: /usr/local/sbin/xrdp
+  when: phase6_build_xrdp | default(false) | bool
