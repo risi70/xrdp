@@ -75,3 +75,27 @@ reports, and Python caches.
 `--static-only` runs syntax/static checks and skips all VM-dependent checks.
 `--require-vms` turns missing libvirt network, missing domains, or unreachable
 VMs into hard failures.
+
+## Optional Image Download Helper
+
+The lab does not download VM images automatically during provisioning. If you
+want the helper to fetch the Ubuntu 24.04 cloud image explicitly, run:
+
+```bash
+test-lab/kvm/scripts/download-ubuntu-image.sh
+```
+
+By default it downloads Noble amd64 cloud image data to:
+
+```text
+test-lab/kvm/images/ubuntu-24.04-server-cloudimg-amd64.img
+```
+
+The script verifies `SHA256SUMS` by default. Override with environment variables
+or arguments when needed:
+
+```bash
+UBUNTU_CLOUD_IMAGE_URL=https://example/image.img UBUNTU_CLOUD_IMAGE=/absolute/path/image.img test-lab/kvm/scripts/download-ubuntu-image.sh --force
+```
+
+Downloaded images remain ignored by git.

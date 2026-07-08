@@ -15,6 +15,7 @@ class Phase6StaticTests(unittest.TestCase):
             'kvm/scripts/run-xfreerdp-test.sh',
             'kvm/scripts/check-prereqs.sh',
             'kvm/scripts/check-image.sh',
+            'kvm/scripts/download-ubuntu-image.sh',
             'kvm/scripts/create-lab.sh',
             'kvm/scripts/sync-source.sh',
         ]

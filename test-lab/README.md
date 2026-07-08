@@ -63,3 +63,14 @@ For CI or a host without provisioned VMs, use:
 ```bash
 test-lab/kvm/scripts/run-phase6-tests.sh --static-only
 ```
+
+## Image Download Helper
+
+Image downloads are explicit opt-in. To place the Ubuntu 24.04 cloud image at
+the default lab path, run:
+
+```bash
+test-lab/kvm/scripts/download-ubuntu-image.sh
+```
+
+Provisioning scripts never download large images implicitly.
