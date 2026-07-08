@@ -47,3 +47,31 @@ The current lab includes an OpenUDS-compatible reference mode. It models
 OpenUDS-like user/session/resource objects and routes them through the
 broker-neutral BAF reference broker. A real OpenUDS deployment can replace this
 adapter without XRDP core changes.
+
+## Operational Helpers
+
+Run `scripts/check-prereqs.sh` before provisioning. It verifies required host
+commands, `/dev/kvm`, libvirt daemon state, SSH key availability, and the Ubuntu
+cloud image path.
+
+Run `scripts/check-image.sh` to inspect the configured Ubuntu cloud image without
+downloading anything.
+
+Run `scripts/create-lab.sh` for the normal lab sequence: prerequisite check,
+network creation, VM creation, SSH wait, source synchronization to
+`ubuntu-vdi-01:/opt/xrdp-src`, and the Ansible site playbook.
+
+Run `scripts/sync-source.sh [target] [destination]` to refresh the source tree on
+the VDI VM. The sync excludes `.git`, build products, VM images, artifacts,
+reports, and Python caches.
+
+`run-phase6-tests.sh` supports two important modes:
+
+```bash
+./run-phase6-tests.sh --static-only
+./run-phase6-tests.sh --require-vms
+```
+
+`--static-only` runs syntax/static checks and skips all VM-dependent checks.
+`--require-vms` turns missing libvirt network, missing domains, or unreachable
+VMs into hard failures.

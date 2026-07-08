@@ -18,3 +18,11 @@ lab credentials are configured. The RDSAAD/BAF assertion path is tested at the
 closest supported boundary unless the installed `xfreerdp` can inject arbitrary
 `rdp_assertion`. Stock `xfreerdp` is expected to skip that full client-injection
 case with an explicit reason.
+
+## Runner Modes
+
+`run-phase6-tests.sh --static-only` is the CI-safe mode. It validates scripts,
+Ansible syntax, and static security boundaries without requiring libvirt VMs.
+
+`run-phase6-tests.sh --require-vms` is the real lab mode. It returns non-zero if
+the lab network/domains are missing or the VMs are unreachable.

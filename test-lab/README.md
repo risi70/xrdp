@@ -45,3 +45,21 @@ pieces are lab adapter and broker-reference artifacts only.
 
 Large images, ISO files, generated disk overlays, reports, logs, sockets, and
 private keys must remain untracked.
+
+## Provisioning Flow
+
+Use the helper scripts in this order for a full local lab:
+
+```bash
+cd test-lab/kvm
+scripts/check-prereqs.sh
+scripts/check-image.sh
+scripts/create-lab.sh
+scripts/run-phase6-tests.sh --require-vms
+```
+
+For CI or a host without provisioned VMs, use:
+
+```bash
+test-lab/kvm/scripts/run-phase6-tests.sh --static-only
+```

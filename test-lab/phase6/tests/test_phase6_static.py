@@ -13,6 +13,10 @@ class Phase6StaticTests(unittest.TestCase):
             'kvm/ansible/playbooks/site.yml',
             'kvm/scripts/run-phase6-tests.sh',
             'kvm/scripts/run-xfreerdp-test.sh',
+            'kvm/scripts/check-prereqs.sh',
+            'kvm/scripts/check-image.sh',
+            'kvm/scripts/create-lab.sh',
+            'kvm/scripts/sync-source.sh',
         ]
         for rel in required:
             self.assertTrue((ROOT / rel).exists(), rel)
@@ -40,6 +44,13 @@ class Phase6StaticTests(unittest.TestCase):
         ignore = (ROOT / '.gitignore').read_text()
         for pattern in ['*.iso', '*.img', '*.qcow2', '*.raw']:
             self.assertIn(pattern, ignore)
+
+
+    def test_runner_modes_are_documented(self):
+        script = (ROOT / 'kvm/scripts/run-phase6-tests.sh').read_text()
+        self.assertIn('--static-only', script)
+        self.assertIn('--require-vms', script)
+        self.assertIn('failed_required_vm_check', script)
 
     def test_xfreerdp_rdsaad_skip_is_explicit(self):
         script = (ROOT / 'kvm/scripts/run-xfreerdp-test.sh').read_text()
