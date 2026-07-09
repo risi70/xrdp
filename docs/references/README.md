@@ -24,6 +24,10 @@ python3 docs/references/fetch_references.py --accept-third-party-licenses
 Only run the fetcher if your organization is allowed to store local copies of
 the referenced documents. Downloaded files are ignored by git.
 
+GitHub cannot make one directory private inside a public repository. To commit
+and push offline copies, use a separate private Git checkout under
+`docs/references/private/`; see `PRIVATE-REPO.md`.
+
 ## Supplier Layout
 
 - `microsoft/` - RDP open specifications, RDSAAD, AVD/RDP properties.
