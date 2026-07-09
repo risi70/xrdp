@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import re
 import sys
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -54,6 +55,7 @@ def main(argv: list[str] | None = None) -> int:
 
     refs = parse_manifest()
     suppliers = set(args.supplier or [])
+    failures: list[str] = []
     for ref in refs:
         if suppliers and ref.get("supplier") not in suppliers:
             continue
@@ -66,8 +68,25 @@ def main(argv: list[str] | None = None) -> int:
         out = outdir / safe_name(ref)
         print(f"fetch {ref['id']} -> {out}")
         req = urllib.request.Request(ref["url"], headers={"User-Agent": "xrdp-baf-reference-fetch/1.0"})
-        with urllib.request.urlopen(req, timeout=30) as response:
-            out.write_bytes(response.read())
+        try:
+            with urllib.request.urlopen(req, timeout=30) as response:
+                out.write_bytes(response.read())
+        except urllib.error.HTTPError as ex:
+            message = f"{ref['id']}: HTTP {ex.code} {ex.reason} ({ref['url']})"
+            print(f"warn: {message}", file=sys.stderr)
+            failures.append(message)
+        except urllib.error.URLError as ex:
+            message = f"{ref['id']}: URL error {ex.reason} ({ref['url']})"
+            print(f"warn: {message}", file=sys.stderr)
+            failures.append(message)
+        except TimeoutError:
+            message = f"{ref['id']}: timeout ({ref['url']})"
+            print(f"warn: {message}", file=sys.stderr)
+            failures.append(message)
+
+    if failures:
+        print(f"completed with {len(failures)} failed reference fetch(es)", file=sys.stderr)
+        return 1
     return 0
 
 
