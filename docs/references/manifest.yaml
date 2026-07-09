@@ -1,0 +1,137 @@
+# External references for BAF/RDSAAD development.
+# Downloaded files are stored under docs/references/<supplier>/originals/ and are ignored by git.
+# Verify license/terms before fetching or storing any document.
+
+references:
+  - id: microsoft-ms-rdpbcgr
+    supplier: microsoft
+    title: "[MS-RDPBCGR] Remote Desktop Protocol: Basic Connectivity and Graphics Remoting"
+    url: "https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpbcgr/"
+    relevance: "RDP negotiation, pre-MCS flow, Server Nonce, Authentication Request/Result, RDSAAD semantics."
+    fetch: true
+
+  - id: microsoft-avd-rdp-properties
+    supplier: microsoft
+    title: "Azure Virtual Desktop supported RDP properties"
+    url: "https://learn.microsoft.com/en-us/azure/virtual-desktop/rdp-properties"
+    relevance: "Client-side RDP properties and broker/client behavior comparison."
+    fetch: true
+
+  - id: microsoft-rdp-uri
+    supplier: microsoft
+    title: "Remote Desktop URI scheme"
+    url: "https://learn.microsoft.com/en-us/windows-server/remote/remote-desktop-services/clients/remote-desktop-uri"
+    relevance: "RDP launch integration and broker handoff behavior."
+    fetch: true
+
+  - id: igel-kb-root
+    supplier: igel
+    title: "IGEL Knowledge Base"
+    url: "https://kb.igel.com/"
+    relevance: "IGEL OS 12 endpoint configuration, RDP client profile, smartcard redirection, UMS."
+    fetch: false
+
+  - id: igel-os-12-docs
+    supplier: igel
+    title: "IGEL OS 12 documentation landing page"
+    url: "https://kb.igel.com/igelos-12"
+    relevance: "IGEL OS 12 RDP sessions, smartcard redirection, endpoint policy."
+    fetch: false
+
+  - id: virtual-cable-docs
+    supplier: virtual-cable
+    title: "UDS Enterprise documentation"
+    url: "https://www.udsenterprise.com/en/uds-enterprise/documentation/"
+    relevance: "UDS Enterprise broker concepts, services, transports, pools, authenticators."
+    fetch: false
+
+  - id: virtual-cable-site
+    supplier: virtual-cable
+    title: "Virtual Cable / UDS Enterprise"
+    url: "https://www.udsenterprise.com/"
+    relevance: "Product architecture and official vendor entry point."
+    fetch: false
+
+  - id: freerdp-github
+    supplier: freerdp
+    title: "FreeRDP source repository"
+    url: "https://github.com/FreeRDP/FreeRDP"
+    relevance: "RDP client implementation, command-line behavior, possible RDSAAD client capability research."
+    fetch: false
+
+  - id: freerdp-wiki
+    supplier: freerdp
+    title: "FreeRDP Wiki"
+    url: "https://github.com/FreeRDP/FreeRDP/wiki"
+    relevance: "Client options and build/runtime behavior."
+    fetch: false
+
+  - id: ubuntu-noble-cloud-images
+    supplier: ubuntu
+    title: "Ubuntu 24.04 Noble cloud images"
+    url: "https://cloud-images.ubuntu.com/noble/current/"
+    relevance: "Phase 6 KVM lab base image source."
+    fetch: true
+
+  - id: ubuntu-server-docs
+    supplier: ubuntu
+    title: "Ubuntu Server documentation"
+    url: "https://documentation.ubuntu.com/server/"
+    relevance: "Ubuntu 24.04 service, PAM, SSSD, and server administration reference."
+    fetch: true
+
+  - id: libvirt-docs
+    supplier: libvirt
+    title: "libvirt documentation"
+    url: "https://libvirt.org/docs.html"
+    relevance: "KVM lab domains, networks, storage, virsh behavior."
+    fetch: true
+
+  - id: libvirt-format-domain
+    supplier: libvirt
+    title: "libvirt domain XML format"
+    url: "https://libvirt.org/formatdomain.html"
+    relevance: "Phase 6 domain XML authoring."
+    fetch: true
+
+  - id: libvirt-format-network
+    supplier: libvirt
+    title: "libvirt network XML format"
+    url: "https://libvirt.org/formatnetwork.html"
+    relevance: "Phase 6 network XML authoring."
+    fetch: true
+
+  - id: ansible-docs
+    supplier: ansible
+    title: "Ansible documentation"
+    url: "https://docs.ansible.com/ansible/latest/"
+    relevance: "Phase 6 provisioning playbooks and roles."
+    fetch: true
+
+  - id: ansible-apt-module
+    supplier: ansible
+    title: "Ansible apt module"
+    url: "https://docs.ansible.com/ansible/latest/collections/ansible/builtin/apt_module.html"
+    relevance: "Ubuntu package installation tasks."
+    fetch: true
+
+  - id: neutrinolabs-xrdp
+    supplier: neutrinolabs
+    title: "xrdp upstream repository"
+    url: "https://github.com/neutrinolabs/xrdp"
+    relevance: "Upstream XRDP behavior, build model, compatibility."
+    fetch: false
+
+  - id: neutrinolabs-xorgxrdp
+    supplier: neutrinolabs
+    title: "xorgxrdp upstream repository"
+    url: "https://github.com/neutrinolabs/xorgxrdp"
+    relevance: "Ubuntu VDI graphical session backend."
+    fetch: false
+
+  - id: openuds-community
+    supplier: openuds
+    title: "OpenUDS community project entry point"
+    url: "https://www.udsenterprise.com/en/openuds/"
+    relevance: "OpenUDS community context and relationship to UDS Enterprise."
+    fetch: false

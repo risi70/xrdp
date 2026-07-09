@@ -1,0 +1,8 @@
+# Third-party reference material downloaded by operator choice.
+*/originals/*
+!*/originals/.gitkeep
+*/converted/*
+!*/converted/.gitkeep
+fetch.log
+__pycache__/
+*.pyc
