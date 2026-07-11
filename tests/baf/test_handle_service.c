@@ -213,7 +213,7 @@ validate_resolved_handle_assertion(const char *path)
 
     transport_status = baf_transport_validate(
         &transport, 1, auth_provider_jwt_get(), config,
-        options.expected_audience, fixed_now, &now, &result);
+        options.expected_audience, NULL, fixed_now, &now, &result);
     CHECK(transport_status ==
           BAF_TRANSPORT_VALIDATED_IDENTITY_BINDING_REQUIRED,
           "resolved handle assertion validates but is not login authorization");

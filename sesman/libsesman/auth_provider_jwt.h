@@ -9,6 +9,8 @@ struct replay_cache;
 #define BAF_DEFAULT_MAX_LIFETIME_SECONDS 300
 #define BAF_DEFAULT_CLOCK_SKEW_SECONDS 30
 #define BAF_MAX_CLOCK_SKEW_SECONDS 120
+#define BAF_NONCE_EXTENSION_KEY "urn:baf:ts_nonce"
+#define BAF_MAX_SERVER_NONCE_BYTES 256
 
 struct baf_validator_options
 {
@@ -29,6 +31,7 @@ struct baf_validator_options
     const char *allowed_device_status;
     struct replay_cache *replay_cache;
     int require_service_replay;
+    int require_nonce_binding;
 };
 
 enum auth_provider_status baf_validator_config_create(

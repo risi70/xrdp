@@ -111,6 +111,13 @@ Implemented pieces include:
   without adding UDS-specific behavior to XRDP core. Phase 5 supports Mode A
   native RDSAAD clients and Mode B broker gateway RDSAAD; both use the same
   XRDP-side RDSAAD ingress.
+- SD-009 Wave 1: RDSAAD nonce plumb-through with the optional
+  `urn:baf:ts_nonce` extension claim and the fail-closed
+  `RequireNonceBinding` gate, and Mode C one-time-handle ingress for stock
+  clients through both an X.224 routing-token channel and a one-time
+  credential channel (see `broker-auth/MODE-C-ONE-TIME-HANDLE.md`). The
+  SD-006 handle service is promoted from superseded to production for
+  Mode C.
 
 The current production bridge emits `S_OK` only after sesman/xrdp-sesexec
 returns full BAF preauth approval. Failure to parse, validate, reserve replay,

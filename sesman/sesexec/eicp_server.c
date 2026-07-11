@@ -155,17 +155,20 @@ static int
 handle_broker_login_request(struct trans *self)
 {
     unsigned short profile_version;
+    unsigned short credential_kind;
     unsigned char assertion[BAF_RUNTIME_MAX_ASSERTION_BYTES];
     unsigned int assertion_length = BAF_RUNTIME_MAX_ASSERTION_BYTES;
     const char *client_address = NULL;
+    const char *server_nonce = NULL;
     unsigned char correlation_id[16];
     int scp_fd;
     int rv;
 
     rv = eicp_get_broker_login_request_v1(self, &profile_version,
+                                          &credential_kind,
                                           assertion, &assertion_length,
-                                          &client_address, correlation_id,
-                                          &scp_fd);
+                                          &client_address, &server_nonce,
+                                          correlation_id, &scp_fd);
     if (rv == 0)
     {
         struct trans *scp_trans;
@@ -186,7 +189,9 @@ handle_broker_login_request(struct trans *self)
                 login_info_free(g_login_info);
             }
             g_login_info = login_info_baf_preauth_user(scp_trans,
-                           assertion, assertion_length, client_address);
+                           credential_kind,
+                           assertion, assertion_length, client_address,
+                           server_nonce);
             if (g_login_info != NULL)
             {
                 rv = eicp_send_sys_login_response(self, 1,

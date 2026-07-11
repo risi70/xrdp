@@ -121,6 +121,7 @@ baf_transport_validate(struct baf_transport *transport,
                        const struct auth_provider *provider,
                        const struct auth_provider_config *config,
                        const char *expected_audience,
+                       const char *server_nonce,
                        auth_provider_now_fn now,
                        void *now_userdata,
                        struct auth_provider_result **result)
@@ -152,6 +153,7 @@ baf_transport_validate(struct baf_transport *transport,
     request.config = config;
     request.expected_audience = expected_audience;
     request.local_target = transport->local_target;
+    request.server_nonce = server_nonce;
     request.now = now;
     request.now_userdata = now_userdata;
     provider_status = auth_provider_validate(provider, &request, result);

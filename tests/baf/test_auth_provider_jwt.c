@@ -73,6 +73,31 @@ validate(const char *token, struct auth_provider_config *config,
     return auth_provider_validate(auth_provider_jwt_get(), &request, result);
 }
 
+static enum auth_provider_status
+validate_nonce(const char *token, struct auth_provider_config *config,
+               const char *server_nonce, struct auth_provider_result **result)
+{
+    struct auth_provider_request request;
+    memset(&request, 0, sizeof(request));
+    request.assertion = (const unsigned char *)token;
+    request.assertion_length = strlen(token);
+    request.client_address = "192.0.2.10";
+    request.config = config;
+    request.expected_audience = AUDIENCE;
+    request.local_target = TARGET;
+    request.server_nonce = server_nonce;
+    request.now = fixed_now;
+    return auth_provider_validate(auth_provider_jwt_get(), &request, result);
+}
+
+#define NONCE_CLAIMS(jti, ext) \
+    "{\"iss\":\"" ISSUER "\",\"aud\":\"" AUDIENCE "\",\"sub\":\"s\"," \
+    "\"preferred_username\":\"alice\",\"groups\":[],\"roles\":[]," \
+    "\"auth_method\":[\"pwd\"],\"assurance_level\":\"aal\"," \
+    "\"broker_session_id\":\"s\",\"target\":\"" TARGET "\"," \
+    "\"iat\":1700000000,\"nbf\":1700000000,\"exp\":1700000100," \
+    "\"jti\":\"" jti "\",\"device_trust\":{\"status\":\"unknown\"}" ext "}"
+
 int
 main(void)
 {
@@ -287,6 +312,93 @@ main(void)
     bad[16385] = '\0';
     assert(validate(bad, config, &result) == AUTH_PROVIDER_INVALID);
     free(bad);
+
+    /* Nonce binding: optional mode with the default config. */
+    token = make_token(private_key, private_length, JWT_ALG_RS256, headers,
+                       NONCE_CLAIMS("noncematch000001",
+                                    ",\"extensions\":{\"urn:baf:ts_nonce\":"
+                                    "\"nonce-abc\"}"));
+    assert(validate_nonce(token, config, "nonce-abc", &result) ==
+           AUTH_PROVIDER_SUCCESS);
+    auth_provider_result_free(result);
+    result = NULL;
+    free(token);
+    token = make_token(private_key, private_length, JWT_ALG_RS256, headers,
+                       NONCE_CLAIMS("noncemismatch001",
+                                    ",\"extensions\":{\"urn:baf:ts_nonce\":"
+                                    "\"nonce-abc\"}"));
+    assert(validate_nonce(token, config, "nonce-xyz", &result) ==
+           AUTH_PROVIDER_INVALID);
+    free(token);
+    /* Claim present but no ingress challenge (Mode C) is accepted when
+     * binding is optional. */
+    token = make_token(private_key, private_length, JWT_ALG_RS256, headers,
+                       NONCE_CLAIMS("noncemodec000001",
+                                    ",\"extensions\":{\"urn:baf:ts_nonce\":"
+                                    "\"nonce-abc\"}"));
+    assert(validate_nonce(token, config, NULL, &result) ==
+           AUTH_PROVIDER_SUCCESS);
+    auth_provider_result_free(result);
+    result = NULL;
+    free(token);
+    /* Challenge present but claim absent is accepted when optional. */
+    token = make_token(private_key, private_length, JWT_ALG_RS256, headers,
+                       NONCE_CLAIMS("nonceabsent00001", ""));
+    assert(validate_nonce(token, config, "nonce-abc", &result) ==
+           AUTH_PROVIDER_SUCCESS);
+    auth_provider_result_free(result);
+    result = NULL;
+    free(token);
+    /* Empty or non-string nonce extensions always fail closed. */
+    token = make_token(private_key, private_length, JWT_ALG_RS256, headers,
+                       NONCE_CLAIMS("nonceempty000001",
+                                    ",\"extensions\":{\"urn:baf:ts_nonce\":"
+                                    "\"\"}"));
+    assert(validate_nonce(token, config, "nonce-abc", &result) ==
+           AUTH_PROVIDER_INVALID);
+    free(token);
+    token = make_token(private_key, private_length, JWT_ALG_RS256, headers,
+                       NONCE_CLAIMS("noncenotstring01",
+                                    ",\"extensions\":{\"urn:baf:ts_nonce\":"
+                                    "17}"));
+    assert(validate_nonce(token, config, "nonce-abc", &result) ==
+           AUTH_PROVIDER_INVALID);
+    free(token);
+
+    /* Nonce binding: required mode fails closed without a bound nonce. */
+    {
+        struct auth_provider_config *nonce_config = NULL;
+        options.require_nonce_binding = 1;
+        assert(baf_validator_config_create(&options, &nonce_config) ==
+               AUTH_PROVIDER_SUCCESS);
+        token = make_token(private_key, private_length, JWT_ALG_RS256,
+                           headers,
+                           NONCE_CLAIMS("noncereq00000001",
+                                        ",\"extensions\":"
+                                        "{\"urn:baf:ts_nonce\":"
+                                        "\"nonce-abc\"}"));
+        assert(validate_nonce(token, nonce_config, "nonce-abc", &result) ==
+               AUTH_PROVIDER_SUCCESS);
+        auth_provider_result_free(result);
+        result = NULL;
+        /* Required binding with no ingress challenge fails even when the
+         * claim is present. */
+        assert(validate_nonce(token, nonce_config, NULL, &result) ==
+               AUTH_PROVIDER_INVALID);
+        assert(validate_nonce(token, nonce_config, "nonce-xyz", &result) ==
+               AUTH_PROVIDER_INVALID);
+        free(token);
+        token = make_token(private_key, private_length, JWT_ALG_RS256,
+                           headers,
+                           NONCE_CLAIMS("noncereqabsent01", ""));
+        assert(validate_nonce(token, nonce_config, "nonce-abc", &result) ==
+               AUTH_PROVIDER_INVALID);
+        assert(validate_nonce(token, nonce_config, NULL, &result) ==
+               AUTH_PROVIDER_INVALID);
+        free(token);
+        baf_validator_config_free(nonce_config);
+        options.require_nonce_binding = 0;
+    }
 
     options.replay_cache = NULL;
     assert(baf_validator_config_create(&options, &unavailable_config) ==

@@ -25,3 +25,17 @@
     - name: Check test user resolves through NSS
       ansible.builtin.command: getent passwd {{ lab_test_user }}
       changed_when: false
+
+    - name: Run Mode C RDP-level smoke test
+      ansible.builtin.command: >
+        bash {{ xrdp_src | default('/home/rick/Soft/xrdp') }}/test-lab/phase6/modec-smoke/modec-smoke.sh
+      environment:
+        LAB_TEST_USER: "{{ lab_test_user }}"
+        BAF_ISSUER: "{{ baf_issuer }}"
+        BAF_AUDIENCE: "{{ baf_audience }}"
+        BAF_TARGET: "{{ baf_target }}"
+        BAF_REPLAY_SOCKET: "{{ baf_replay_socket }}"
+      become: true
+      changed_when: false
+      tags:
+        - modec-smoke

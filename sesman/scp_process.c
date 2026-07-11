@@ -183,9 +183,11 @@ static int
 process_broker_login_request(struct scp_list_item *sli)
 {
     unsigned short profile_version;
+    unsigned short credential_kind;
     unsigned char assertion[BAF_RUNTIME_MAX_ASSERTION_BYTES];
     unsigned int assertion_length = g_cfg->baf.max_assertion_size;
     const char *client_address = NULL;
+    const char *server_nonce = NULL;
     unsigned char correlation_id[SCP_BAF_CORRELATION_ID_BYTES];
     enum scp_login_status errorcode = E_SCP_LOGIN_GENERAL_ERROR;
     int send_client_reply = 1;
@@ -198,13 +200,20 @@ process_broker_login_request(struct scp_list_item *sli)
     }
 
     rv = scp_get_broker_login_request_v1(sli->client_trans,
-                                         &profile_version,
+                                         &profile_version, &credential_kind,
                                          assertion, &assertion_length,
-                                         &client_address, correlation_id);
+                                         &client_address, &server_nonce,
+                                         correlation_id);
     if (rv == 0)
     {
-        if (baf_runtime_config_validate_live(&g_cfg->baf) !=
-                BAF_RUNTIME_CONFIG_OK)
+        /* Handle credentials gate on Mode C config; raw assertions gate
+         * on the RDSAAD live config. Both fail closed. */
+        enum baf_runtime_config_status config_status =
+            credential_kind == SCP_BROKER_CREDENTIAL_HANDLE ?
+            baf_runtime_config_validate_mode_c(&g_cfg->baf) :
+            baf_runtime_config_validate_live(&g_cfg->baf);
+
+        if (config_status != BAF_RUNTIME_CONFIG_OK)
         {
             LOG(LOG_LEVEL_WARNING,
                 "Rejected BAF preauth request because trusted live config is disabled");
@@ -226,8 +235,10 @@ process_broker_login_request(struct scp_list_item *sli)
             }
             else if (eicp_send_broker_login_request_v1(
                          sli->sesexec_trans, profile_version,
+                         credential_kind,
                          assertion, assertion_length, client_address,
-                         correlation_id, sli->client_trans->sck) != 0)
+                         server_nonce, correlation_id,
+                         sli->client_trans->sck) != 0)
             {
                 LOG(LOG_LEVEL_ERROR,
                     "Can't ask sesexec to authorize BAF preauth");

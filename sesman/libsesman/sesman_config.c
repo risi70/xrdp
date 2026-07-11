@@ -70,6 +70,9 @@
 #define SESMAN_CFG_BAF_REPLAY_SOCKET "ReplaySocket"
 #define SESMAN_CFG_BAF_REJECT_UID0 "RejectUid0"
 #define SESMAN_CFG_BAF_ALLOW_SESSION_START "AllowSessionStart"
+#define SESMAN_CFG_BAF_REQUIRE_NONCE_BINDING "RequireNonceBinding"
+#define SESMAN_CFG_BAF_MODE_C_OTC "ModeCOneTimeCredential"
+#define SESMAN_CFG_BAF_HANDLE_SOCKET "HandleSocket"
 
 /*
 #define SESMAN_CFG_LOGGING           "Logging"
@@ -712,6 +715,19 @@ config_read_broker_auth(int file, struct baf_runtime_config *baf,
         {
             baf->allow_session_start = g_text2bool(value);
         }
+        else if (0 == g_strcasecmp(name, SESMAN_CFG_BAF_REQUIRE_NONCE_BINDING))
+        {
+            baf->require_nonce_binding = g_text2bool(value);
+        }
+        else if (0 == g_strcasecmp(name, SESMAN_CFG_BAF_MODE_C_OTC))
+        {
+            baf->mode_c_otc_enabled = g_text2bool(value);
+        }
+        else if (0 == g_strcasecmp(name, SESMAN_CFG_BAF_HANDLE_SOCKET))
+        {
+            g_free(baf->handle_socket);
+            baf->handle_socket = g_strdup(value);
+        }
     }
 
     return 0;
@@ -861,6 +877,13 @@ config_dump(struct config_sesman *config)
     g_writeln("    RejectUid0:                %d", config->baf.reject_uid0);
     g_writeln("    AllowSessionStart:         %d",
               config->baf.allow_session_start);
+    g_writeln("    RequireNonceBinding:       %d",
+              config->baf.require_nonce_binding);
+    g_writeln("    ModeCOneTimeCredential:    %d",
+              config->baf.mode_c_otc_enabled);
+    g_writeln("    HandleSocket:              %s",
+              config->baf.handle_socket[0] == '\0' ? "default" :
+              config->baf.handle_socket);
 
 
     /* Xorg */

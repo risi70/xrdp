@@ -141,6 +141,59 @@ test_session_start_stays_disabled(void)
 }
 
 static void
+test_mode_c_gating(void)
+{
+    struct baf_runtime_config config = {0};
+
+    /* Defaults: Mode C disabled and off by default. */
+    baf_runtime_config_init(&config);
+    assert(config.mode_c_otc_enabled == 0);
+    assert(config.require_nonce_binding == 0);
+    assert(baf_runtime_config_validate_mode_c(&config) ==
+           BAF_RUNTIME_CONFIG_DISABLED);
+    baf_runtime_config_free(&config);
+
+    /* Valid RDSAAD config alone does not enable Mode C. */
+    make_valid(&config);
+    config.allow_session_start = 1;
+    assert(baf_runtime_config_validate_mode_c(&config) ==
+           BAF_RUNTIME_CONFIG_DISABLED);
+
+    /* Mode C works without RDSAAD but needs the session-start gate. */
+    config.mode_c_otc_enabled = 1;
+    config.broker_auth_rdsaad_enabled = 0;
+    assert(baf_runtime_config_validate_mode_c(&config) ==
+           BAF_RUNTIME_CONFIG_OK);
+    config.allow_session_start = 0;
+    assert(baf_runtime_config_validate_mode_c(&config) ==
+           BAF_RUNTIME_CONFIG_INVALID);
+
+    /* Field problems still fail closed for Mode C. */
+    config.allow_session_start = 1;
+    replace(&config.replay_socket, "");
+    assert(baf_runtime_config_validate_mode_c(&config) ==
+           BAF_RUNTIME_CONFIG_INVALID);
+    baf_runtime_config_free(&config);
+
+    /* Copy preserves the Mode C fields. */
+    make_valid(&config);
+    config.mode_c_otc_enabled = 1;
+    config.require_nonce_binding = 1;
+    replace(&config.handle_socket, "/run/xrdp/baf-handle.sock");
+    {
+        struct baf_runtime_config copy = {0};
+        baf_runtime_config_init(&copy);
+        assert(baf_runtime_config_copy(&copy, &config) == 0);
+        assert(copy.mode_c_otc_enabled == 1);
+        assert(copy.require_nonce_binding == 1);
+        assert(g_strcmp(copy.handle_socket,
+                        "/run/xrdp/baf-handle.sock") == 0);
+        baf_runtime_config_free(&copy);
+    }
+    baf_runtime_config_free(&config);
+}
+
+static void
 test_sesexec_config_path(void)
 {
     char path[256];
@@ -166,7 +219,10 @@ test_sesexec_config_path(void)
             "ReplayBackend=service\n"
             "ReplaySocket=/run/xrdp/baf-replay.sock\n"
             "RejectUid0=true\n"
-            "AllowSessionStart=false\n");
+            "AllowSessionStart=false\n"
+            "RequireNonceBinding=true\n"
+            "ModeCOneTimeCredential=true\n"
+            "HandleSocket=/run/xrdp/baf-handle.sock\n");
     fclose(fp);
 
     config = config_read(path);
@@ -176,6 +232,13 @@ test_sesexec_config_path(void)
     assert(config->baf.max_assertion_size == 8192);
     assert(config->baf.reject_uid0 == 1);
     assert(config->baf.allow_session_start == 0);
+    assert(config->baf.require_nonce_binding == 1);
+    assert(config->baf.mode_c_otc_enabled == 1);
+    assert(g_strcmp(config->baf.handle_socket,
+                    "/run/xrdp/baf-handle.sock") == 0);
+    /* Mode C still fails closed without the session-start gate. */
+    assert(baf_runtime_config_validate_mode_c(&config->baf) ==
+           BAF_RUNTIME_CONFIG_INVALID);
     assert(baf_runtime_config_validate(&config->baf) ==
            BAF_RUNTIME_CONFIG_OK);
 
@@ -191,6 +254,7 @@ main(void)
     test_required_fields_fail_closed();
     test_replay_service_required();
     test_session_start_stays_disabled();
+    test_mode_c_gating();
     test_sesexec_config_path();
     return 0;
 }

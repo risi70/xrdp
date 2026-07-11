@@ -226,10 +226,10 @@ xrdp_sec_rdsaad_exchange(struct xrdp_sec *self)
         secure_erase_bytes(nonce, sizeof(nonce));
         return 1;
     }
-    secure_erase_bytes(nonce, sizeof(nonce));
 
     if (xrdp_sec_send_rdsaad_json(self, nonce_json, nonce_json_length) != 0)
     {
+        secure_erase_bytes(nonce, sizeof(nonce));
         secure_erase_bytes(nonce_json, sizeof(nonce_json));
         return 1;
     }
@@ -238,12 +238,14 @@ xrdp_sec_rdsaad_exchange(struct xrdp_sec *self)
     s = libxrdp_force_read(self->mcs_layer->iso_layer->trans);
     if (s == NULL)
     {
+        secure_erase_bytes(nonce, sizeof(nonce));
         (void)xrdp_sec_send_rdsaad_result(self,
                                           RDSAAD_HRESULT_SEC_E_INVALID_TOKEN);
         return 1;
     }
     if (!s_check_rem_and_log(s, 4, "Parsing RDSAAD Authentication Request TPKT"))
     {
+        secure_erase_bytes(nonce, sizeof(nonce));
         (void)xrdp_sec_send_rdsaad_result(self,
                                           RDSAAD_HRESULT_SEC_E_INVALID_TOKEN);
         return 1;
@@ -268,7 +270,8 @@ xrdp_sec_rdsaad_exchange(struct xrdp_sec *self)
         request.assertion_length = (unsigned int)assertion_length;
         request.client_address = NULL;
         request.local_target = self->rdp_layer->client_info.broker_auth_local_target;
-        request.server_nonce = NULL;
+        request.server_nonce = nonce;
+        request.credential_kind = XRDP_BROKER_CREDENTIAL_ASSERTION;
         response.status = XRDP_RDSAAD_PREAUTH_INTERNAL_ERROR;
 
         if (session != NULL && session->callback != NULL)
@@ -295,10 +298,55 @@ xrdp_sec_rdsaad_exchange(struct xrdp_sec *self)
         }
     }
     secure_erase_bytes(assertion, assertion_length);
+    secure_erase_bytes(nonce, sizeof(nonce));
 
     (void)xrdp_sec_send_rdsaad_result(self, result);
     return result == RDSAAD_HRESULT_S_OK ? 0 : 1;
 }
+
+#if defined(ENABLE_BROKER_AUTH)
+/*****************************************************************************/
+/**
+ * Mode C pre-MCS authorization from a captured routing-token handle.
+ *
+ * No extra wire exchange takes place: the single-use handle already
+ * arrived in the X.224 Connection Request and the assertion it references
+ * stays server-side. Any failure drops the connection before MCS.
+ */
+static int
+xrdp_sec_modec_preauth(struct xrdp_sec *self)
+{
+    struct xrdp_iso *iso = self->mcs_layer->iso_layer;
+    struct xrdp_rdsaad_preauth_request request = {0};
+    struct xrdp_rdsaad_preauth_response response = {0};
+    struct xrdp_session *session = self->rdp_layer->session;
+    int cb_status = 1;
+
+    request.assertion = (const unsigned char *)iso->broker_handle;
+    request.assertion_length = XRDP_BROKER_HANDLE_TEXT_LENGTH;
+    request.client_address = NULL;
+    request.local_target = self->rdp_layer->client_info.broker_auth_local_target;
+    request.server_nonce = NULL;
+    request.credential_kind = XRDP_BROKER_CREDENTIAL_HANDLE;
+    response.status = XRDP_RDSAAD_PREAUTH_INTERNAL_ERROR;
+
+    if (session != NULL && session->callback != NULL)
+    {
+        cb_status = session->callback(session->id,
+                                      XRDP_CALLBACK_RDSAAD_PREAUTH,
+                                      (intptr_t)&request,
+                                      (intptr_t)&response, 0, 0);
+    }
+    secure_erase_bytes(iso->broker_handle, sizeof(iso->broker_handle));
+
+    if (cb_status == 0 && response.status == XRDP_RDSAAD_PREAUTH_AUTHORIZED)
+    {
+        self->rdp_layer->client_info.rdp_autologin = 1;
+        return 0;
+    }
+    return 1;
+}
+#endif
 
 /*****************************************************************************/
 static void
@@ -2608,6 +2656,18 @@ xrdp_sec_incoming(struct xrdp_sec *self)
                 return 1;
             }
         }
+#if defined(ENABLE_BROKER_AUTH)
+        else if (iso->broker_handle[0] != '\0')
+        {
+            if (xrdp_sec_modec_preauth(self) != 0)
+            {
+                LOG(LOG_LEVEL_ERROR,
+                    "xrdp_sec_incoming: Mode C pre-logon authorization "
+                    "failed closed");
+                return 1;
+            }
+        }
+#endif
 
     }
     else

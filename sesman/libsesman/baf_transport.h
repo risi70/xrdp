@@ -49,6 +49,7 @@ baf_transport_validate(struct baf_transport *transport,
                        const struct auth_provider *provider,
                        const struct auth_provider_config *config,
                        const char *expected_audience,
+                       const char *server_nonce,
                        auth_provider_now_fn now,
                        void *now_userdata,
                        struct auth_provider_result **result);

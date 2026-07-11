@@ -109,6 +109,10 @@ xrdp_process_rdsaad_preauth(struct xrdp_process *self,
     if (self == NULL || request == NULL || response == NULL ||
             request->assertion == NULL || request->assertion_length == 0 ||
             request->assertion_length > RDSAAD_MAX_ASSERTION_BYTES ||
+            (request->credential_kind == XRDP_BROKER_CREDENTIAL_HANDLE &&
+             request->assertion_length != SCP_BROKER_HANDLE_TEXT_LENGTH) ||
+            (request->credential_kind != XRDP_BROKER_CREDENTIAL_ASSERTION &&
+             request->credential_kind != XRDP_BROKER_CREDENTIAL_HANDLE) ||
             self->baf_preauth_authorized)
     {
         if (response != NULL)
@@ -128,9 +132,11 @@ xrdp_process_rdsaad_preauth(struct xrdp_process *self,
     }
 
     if (scp_send_broker_login_request_v1(sesman_trans, 1,
+                                         (unsigned short)request->credential_kind,
                                          request->assertion,
                                          request->assertion_length,
                                          request->client_address,
+                                         request->server_nonce,
                                          correlation_id) != 0 ||
             scp_msg_in_wait_available(sesman_trans) != 0 ||
             scp_msg_in_get_msgno(sesman_trans) != E_SCP_LOGIN_RESPONSE ||

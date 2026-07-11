@@ -23,6 +23,9 @@ struct baf_runtime_config
     int broker_auth_rdsaad_enabled;
     int reject_uid0;
     int allow_session_start;
+    int require_nonce_binding;
+    int mode_c_otc_enabled;
+    char *handle_socket;
     unsigned int max_assertion_size;
     char *provider;
     char *issuer;
@@ -46,6 +49,16 @@ baf_runtime_config_validate(const struct baf_runtime_config *config);
 
 enum baf_runtime_config_status
 baf_runtime_config_validate_live(const struct baf_runtime_config *config);
+
+/**
+ * Validate the trusted configuration for Mode C one-time-credential login.
+ *
+ * Mode C does not require RDSAAD ingress to be enabled, but requires
+ * broker-auth, the Mode C gate, complete provider/replay settings and the
+ * session-start gate. Anything else fails closed.
+ */
+enum baf_runtime_config_status
+baf_runtime_config_validate_mode_c(const struct baf_runtime_config *config);
 
 int
 baf_runtime_config_copy(struct baf_runtime_config *dst,

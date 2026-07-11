@@ -90,8 +90,8 @@ validate_rdsaad_token(const char *token, struct auth_provider_config *config,
                              BAF_ASSERTION_TRANSPORT_TEST,
                              "192.0.2.10", "urn:baf:desktop:test") == 0);
     status = baf_transport_validate(&transport, 1, auth_provider_jwt_get(),
-                                    config, "urn:baf:xrdp:test", fixed_now,
-                                    now, result);
+                                    config, "urn:baf:xrdp:test", NULL,
+                                    fixed_now, now, result);
     assert(transport.assertion == NULL);
     assert(transport.assertion_length == 0);
     return status;

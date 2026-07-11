@@ -71,6 +71,51 @@ nonempty(const char *value)
     return value != NULL && value[0] != '\0';
 }
 
+/**
+ * Enforce the urn:baf:ts_nonce extension against the ingress challenge.
+ *
+ * When binding is required, the ingress must supply a nonce and the
+ * assertion must carry a matching extension. When binding is optional, a
+ * present extension must still match any available ingress nonce; a
+ * missing extension or a challenge-less ingress (Mode C) is accepted.
+ */
+static int
+nonce_binding_valid(json_t *claims,
+                    const struct auth_provider_config *config,
+                    const char *server_nonce)
+{
+    json_t *extensions = json_object_get(claims, "extensions");
+    json_t *claim = extensions == NULL ? NULL :
+                    json_object_get(extensions, BAF_NONCE_EXTENSION_KEY);
+    const char *claim_value = NULL;
+
+    if (claim != NULL)
+    {
+        claim_value = json_string_value(claim);
+        if (claim_value == NULL || claim_value[0] == '\0' ||
+                strlen(claim_value) > BAF_MAX_SERVER_NONCE_BYTES)
+        {
+            return 0;
+        }
+    }
+    if (server_nonce != NULL &&
+            (server_nonce[0] == '\0' ||
+             strlen(server_nonce) > BAF_MAX_SERVER_NONCE_BYTES))
+    {
+        return 0;
+    }
+    if (config->require_nonce_binding)
+    {
+        return claim_value != NULL && server_nonce != NULL &&
+               strcmp(claim_value, server_nonce) == 0;
+    }
+    if (claim_value != NULL && server_nonce != NULL)
+    {
+        return strcmp(claim_value, server_nonce) == 0;
+    }
+    return 1;
+}
+
 static int
 comma_list_contains(const char *list, const char *algorithm)
 {
@@ -180,6 +225,7 @@ baf_validator_config_create(const struct baf_validator_options *options,
     config->max_lifetime = lifetime;
     config->clock_skew = skew;
     config->replay_cache = options->replay_cache;
+    config->require_nonce_binding = options->require_nonce_binding;
     if (options->trust_pem != NULL && options->trust_pem_length > 0)
     {
         config->trust_pem = malloc(options->trust_pem_length + 1);
@@ -659,6 +705,10 @@ provider_validate(const struct auth_provider_request *request,
                              config->required_role)) ||
             (nonempty(config->allowed_device_status) &&
              !comma_list_contains(config->allowed_device_status, device_status)))
+    {
+        goto cleanup;
+    }
+    if (!nonce_binding_valid(claims, config, request->server_nonce))
     {
         goto cleanup;
     }

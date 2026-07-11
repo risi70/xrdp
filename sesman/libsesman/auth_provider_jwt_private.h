@@ -19,6 +19,7 @@ struct auth_provider_config
     char *required_role;
     char *allowed_device_status;
     struct replay_cache *replay_cache;
+    int require_nonce_binding;
 };
 
 #endif

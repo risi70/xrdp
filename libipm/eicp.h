@@ -61,16 +61,20 @@ enum eicp_msg_code
 #if defined(ENABLE_BROKER_AUTH)
 int eicp_send_broker_login_request_v1(struct trans *trans,
                                       unsigned short profile_version,
+                                      unsigned short credential_kind,
                                       const unsigned char *assertion,
                                       unsigned int assertion_length,
                                       const char *client_address,
+                                      const char *server_nonce,
                                       const unsigned char correlation_id[16],
                                       int scp_fd);
 int eicp_get_broker_login_request_v1(struct trans *trans,
                                      unsigned short *profile_version,
+                                     unsigned short *credential_kind,
                                      unsigned char *assertion,
                                      unsigned int *assertion_length,
                                      const char **client_address,
+                                     const char **server_nonce,
                                      unsigned char correlation_id[16],
                                      int *scp_fd);
 #endif

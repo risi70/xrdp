@@ -166,6 +166,11 @@ xrdp_rdp_read_config(const char *xrdp_ini, struct xrdp_client_info *client_info)
             client_info->broker_auth_rdsaad_enabled = g_text2bool(value);
             broker_auth_requested = 1;
         }
+        else if (g_strcasecmp(item, "broker_auth_modec_ingress_enabled") == 0)
+        {
+            client_info->broker_auth_modec_ingress_enabled =
+                g_text2bool(value);
+        }
         else if (g_strcasecmp(item, "broker_auth_provider") == 0)
         {
             g_strncpy(client_info->broker_auth_provider, value,

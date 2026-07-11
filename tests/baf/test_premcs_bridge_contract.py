@@ -128,6 +128,18 @@ assert "login_info_baf_preauth_user" in LOGIN_INFO_H
 baf_login = function_body(LOGIN_INFO_C, "login_info_baf_preauth_user")
 for required in (
     "baf_runtime_config_validate_live(&g_cfg->baf)",
+    "baf_authorize_assertion",
+    "scp_send_login_response",
+):
+    assert required in baf_login
+assert "pam_authenticate" not in baf_login
+assert "password" not in baf_login.lower()
+assert "result->auth_info = auth_info" in baf_login
+assert "result->username = username" in baf_login
+
+# The shared BAF authorization core keeps the complete fail-closed chain.
+baf_core = function_body(LOGIN_INFO_C, "baf_authorize_assertion")
+for required in (
     "replay_cache_service_create",
     "replay_cache_is_service",
     "baf_validator_config_create",
@@ -135,13 +147,46 @@ for required in (
     "BAF_TRANSPORT_VALIDATED_IDENTITY_BINDING_REQUIRED",
     "baf_identity_bind_and_authorize",
     "access_login_allowed",
-    "scp_send_login_response",
+    "require_nonce_binding",
 ):
-    assert required in baf_login
-assert "pam_authenticate" not in baf_login
-assert "password" not in baf_login.lower()
-assert "result->auth_info = auth_info" in baf_login
-assert "result->username = g_strdup(baf_resolved_identity_get_username(identity))" in baf_login
+    assert required in baf_core
+assert "pam_authenticate" not in baf_core
+
+# Mode C consumes one-time handles exclusively: no password fallback, no raw
+# assertion retention, authfail logging for fail2ban.
+resolve = function_body(LOGIN_INFO_C, "modec_resolve_handle")
+assert "baf_handle_resolve_and_consume" in resolve
+mode_c = function_body(LOGIN_INFO_C, "mode_c_authenticate")
+for required in (
+    "modec_resolve_handle",
+    "baf_authorize_assertion",
+    "baf_handle_assertion_free",
+    "log_authfail_message",
+):
+    assert required in mode_c
+assert "auth_userpass" not in mode_c
+auth_conn = function_body(LOGIN_INFO_C,
+                          "authenticate_and_authorize_connection")
+assert "password_is_otc_handle" in auth_conn
+assert "baf_runtime_config_validate_mode_c" in auth_conn
+assert "baf_runtime_config_validate_mode_c" in RUNTIME_CONFIG
+assert "mode_c_otc_enabled = 0" in RUNTIME_CONFIG
+
+# Mode C routing-token ingress: strict handle capture in the ISO layer,
+# fail-closed pre-MCS authorization, kind-gated dispatch through sesman.
+XRDP_ISO = (ROOT / "libxrdp" / "xrdp_iso.c").read_text(encoding="utf-8")
+capture = function_body(XRDP_ISO, "xrdp_iso_capture_broker_handle")
+assert "broker_auth_modec_ingress_enabled" in capture
+assert "Cookie: msts=" in capture
+modec_sec = function_body(XRDP_SEC, "xrdp_sec_modec_preauth")
+assert "XRDP_BROKER_CREDENTIAL_HANDLE" in modec_sec
+assert "secure_erase_bytes(iso->broker_handle" in modec_sec
+assert "XRDP_RDSAAD_PREAUTH_AUTHORIZED" in modec_sec
+assert "credential_kind == SCP_BROKER_CREDENTIAL_HANDLE" in SCP_PROCESS
+baf_login = function_body(LOGIN_INFO_C, "login_info_baf_preauth_user")
+assert "SCP_BROKER_CREDENTIAL_HANDLE" in baf_login
+assert "baf_runtime_config_validate_mode_c" in baf_login
+assert "modec_resolve_handle" in baf_login
 
 # Live config is a separate gate and remains disabled by default.
 assert "allow_session_start = 0" in RUNTIME_CONFIG

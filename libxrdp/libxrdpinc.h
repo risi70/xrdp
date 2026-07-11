@@ -81,6 +81,15 @@ enum xrdp_rdsaad_preauth_status
     XRDP_RDSAAD_PREAUTH_INTERNAL_ERROR
 };
 
+enum xrdp_broker_credential_kind
+{
+    /* assertion holds a raw compact JWS BAF assertion */
+    XRDP_BROKER_CREDENTIAL_ASSERTION = 0,
+    /* assertion holds a Mode C single-use handle; the real assertion
+     * stays server-side in the trusted handle service */
+    XRDP_BROKER_CREDENTIAL_HANDLE = 1
+};
+
 struct xrdp_rdsaad_preauth_request
 {
     const unsigned char *assertion;
@@ -88,6 +97,7 @@ struct xrdp_rdsaad_preauth_request
     const char *client_address;
     const char *local_target;
     const char *server_nonce;
+    enum xrdp_broker_credential_kind credential_kind;
 };
 
 struct xrdp_rdsaad_preauth_response

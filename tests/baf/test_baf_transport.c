@@ -57,7 +57,7 @@ run_token(const char *token, int runtime_enabled,
                              "192.0.2.10", "urn:baf:desktop:test") == 0);
     status = baf_transport_validate(&transport, runtime_enabled,
                                     auth_provider_jwt_get(), config,
-                                    "urn:baf:xrdp:test", fixed_now, now,
+                                    "urn:baf:xrdp:test", NULL, fixed_now, now,
                                     result);
     assert(transport.assertion == NULL);
     assert(transport.assertion_length == 0);

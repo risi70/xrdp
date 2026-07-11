@@ -268,6 +268,7 @@ struct xrdp_client_info
      */
     int broker_auth_enabled;
     int broker_auth_rdsaad_enabled;
+    int broker_auth_modec_ingress_enabled;
     int broker_auth_config_valid;
     int broker_auth_allow_session_start;
     int broker_auth_reject_uid0;

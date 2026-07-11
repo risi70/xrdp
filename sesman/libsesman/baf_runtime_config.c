@@ -29,6 +29,9 @@ baf_runtime_config_init(struct baf_runtime_config *config)
         config->broker_auth_rdsaad_enabled = 0;
         config->reject_uid0 = 1;
         config->allow_session_start = 0;
+        config->require_nonce_binding = 0;
+        config->mode_c_otc_enabled = 0;
+        config->handle_socket = g_strdup("");
         config->max_assertion_size = BAF_RUNTIME_MAX_ASSERTION_BYTES;
         config->provider = g_strdup(BAF_RUNTIME_DEFAULT_PROVIDER);
         config->issuer = g_strdup("");
@@ -56,6 +59,8 @@ baf_runtime_config_free(struct baf_runtime_config *config)
         g_free(config->local_target);
         g_free(config->replay_backend);
         g_free(config->replay_socket);
+        g_free(config->handle_socket);
+        config->handle_socket = NULL;
         config->provider = NULL;
         config->issuer = NULL;
         config->key_id = NULL;
@@ -68,19 +73,9 @@ baf_runtime_config_free(struct baf_runtime_config *config)
     }
 }
 
-enum baf_runtime_config_status
-baf_runtime_config_validate(const struct baf_runtime_config *config)
+static enum baf_runtime_config_status
+baf_runtime_config_fields_valid(const struct baf_runtime_config *config)
 {
-    if (config == NULL)
-    {
-        return BAF_RUNTIME_CONFIG_INVALID;
-    }
-
-    if (!config->broker_auth_enabled || !config->broker_auth_rdsaad_enabled)
-    {
-        return BAF_RUNTIME_CONFIG_DISABLED;
-    }
-
     if (!is_nonempty(config->provider) ||
             !is_nonempty(config->replay_backend) ||
             g_strcasecmp(config->provider, BAF_RUNTIME_DEFAULT_PROVIDER) != 0 ||
@@ -103,6 +98,47 @@ baf_runtime_config_validate(const struct baf_runtime_config *config)
     }
 
     return BAF_RUNTIME_CONFIG_OK;
+}
+
+enum baf_runtime_config_status
+baf_runtime_config_validate(const struct baf_runtime_config *config)
+{
+    if (config == NULL)
+    {
+        return BAF_RUNTIME_CONFIG_INVALID;
+    }
+
+    if (!config->broker_auth_enabled || !config->broker_auth_rdsaad_enabled)
+    {
+        return BAF_RUNTIME_CONFIG_DISABLED;
+    }
+
+    return baf_runtime_config_fields_valid(config);
+}
+
+enum baf_runtime_config_status
+baf_runtime_config_validate_mode_c(const struct baf_runtime_config *config)
+{
+    enum baf_runtime_config_status status;
+
+    if (config == NULL)
+    {
+        return BAF_RUNTIME_CONFIG_INVALID;
+    }
+
+    if (!config->broker_auth_enabled || !config->mode_c_otc_enabled)
+    {
+        return BAF_RUNTIME_CONFIG_DISABLED;
+    }
+
+    status = baf_runtime_config_fields_valid(config);
+    if (status != BAF_RUNTIME_CONFIG_OK)
+    {
+        return status;
+    }
+
+    return config->allow_session_start ?
+           BAF_RUNTIME_CONFIG_OK : BAF_RUNTIME_CONFIG_INVALID;
 }
 
 enum baf_runtime_config_status
@@ -134,6 +170,8 @@ baf_runtime_config_copy(struct baf_runtime_config *dst,
     dst->broker_auth_rdsaad_enabled = src->broker_auth_rdsaad_enabled;
     dst->reject_uid0 = src->reject_uid0;
     dst->allow_session_start = src->allow_session_start;
+    dst->require_nonce_binding = src->require_nonce_binding;
+    dst->mode_c_otc_enabled = src->mode_c_otc_enabled;
     dst->max_assertion_size = src->max_assertion_size;
     dst->provider = NULL;
     dst->issuer = NULL;
@@ -154,9 +192,11 @@ baf_runtime_config_copy(struct baf_runtime_config *dst,
     replace_string(&dst->local_target, src->local_target);
     replace_string(&dst->replay_backend, src->replay_backend);
     replace_string(&dst->replay_socket, src->replay_socket);
+    replace_string(&dst->handle_socket, src->handle_socket);
 
     return dst->provider == NULL || dst->issuer == NULL ||
            dst->key_id == NULL || dst->allowed_algorithms == NULL ||
            dst->trust_anchor == NULL || dst->expected_audience == NULL || dst->local_target == NULL ||
-           dst->replay_backend == NULL || dst->replay_socket == NULL;
+           dst->replay_backend == NULL || dst->replay_socket == NULL ||
+           dst->handle_socket == NULL;
 }
