@@ -94,10 +94,31 @@ xrdp has no server-side NLA/CredSSP, so the smart card authenticates to the
   ```
 
 The card backend is pluggable (`broker-auth/reference-broker/smartcard_auth.py`):
-`P12Card` signs directly with the p12 key (used here); `Pkcs11Card` drives a
-real PKCS#11 token (e.g. SoftHSM2 loaded from the same p12) via `pkcs11-tool`
-for higher fidelity — `smartcard_login.py` accepts either via `--p12` or
-`--pkcs11-module/--token-label/--card-cert`.
+`P12Card` signs directly with the p12 key (used by `smartcard-smoke.sh`);
+`Pkcs11Card` drives a real PKCS#11 token (SoftHSM2 loaded from the same p12)
+via `pkcs11-tool` for higher fidelity — `smartcard_login.py` accepts either
+via `--p12` or `--pkcs11-module/--token-label/--card-cert`.
+
+### SoftHSM2 token + card removal/reinsertion (`softhsm-smoke.sh`, VDI VM)
+
+Higher-fidelity variant: the card is a real SoftHSM2 PKCS#11 token
+provisioned from the bafuser p12, so the private-key operation goes through
+the token. It then exercises the physical card lifecycle:
+
+1. **inserted** — the token signs the broker challenge → assertion → handle
+   → Mode C → desktop session;
+2. **removed** — the token directory is moved out of the SoftHSM2 tokendir,
+   so `pkcs11-tool` signing fails closed and the broker issues no assertion
+   and no handle (access denied);
+3. **reinserted** — the same token returns and a session starts again.
+
+```bash
+cd test-lab/kvm/ansible
+ansible-playbook -i inventory.example.ini playbooks/verify.yml --tags softhsm-smoke
+# ... HSM SMOKE PASS: SoftHSM2 card insert -> remove(deny) -> reinsert lifecycle verified
+```
+
+Requires `softhsm2` + `opensc` (installed by the `ubuntu_vdi_xrdp_baf` role).
 
 ## Files
 

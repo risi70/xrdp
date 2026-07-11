@@ -11,6 +11,9 @@
       # RDP client + virtual display for the headless Mode C smoke test
       - freerdp2-x11
       - xvfb
+      # SoftHSM2 PKCS#11 token + pkcs11-tool for the smart-card lifecycle test
+      - softhsm2
+      - opensc
     state: present
     update_cache: true
     # Wait out boot-time apt (cloud-init / unattended-upgrades) instead of
