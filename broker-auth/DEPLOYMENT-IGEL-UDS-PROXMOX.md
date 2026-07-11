@@ -363,3 +363,109 @@ lifecycle tests — use it to validate a VDI image before templating.
   cannot move hosts) or deploy a shared atomic replay store.
 - Validate a matching **xorgxrdp** whenever XRDP is upgraded; an ABI mismatch
   silently yields black desktops.
+
+---
+
+## Appendix A — Optional: in-session smart-card redirection
+
+This is **separate from and independent of** the Mode C broker login. Mode C
+uses the card to authenticate you to the broker and get the session; this
+appendix makes the **same physical card usable *inside* the desktop session**
+(sign email, PKI web auth, `ssh -I`, GnuPG) via standard RDP smart-card
+redirection ([MS-RDPESC]). Enable it only if you need in-session card use.
+
+### A.0 Status — read before enabling
+
+- XRDP implements the **server counterpart to MS-RDPESC**: `sesman/chansrv/`
+  handles the full SCARD IOCTL set (`ESTABLISH_CONTEXT`, `CONNECT_*`,
+  `BEGIN/END_TRANSACTION`, `GET_STATUS_CHANGE_*`, `LIST_READERS`, `GETATTRIB`,
+  `TRANSMIT`, …) over `rdpdr` and re-exposes the card to session apps through a
+  `libpcsclite`-compatible socket.
+- It is **compile-gated by `--enable-smartcard`, which upstream marks
+  "experimental — not for production" (default: no).** Treat this path as
+  *supported-but-unvalidated*: it must be interop-tested against your specific
+  MS RD Core SDK client build before you rely on it. It does **not** require
+  NLA (redirection runs on the post-connection `rdpdr` channel).
+
+### A.1 Server (Ubuntu VDI): rebuild XRDP with smart-card support
+
+The Part B build intentionally omitted this. Rebuild with the flag added:
+
+```bash
+cd /opt/xrdp-src
+./configure --enable-broker-auth --enable-smartcard --disable-rfxcodec
+make -j"$(nproc)"
+make install
+systemctl restart xrdp xrdp-sesman
+```
+
+`xrdp-chansrv` now advertises the redirected smart-card device and, when a
+client redirects a card, creates a PC/SC IPC endpoint at
+**`$HOME/.pcsc<display>/`** in the session (e.g. `~/.pcsc10.0`). XRDP ships a
+drop-in `libpcsclite` wrapper (`sesman/chansrv/pcsc/`) that points pcsc-lite
+clients at that endpoint instead of a local `pcscd`.
+
+### A.2 Client (IGEL OS 12 / RD Core): redirect at the PC/SC layer
+
+In the IGEL RDP session profile, enable **smart-card (PC/SC) redirection** —
+the "Windows way" ([MS-RDPESC]). **Do not** use raw USB device redirection of
+the reader: USB passthrough hands the reader exclusively to the session and
+removes it from the endpoint, whereas PC/SC redirection is shareable (see A.4).
+For a FreeRDP-based validation client the equivalent is `/smartcard` (not
+`/usb:id,...`).
+
+### A.3 In-session app wiring (Ubuntu VDI)
+
+Session apps must use pcsc-lite and reach the redirected socket via the XRDP
+wrapper rather than the system `libpcsclite`:
+
+- Install/point the wrapper `libpcsclite.so` ahead of the system one for the
+  session (e.g. in `~/.xsession` before `startxfce4`, prepend its directory to
+  `LD_LIBRARY_PATH`). Do **not** run a local `pcscd` in the session — it would
+  compete with the redirected endpoint.
+- Point PKCS#11 apps at your card's module (e.g. `opensc-pkcs11.so`):
+  - Firefox/Chromium: add the PKCS#11 module in the security-devices UI or via
+    `modutil`/policy so the browser sees the redirected reader.
+  - `ssh -I /usr/lib/.../opensc-pkcs11.so`, GnuPG scdaemon, `pkcs11-tool
+    --module ...` all work once the wrapper resolves to the redirected card.
+- Verify inside the session: `pkcs11-tool --list-slots` (or `pcsc_scan`) should
+  show the client's reader/card.
+
+### A.4 Does the card stay available to local IGEL browser apps? — Yes.
+
+Because MS-RDPESC redirects at the **PC/SC / smart-card-service** layer (not the
+USB device), the IGEL-local `pcscd` keeps ownership of the physical reader and
+serves local apps concurrently in **shared mode** (`SCARD_SHARE_SHARED`). This
+is the normal "smart-card SSO to the portal in the local browser *and* into the
+session" pattern and it works. Caveats are **contention, not availability**:
+
+- `BEGIN/END_TRANSACTION` take brief exclusive locks; a long transaction on
+  either side blocks the other momentarily.
+- If either side opens the card `SCARD_SHARE_EXCLUSIVE` (some PKI middleware
+  does), the other is locked out until release.
+- A few single-application applets serialize poorly under concurrent use.
+
+Raw USB reader passthrough (A.2) is the only mode that would remove local
+availability — avoid it if you need concurrent local browser access.
+
+### A.5 Security trade-off
+
+Redirecting the card into the session means the VDI host — and whoever
+controls it — can drive PIN-verified operations on the card while it is
+inserted. For high-assurance deployments consider **card-for-broker-login
+only** (the base Mode C model, no redirection), which never exposes the
+credential to the remote host. Enable redirection only where in-session card
+use is a hard requirement, and pair it with host hardening and short PIN-cache
+lifetimes.
+
+### A.6 Validation checklist (do this before production)
+
+1. XRDP rebuilt with `--enable-smartcard`; `xrdp-chansrv` starts cleanly.
+2. RD Core client redirects the card (PC/SC, not USB); `~/.pcsc<display>/`
+   appears in the session.
+3. `pkcs11-tool --list-slots` in the session shows the client card.
+4. An in-session browser completes a client-certificate TLS auth with the card.
+5. A **local** IGEL browser still completes a card operation while the session
+   holds the card (shared-mode concurrency).
+6. Exercise `GET_STATUS_CHANGE`, transactions, and card remove/reinsert for
+   RD-Core↔XRDP IOCTL interop; log any unsupported IOCTLs from chansrv.
