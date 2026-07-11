@@ -28,8 +28,9 @@
 
     - name: Run Mode C RDP-level smoke test
       ansible.builtin.command: >
-        bash {{ xrdp_src | default('/home/rick/Soft/xrdp') }}/test-lab/phase6/modec-smoke/modec-smoke.sh
+        bash {{ xrdp_source_dir }}/test-lab/phase6/modec-smoke/modec-smoke.sh
       environment:
+        XRDP_SRC: "{{ xrdp_source_dir }}"
         LAB_TEST_USER: "{{ lab_test_user }}"
         BAF_ISSUER: "{{ baf_issuer }}"
         BAF_AUDIENCE: "{{ baf_audience }}"

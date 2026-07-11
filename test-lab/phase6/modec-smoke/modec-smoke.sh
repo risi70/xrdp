@@ -111,6 +111,11 @@ PY
 echo "== enabling Mode C routing-token ingress in $XRDP_INI [Globals] =="
 grep -q '^broker_auth_enabled' "$XRDP_INI" || \
     sed -i '/^\[Globals\]/a broker_auth_enabled=true\nbroker_auth_modec_ingress_enabled=true' "$XRDP_INI"
+# Disable the dynamic-resize monitor DVC: a headless RDP client declines that
+# channel, and xrdp treats the decline as fatal. It is a per-session-module
+# value, so set it in the Xorg module section the lab session uses.
+grep -qE '^enable_dynamic_resizing' "$XRDP_INI" || \
+    sed -i '/^\[Xorg\]/a enable_dynamic_resizing=false' "$XRDP_INI"
 
 # --- start trusted daemons -----------------------------------------------
 echo "== starting replay and handle services =="
@@ -160,8 +165,13 @@ kill_session() { pkill -u "$USER_NAME" -f 'xorgxrdp|Xorg|xrdp-chansrv|startwm' \
                  2>/dev/null || true; sleep 1; }
 
 connect() { # args passed to xfreerdp; runs bounded, backgrounded
-    timeout 20 xfreerdp /v:127.0.0.1 /cert:ignore /w:1024 /h:768 \
-        +auth-only:off "$@" >"$WORK/xfreerdp.log" 2>&1 &
+    # The VDI VM is headless: give the client a virtual X display, force TLS,
+    # software GDI, and disable the dynamic-resolution/monitor DVC that xrdp
+    # cannot negotiate against a headless client.
+    timeout 30 xvfb-run -a -s "-screen 0 1280x1024x24" \
+        xfreerdp /v:127.0.0.1 /cert:ignore /sec:tls /gdi:sw /bpp:24 \
+        -gfx +glyph-cache /w:1024 /h:768 "$@" \
+        >"$WORK/xfreerdp.log" 2>&1 &
     PIDS+=($!)
 }
 

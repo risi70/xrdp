@@ -965,7 +965,7 @@ scp_send_broker_login_request_v1(struct trans *trans,
                                         "qquBssB", profile_version,
                                         credential_kind,
                                         assertion_length, &assertion_desc,
-                                        client_address,
+                                        client_address == NULL ? "" : client_address,
                                         server_nonce == NULL ? "" : server_nonce,
                                         &correlation_desc);
     libipm_msg_out_erase(trans);

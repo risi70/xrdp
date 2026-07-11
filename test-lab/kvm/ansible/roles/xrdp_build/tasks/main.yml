@@ -12,13 +12,22 @@
       - libx11-dev
       - libxfixes-dev
       - libxrandr-dev
+      - libxkbfile-dev
+      - libpixman-1-dev
+      - libsm-dev
+      - libice-dev
       - libjwt-dev
       - libjansson-dev
-      - libcheck-dev
+      # Ubuntu 24.04 ships the Check unit-test framework as "check";
+      # there is no separate libcheck-dev package on Noble.
+      - check
       - libcmocka-dev
       - nasm
     state: present
     update_cache: true
+    # Wait out boot-time apt (cloud-init / unattended-upgrades) instead of
+    # failing on the dpkg frontend lock.
+    lock_timeout: 300
   become: true
 
 - name: Ensure source directory exists

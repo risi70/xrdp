@@ -21,5 +21,10 @@ DEST=${2:-/opt/xrdp-src}
 USER_NAME=${PHASE6_SSH_USER:-ansible}
 require_cmd rsync
 require_cmd ssh
+# The destination (e.g. /opt/xrdp-src) is usually under a root-owned path the
+# sync user cannot write. Pre-create it with the correct ownership so rsync
+# can populate it without running as root.
+ssh "$USER_NAME@$TARGET" \
+  "sudo mkdir -p '$DEST' && sudo chown '$USER_NAME':'$USER_NAME' '$DEST'"
 rsync -az --delete   --exclude .git   --exclude autom4te.cache   --exclude '**/.libs'   --exclude '**/*.o'   --exclude '**/*.lo'   --exclude '**/*.la'   --exclude 'test-lab/kvm/images/*'   --exclude 'test-lab/kvm/isos/*'   --exclude 'test-lab/kvm/artifacts/*'   --exclude 'test-lab/phase6/reports/*'   --exclude '__pycache__'   --exclude '*.pyc'   "$ROOT/" "$USER_NAME@$TARGET:$DEST/"
 echo "Source synchronized to $USER_NAME@$TARGET:$DEST"

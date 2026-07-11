@@ -10,6 +10,9 @@
       - nginx
     state: present
     update_cache: true
+    # Wait out boot-time apt (cloud-init / unattended-upgrades) instead of
+    # failing on the dpkg frontend lock.
+    lock_timeout: 300
   become: true
 
 - name: Create OpenUDS-compatible reference directory

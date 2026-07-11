@@ -287,6 +287,7 @@ xrdp_sec_rdsaad_exchange(struct xrdp_sec *self)
         {
             result = RDSAAD_HRESULT_S_OK;
             self->rdp_layer->client_info.rdp_autologin = 1;
+            self->rdp_layer->client_info.broker_preauth_authorized = 1;
         }
         else if (response.status == XRDP_RDSAAD_PREAUTH_MALFORMED)
         {
@@ -342,6 +343,7 @@ xrdp_sec_modec_preauth(struct xrdp_sec *self)
     if (cb_status == 0 && response.status == XRDP_RDSAAD_PREAUTH_AUTHORIZED)
     {
         self->rdp_layer->client_info.rdp_autologin = 1;
+        self->rdp_layer->client_info.broker_preauth_authorized = 1;
         return 0;
     }
     return 1;
@@ -720,7 +722,8 @@ xrdp_sec_process_logon_info(struct xrdp_sec *self, struct stream *s)
      * always sends autologon credentials, even when user has not
      * configured any
      */
-    if (len_user == 0 && self->rdp_layer->client_info.rdp_autologin)
+    if (len_user == 0 && self->rdp_layer->client_info.rdp_autologin &&
+            !self->rdp_layer->client_info.broker_preauth_authorized)
     {
         LOG(LOG_LEVEL_DEBUG, "Client supplied user name is empty, disabling autologin");
         self->rdp_layer->client_info.rdp_autologin = 0;
@@ -744,7 +747,8 @@ xrdp_sec_process_logon_info(struct xrdp_sec *self, struct stream *s)
      * Ignore autologin requests if the password is empty. System managers
      * who really want to allow empty passwords can do this with a
      * special session type */
-    if (len_password == 0 && self->rdp_layer->client_info.rdp_autologin)
+    if (len_password == 0 && self->rdp_layer->client_info.rdp_autologin &&
+            !self->rdp_layer->client_info.broker_preauth_authorized)
     {
         LOG(LOG_LEVEL_DEBUG,
             "Client supplied password is empty, disabling autologin");

@@ -270,6 +270,11 @@ struct xrdp_client_info
     int broker_auth_rdsaad_enabled;
     int broker_auth_modec_ingress_enabled;
     int broker_auth_config_valid;
+    /* Set once a broker pre-logon (RDSAAD or Mode C) has authorized the
+     * connection out of band. The client sends no username/password in this
+     * case, so the standard "empty credential disables autologin" logic must
+     * not fire: the session is created from the pre-authorized transport. */
+    int broker_preauth_authorized;
     int broker_auth_allow_session_start;
     int broker_auth_reject_uid0;
     int broker_auth_max_assertion_size;

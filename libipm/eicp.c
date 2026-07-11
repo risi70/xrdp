@@ -406,7 +406,7 @@ eicp_send_broker_login_request_v1(struct trans *trans,
                                         "qquBssBh", profile_version,
                                         credential_kind,
                                         assertion_length, &assertion_desc,
-                                        client_address,
+                                        client_address == NULL ? "" : client_address,
                                         server_nonce == NULL ? "" : server_nonce,
                                         &correlation_desc, scp_fd);
     libipm_msg_out_erase(trans);
