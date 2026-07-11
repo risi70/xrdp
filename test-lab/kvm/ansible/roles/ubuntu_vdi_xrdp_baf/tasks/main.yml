@@ -21,6 +21,77 @@
     lock_timeout: 300
   become: true
 
+# The distro xorgxrdp (0.9.x) is ABI-incompatible with a source-built
+# xrdp 0.10.x: the Xorg session starts but publishes no RandR outputs
+# ("waitforx: Unable to find any RandR outputs") and the desktop never
+# renders. Build a matching xorgxrdp against the installed xrdp devel files.
+- name: Install xorgxrdp build dependencies
+  ansible.builtin.apt:
+    name:
+      - xserver-xorg-dev
+      - nasm
+      - git
+      - pkg-config
+    state: present
+    update_cache: true
+    lock_timeout: 300
+  become: true
+  when: phase6_build_xrdp | default(false) | bool
+
+- name: Fetch matching xorgxrdp source
+  ansible.builtin.git:
+    repo: https://github.com/neutrinolabs/xorgxrdp
+    dest: "{{ xorgxrdp_source_dir | default('/opt/xorgxrdp-src') }}"
+    version: "{{ xorgxrdp_version | default('devel') }}"
+    depth: 1
+    force: true
+  become: true
+  when: phase6_build_xrdp | default(false) | bool
+
+- name: Build and install matching xorgxrdp
+  ansible.builtin.shell: |
+    set -eu
+    ./bootstrap
+    PKG_CONFIG_PATH=/usr/local/lib/pkgconfig ./configure
+    make -j"$(nproc)"
+    make install
+  args:
+    chdir: "{{ xorgxrdp_source_dir | default('/opt/xorgxrdp-src') }}"
+  become: true
+  when: phase6_build_xrdp | default(false) | bool
+
+# Xorg started by xrdp for a non-console user is refused by the setuid
+# wrapper unless anybody is allowed.
+- name: Allow xrdp to start Xorg (Xwrapper.config)
+  ansible.builtin.copy:
+    dest: /etc/X11/Xwrapper.config
+    mode: "0644"
+    content: |
+      allowed_users=anybody
+      needs_root_rights=yes
+  become: true
+
+# Only xfce4 is installed; make it the default session manager so the
+# desktop actually launches instead of falling back to a blank session.
+- name: Make xfce4 the default X session manager
+  ansible.builtin.command:
+    cmd: update-alternatives --set x-session-manager /usr/bin/xfce4-session
+  become: true
+  changed_when: false
+  failed_when: false
+
+- name: Give the lab user an xfce .xsession
+  ansible.builtin.copy:
+    dest: "/home/{{ lab_test_user }}/.xsession"
+    owner: "{{ lab_test_user }}"
+    group: "{{ lab_test_user }}"
+    mode: "0755"
+    content: |
+      #!/bin/sh
+      exec startxfce4
+  become: true
+  failed_when: false
+
 - name: Create BAF runtime directories
   ansible.builtin.file:
     path: "{{ item }}"
