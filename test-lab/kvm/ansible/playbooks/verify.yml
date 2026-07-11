@@ -40,3 +40,18 @@
       changed_when: false
       tags:
         - modec-smoke
+
+    - name: Run smart-card broker to Mode C session smoke test
+      ansible.builtin.command: >
+        bash {{ xrdp_source_dir }}/test-lab/phase6/modec-smoke/smartcard-smoke.sh
+      environment:
+        XRDP_SRC: "{{ xrdp_source_dir }}"
+        LAB_TEST_USER: "{{ lab_test_user }}"
+        BAF_ISSUER: "{{ baf_issuer }}"
+        BAF_AUDIENCE: "{{ baf_audience }}"
+        BAF_TARGET: "{{ baf_target }}"
+        BAF_REPLAY_SOCKET: "{{ baf_replay_socket }}"
+      become: true
+      changed_when: false
+      tags:
+        - smartcard-smoke

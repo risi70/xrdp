@@ -67,13 +67,50 @@ cd test-lab/kvm/ansible
 ansible-playbook -i inventory.ini playbooks/verify.yml --tags modec-smoke
 ```
 
+## Part C — Smart-card broker authentication (card → broker → Mode C)
+
+Verifies a full **card → broker → session** flow. A virtual smart card — a
+PIN-protected PKCS#12 credential — authenticates the user to the reference
+broker by X.509 challenge-response (proof of possession). The broker
+validates the certificate chain to a trusted CA, maps the certificate
+identity to a Linux user, mints a BAF assertion, and registers a one-time
+handle, which then rides the proven Mode C path to a desktop session.
+
+xrdp has no server-side NLA/CredSSP, so the smart card authenticates to the
+**broker** (northbound), not to the RDP connection itself.
+
+- **`run-smartcard-proof.sh`** (anywhere): headless proof — trusted card
+  authenticates and its assertion validates through the real daemons;
+  untrusted-CA and expired cards are rejected by the broker.
+  ```bash
+  ./run-smartcard-proof.sh
+  # ... SC PROOF PASS: smart-card -> broker -> handle -> validate (positive + 2 negatives)
+  ```
+- **`smartcard-smoke.sh`** (VDI VM, root): a virtual smart card drives both
+  Mode C channels to a real desktop session for the NSS-resolved user.
+  ```bash
+  cd test-lab/kvm/ansible
+  ansible-playbook -i inventory.example.ini playbooks/verify.yml --tags smartcard-smoke
+  ```
+
+The card backend is pluggable (`broker-auth/reference-broker/smartcard_auth.py`):
+`P12Card` signs directly with the p12 key (used here); `Pkcs11Card` drives a
+real PKCS#11 token (e.g. SoftHSM2 loaded from the same p12) via `pkcs11-tool`
+for higher fidelity — `smartcard_login.py` accepts either via `--p12` or
+`--pkcs11-module/--token-label/--card-cert`.
+
 ## Files
 
 | File | Runs on | Purpose |
 |---|---|---|
 | `run-local-proof.sh` | anywhere (built tree) | headless crypto/handle/replay proof |
 | `modec-smoke.sh` | Phase 6 VDI VM (root) | xfreerdp routing-token + one-time-credential |
+| `run-smartcard-proof.sh` | anywhere (built tree) | headless card → broker → handle → validate |
+| `smartcard-smoke.sh` | Phase 6 VDI VM (root) | virtual smart card → broker → Mode C session |
+| `make-smartcard.py` | both | generate CA + user p12 (the simulated card) |
 | `baf_handle_tool.c` | both | `store`/`check` CLI; C6 broker-registration stand-in |
 
-`baf_handle_tool` is a lab helper, not a production component — the broker
-registration path is SD-009 Wave 2 (C6).
+Broker-side smart-card auth lives in
+`broker-auth/reference-broker/smartcard_auth.py` + `smartcard_login.py`.
+`baf_handle_tool` and the card material are lab helpers, not production
+components — the broker registration path is SD-009 Wave 2 (C6).
