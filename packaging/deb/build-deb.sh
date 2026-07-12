@@ -55,7 +55,21 @@ rsync -a --exclude '.git' --exclude autom4te.cache --exclude '**/.libs' \
     --exclude 'libtool' --exclude 'packaging/deb/out' "$ROOT/" "$BUILD/"
 cd "$BUILD"
 ./bootstrap
-./configure --enable-broker-auth --disable-rfxcodec \
+# In-session smart-card REDIRECTION (MS-RDPESC) is OFF by default: upstream
+# marks --enable-smartcard experimental and our tree carries commit 7a2ac0c1
+# ("smartcard code contains a number of security vulnerabilities and does not
+# work at the moment"). Do NOT enable for production. Set WITH_SMARTCARD=1
+# only for a pre-prod interop test (deployment guide Appendix A). This does
+# NOT affect smart-card *login* (card -> broker -> Mode C), which is broker-
+# side + --enable-broker-auth and always available.
+SC_FLAG=""
+if [ "${WITH_SMARTCARD:-0}" = "1" ]; then
+    SC_FLAG="--enable-smartcard"
+    PKGVER="${PKGVER}+sc"   # distinguishable from a production build
+    echo "!! WARNING: building with EXPERIMENTAL smart-card redirection"
+    echo "!! (known vulnerabilities per upstream; pre-prod interop testing only)"
+fi
+./configure --enable-broker-auth --disable-rfxcodec $SC_FLAG \
     --prefix=/usr --sysconfdir=/etc --localstatedir=/var >/dev/null
 make -j"$(nproc)"
 rm -rf "$STAGE"; make install DESTDIR="$STAGE" >/dev/null

@@ -51,6 +51,19 @@ survive upgrades.
   wrap the autotools build in `debian/` + `dpkg-buildpackage`.
 - `xorgxrdp` tracks `neutrinolabs/xorgxrdp` `devel` by default; pin with
   `XORGXRDP_VERSION=<tag>` if you need a specific revision.
-- To add smart-card *redirection* into sessions, rebuild with
-  `--enable-smartcard` (see deployment guide Appendix A) — it is off in these
-  packages because upstream marks it experimental.
+## Smart card: two different things
+
+- **Smart-card *login*** (card → broker → Mode C) is **always enabled** — it is
+  `--enable-broker-auth` (in this package) plus the broker connector
+  (`packaging/uds`). It needs nothing here.
+- **In-session smart-card *redirection*** (MS-RDPESC, using the card inside the
+  desktop) is **OFF by default and should stay off for production.** Upstream
+  gates it behind `--enable-smartcard` and our tree's commit `7a2ac0c1` states
+  the code *"contains a number of security vulnerabilities and does not work at
+  the moment."* Only enable it for a pre-prod interop test:
+  ```bash
+  WITH_SMARTCARD=1 packaging/deb/build-deb.sh   # builds xrdp-baf_..+sc_...deb
+  ```
+  The `+sc` version suffix keeps that build distinct from a production package.
+  Validate it per deployment guide Appendix A before relying on it, and do not
+  ship the `+sc` build to production.
