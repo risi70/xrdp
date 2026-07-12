@@ -86,52 +86,69 @@ the VDI — the broker never bypasses local Linux authority.
 
 Perform these steps in the golden template. All commands run as root.
 
-### 4.1 Build and install XRDP with broker-auth
+### 4.1 Install XRDP-BAF from the `.deb` packages
+
+Deploy the two BAF packages (`xrdp-baf` + the matching `xorgxrdp-baf`) rather
+than building from source on the golden template. Two options:
+
+**Option A — build the `.deb` once, install everywhere (recommended).** On a
+build host running the *same* Ubuntu release as the VDI (packages are
+release-specific: build on 24.04 for a 24.04 image, on 26.04 for 26.04):
+
+```bash
+apt-get install -y build-essential autoconf automake libtool pkg-config \
+    libssl-dev libpam0g-dev libx11-dev libxfixes-dev libxrandr-dev \
+    libxkbfile-dev libpixman-1-dev libsm-dev libice-dev libjwt-dev \
+    libjansson-dev nasm git xserver-xorg-dev dpkg-dev rsync
+
+git clone https://github.com/risi70/xrdp.git /opt/xrdp-src
+cd /opt/xrdp-src && git checkout mvp-broker-assertion
+packaging/deb/build-deb.sh        # -> packaging/deb/out/*.deb  (see packaging/deb/README.md)
+```
+
+This produces `xrdp-baf_<ver>~baf1+<codename>_<arch>.deb` and the matching
+`xorgxrdp-baf_..._<arch>.deb`. The `xrdp-baf` package is built with in-session
+**smart-card redirection on by default** (`--enable-smartcard`); if you do not
+need in-session card use, build with `WITH_SMARTCARD=0 packaging/deb/build-deb.sh`
+(read `broker-auth/UPSTREAM-MS-RDPESC-REVIEW.md` first — that code is upstream-
+experimental and we reviewed it before enabling it).
+
+Copy both `.deb`s into the golden template and install:
 
 ```bash
 apt-get update
-apt-get install -y build-essential autoconf automake libtool pkg-config \
-    libssl-dev libpam0g-dev libx11-dev libxfixes-dev libxrandr-dev \
-    libxkbfile-dev libpixman-1-dev libsm-dev libice-dev \
-    libjwt-dev libjansson-dev nasm git
-
-git clone https://github.com/risi70/xrdp.git /opt/xrdp-src
-cd /opt/xrdp-src
-git checkout mvp-broker-assertion
-./bootstrap
-./configure --enable-broker-auth --disable-rfxcodec
-make -j"$(nproc)"
-make install          # installs to /usr/local/sbin, config to /etc/xrdp
+apt-get install -y ./xrdp-baf_*.deb ./xorgxrdp-baf_*.deb
 ```
 
-This installs `xrdp`, `xrdp-sesman`, `xrdp-sesexec`, and the BAF daemons
-`xrdp-baf-replayd` and `xrdp-baf-handled`, plus `/usr/local/lib/pkgconfig/xrdp.pc`.
+**Option B — build directly in the template.** Run the `build-deb.sh` block
+above inside the template itself, then `apt-get install -y ./packaging/deb/out/*.deb`.
 
-### 4.2 Build a matching xorgxrdp (required)
+The install lays down `xrdp`, `xrdp-sesman`, `xrdp-sesexec`, the BAF daemons
+`xrdp-baf-replayd`/`xrdp-baf-handled` (to `/usr/sbin`), and the matching Xorg
+drivers. The package `Provides/Conflicts/Replaces: xrdp`, so it cleanly
+supersedes any distro `xrdp`. Its `postinst` also does the desktop plumbing for
+you (see §4.3).
 
-The distro `xorgxrdp` package (0.9.x) is **ABI-incompatible** with this XRDP
-(0.10.x): the Xorg session starts but publishes no RandR outputs and the
-desktop never renders. Build xorgxrdp against the XRDP you just installed:
+### 4.2 Matching xorgxrdp — handled by the package
 
-```bash
-apt-get install -y xserver-xorg-dev
-git clone https://github.com/neutrinolabs/xorgxrdp /opt/xorgxrdp-src
-cd /opt/xorgxrdp-src
-./bootstrap
-PKG_CONFIG_PATH=/usr/local/lib/pkgconfig ./configure
-make -j"$(nproc)"
-make install
-```
+The distro `xorgxrdp` (0.9.x) is **ABI-incompatible** with this XRDP (0.10.x):
+the Xorg session starts but publishes no RandR outputs and the desktop never
+renders (upstream issue #3249). The `xorgxrdp-baf` package you installed in §4.1
+is built against this exact XRDP and `Provides/Conflicts/Replaces: xorgxrdp`, so
+it supersedes the distro driver. **Do not install the distro `xorgxrdp`** — no
+separate manual build is needed.
 
 ### 4.3 Desktop and session
 
 ```bash
 apt-get install -y xfce4 dbus-x11
-# Xorg started by xrdp for a non-console user must be allowed:
-printf 'allowed_users=anybody\nneeds_root_rights=yes\n' > /etc/X11/Xwrapper.config
-# Only xfce is installed, so make it the default session:
-update-alternatives --set x-session-manager /usr/bin/xfce4-session
 ```
+
+The `xrdp-baf` `postinst` already writes `/etc/X11/Xwrapper.config`
+(`allowed_users=anybody`, so xrdp can start Xorg for a non-console user) and,
+when `xfce4-session` is present, sets it as the default `x-session-manager` — so
+install xfce4 **before** the package if you can, or re-run
+`update-alternatives --set x-session-manager /usr/bin/xfce4-session` afterwards.
 
 Users get a stable desktop via `~/.xsession` (`exec startxfce4`), provisioned
 by your identity integration (or a skeleton in `/etc/skel`).
@@ -153,43 +170,25 @@ Ensure `getent passwd <brokeruser>` resolves before continuing.
 ### 4.5 BAF trusted services and configuration
 
 ```bash
-install -d -m 0755 /etc/xrdp/baf /run/xrdp-baf
+install -d -m 0755 /etc/xrdp/baf
 # Install your production trust anchor (broker's public signing key / JWKS):
 cp broker-signing-key.pub /etc/xrdp/baf/trust-anchor.pem
 ```
 
-systemd units for the replay and handle services:
-
-```ini
-# /etc/systemd/system/xrdp-baf-replayd.service
-[Unit]
-Description=XRDP BAF trusted replay service
-After=network.target
-[Service]
-ExecStart=/usr/local/sbin/xrdp-baf-replayd -s /run/xrdp-baf/replay.sock
-Restart=on-failure
-RuntimeDirectory=xrdp-baf
-[Install]
-WantedBy=multi-user.target
-```
-
-```ini
-# /etc/systemd/system/xrdp-baf-handled.service
-[Unit]
-Description=XRDP BAF one-time handle service
-After=network.target
-[Service]
-ExecStart=/usr/local/sbin/xrdp-baf-handled -s /run/xrdp-baf/handle.sock
-Restart=on-failure
-RuntimeDirectory=xrdp-baf
-[Install]
-WantedBy=multi-user.target
-```
+The replay and handle services ship **with the package** (units in
+`/lib/systemd/system/xrdp-baf-replayd.service` and `…-handled.service`, running
+`/usr/sbin/xrdp-baf-{replayd,handled}` with a systemd `RuntimeDirectory=xrdp-baf`,
+so `/run/xrdp-baf` is created automatically). The `postinst` already ran
+`systemctl enable` on both; just start them:
 
 ```bash
-systemctl daemon-reload
-systemctl enable --now xrdp-baf-replayd xrdp-baf-handled
+systemctl start xrdp-baf-replayd xrdp-baf-handled
+systemctl status xrdp-baf-replayd xrdp-baf-handled --no-pager   # confirm active
 ```
+
+They stay dormant with respect to auth until you turn on `[BrokerAuth]` below —
+enabling the package does **not** change behaviour for existing
+username/password xrdp users.
 
 Configure the trusted `[BrokerAuth]` section of `/etc/xrdp/sesman.ini`
 (these values are read only from this local file, never from the client):
@@ -259,30 +258,44 @@ deploy OpenUDS). Then, in the UDS admin UI:
 ### 5.1 Producing the BAF handle (the integration point)
 
 UDS must, per connection, obtain a BAF assertion and register it with the
-VDI's handle service to get the single-use handle. Two options:
+VDI's handle service to get the single-use handle. Install the **BAF UDS
+connector** on the UDS host (self-contained venv + the broker components + the
+`baf-uds-connect` CLI the transport calls; see `packaging/uds/README.md`):
 
-- **Reference path (available now):** run the bundled broker components on the
-  UDS host as a small sidecar the RDP transport calls:
-  ```bash
-  # on the UDS host, per connection:
-  python3 broker-auth/reference-broker/smartcard_login.py \
-      --p12 <user-cert.p12> --pin <pin> --ca /etc/uds/baf/ca.pem \
-      --issuer-key /etc/uds/baf/issuer.key --issuer https://uds.example.com/baf \
-      --audience xrdp://ubuntu-vdi --target urn:baf:desktop:pool:ubuntu-vdi \
-      --kid baf-key-1 > assertion.jwt
-  # register with the target VDI's handle service (over a trusted mTLS/root path):
-  HANDLE=$(baf_handle_tool store -s <vdi-handle-socket> \
-      -t urn:baf:desktop:pool:ubuntu-vdi -l 90 < assertion.jwt)
-  # inject $HANDLE into the RDP transport parameters
-  ```
-  For password/MFA (non-smart-card) auth, replace `smartcard_login.py` with a
-  direct assertion mint (`reference-broker/issue_assertion.py`) after UDS has
-  authenticated the user.
+```bash
+# on the UDS host, from a checkout of the xrdp repo:
+sudo packaging/uds/install.sh
+#   -> /opt/baf-uds (venv + components), /usr/local/bin/baf-uds-connect,
+#      /etc/baf-uds/config.yaml
+```
 
-- **Production path (to implement — SD-009 C6):** a UDS transport plugin that
-  performs the mint+register in-process and reaches the VDI handle service
-  over a root-owned socket (co-located) or mutually-authenticated TLS (remote).
-  This removes the sidecar and is the recommended long-term integration.
+Edit `/etc/baf-uds/config.yaml` so `issuer / audience / target / kid` **exactly
+match** the VDI `[BrokerAuth]` values (§4.5), place the broker signing key
+(RS256 private PEM — its public half is the VDI `TrustAnchor`) at the
+configured `issuer_key`, and for smart-card auth place the CA at `ca`.
+
+Then have the UDS RDP transport call the CLI per connection, after UDS has
+authenticated the user:
+
+```bash
+# routing-token channel (password/MFA/SAML user UDS already authenticated):
+baf-uds-connect --user "$USERNAME" --format cookie
+#   -> Cookie: msts=<64-hex handle>     (set as the RDP loadbalanceinfo/cookie)
+
+# one-time-credential channel:
+HANDLE=$(baf-uds-connect --user "$USERNAME")
+#   -> set the RDP password field to $HANDLE, username to $USERNAME
+
+# smart-card auth (the card authenticates to the broker first):
+baf-uds-connect --smartcard --p12 <user.p12> --pin "$PIN" --format cookie
+```
+
+The connector mints the assertion, registers it with the target VDI's handle
+service via the wire-compatible `baf_handle_client.py`, and returns the handle.
+For reaching a **remote** VDI handle socket, see `packaging/uds/README.md`
+("Reaching the VDI handle service" — forwarded socket now; the SD-009 **C6**
+mTLS bridge is the productization). A native in-process UDS transport plugin is
+the long-term integration that removes the CLI hop.
 
 The broker's signing key must correspond to the VDI's `TrustAnchor`, and its
 `issuer/audience/target/kid` must match the VDI `[BrokerAuth]` values exactly.
@@ -356,8 +369,8 @@ lifecycle tests — use it to validate a VDI image before templating.
 
 - **No server-side NLA** in XRDP: smart cards authenticate to the broker, not
   the RDP connection (by design here).
-- **UDS↔BAF transport plugin (C6)** is not yet productized; Section 5.1's
-  reference sidecar is the current integration path.
+- **UDS↔BAF transport plugin (C6)** is not yet productized; the §5.1
+  `baf-uds-connect` connector is the current integration path.
 - **Clustered/HA replay:** the handle and replay services are host-local. For
   a desktop pool, either bind assertions to a specific target (so a handle
   cannot move hosts) or deploy a shared atomic replay store.
@@ -381,25 +394,31 @@ redirection ([MS-RDPESC]). Enable it only if you need in-session card use.
   `BEGIN/END_TRANSACTION`, `GET_STATUS_CHANGE_*`, `LIST_READERS`, `GETATTRIB`,
   `TRANSMIT`, …) over `rdpdr` and re-exposes the card to session apps through a
   `libpcsclite`-compatible socket.
-- It is **compile-gated by `--enable-smartcard`, which upstream marks
-  "experimental — not for production" (default: no).** Treat this path as
-  *supported-but-unvalidated*: it must be interop-tested against your specific
-  MS RD Core SDK client build before you rely on it. It does **not** require
-  NLA (redirection runs on the post-connection `rdpdr` channel).
+- This is `--enable-smartcard`, which upstream marks **"experimental — not for
+  production."** The `xrdp-baf` `.deb` from §4.1 is **built with it on by
+  default** (per the IGEL card-redirection deployment decision), so on a
+  package install the server side is already present — there is nothing to
+  rebuild. Treat the path as *supported-but-unvalidated*: interop-test it
+  against your specific MS RD Core SDK client build before relying on it. It
+  does **not** require NLA (redirection runs on the post-connection `rdpdr`
+  channel).
+- **Read `broker-auth/UPSTREAM-MS-RDPESC-REVIEW.md` first.** We reviewed this
+  upstream code before enabling it: the return-path parsers trust
+  client-supplied lengths without bounds checks (OOB read/write reachable by
+  the RDP client bound to the session). The redirected pcsc socket is `0700`
+  under the session `$HOME`, so the exposure is confined to that user's own
+  session (crash/DoS + memory disclosure into its own pcsc response), not a
+  cross-user host compromise — but it is a real reason to restrict redirection
+  to managed endpoints. To build **without** redirection, use
+  `WITH_SMARTCARD=0 packaging/deb/build-deb.sh` and install that package.
 
-### A.1 Server (Ubuntu VDI): rebuild XRDP with smart-card support
+### A.1 Server (Ubuntu VDI): already present in the package
 
-The Part B build intentionally omitted this. Rebuild with the flag added:
+No rebuild is needed — the `xrdp-baf` package installed in §4.1 already carries
+`--enable-smartcard`. (To confirm: `strings /usr/sbin/xrdp-chansrv | grep -qi
+scard` succeeds on a redirection-enabled build.)
 
-```bash
-cd /opt/xrdp-src
-./configure --enable-broker-auth --enable-smartcard --disable-rfxcodec
-make -j"$(nproc)"
-make install
-systemctl restart xrdp xrdp-sesman
-```
-
-`xrdp-chansrv` now advertises the redirected smart-card device and, when a
+`xrdp-chansrv` advertises the redirected smart-card device and, when a
 client redirects a card, creates a PC/SC IPC endpoint at
 **`$HOME/.pcsc<display>/`** in the session (e.g. `~/.pcsc10.0`). XRDP ships a
 drop-in `libpcsclite` wrapper (`sesman/chansrv/pcsc/`) that points pcsc-lite
@@ -460,7 +479,8 @@ lifetimes.
 
 ### A.6 Validation checklist (do this before production)
 
-1. XRDP rebuilt with `--enable-smartcard`; `xrdp-chansrv` starts cleanly.
+1. `xrdp-baf` package installed (redirection is built in by default);
+   `xrdp-chansrv` starts cleanly.
 2. RD Core client redirects the card (PC/SC, not USB); `~/.pcsc<display>/`
    appears in the session.
 3. `pkcs11-tool --list-slots` in the session shows the client card.

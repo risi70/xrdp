@@ -55,19 +55,20 @@ rsync -a --exclude '.git' --exclude autom4te.cache --exclude '**/.libs' \
     --exclude 'libtool' --exclude 'packaging/deb/out' "$ROOT/" "$BUILD/"
 cd "$BUILD"
 ./bootstrap
-# In-session smart-card REDIRECTION (MS-RDPESC) is OFF by default: upstream
-# marks --enable-smartcard experimental and our tree carries commit 7a2ac0c1
-# ("smartcard code contains a number of security vulnerabilities and does not
-# work at the moment"). Do NOT enable for production. Set WITH_SMARTCARD=1
-# only for a pre-prod interop test (deployment guide Appendix A). This does
-# NOT affect smart-card *login* (card -> broker -> Mode C), which is broker-
-# side + --enable-broker-auth and always available.
-SC_FLAG=""
-if [ "${WITH_SMARTCARD:-0}" = "1" ]; then
+# In-session smart-card REDIRECTION (MS-RDPESC) is enabled by default per
+# deployment decision. Upstream marks --enable-smartcard experimental and our
+# tree carries commit 7a2ac0c1 ("smartcard code contains a number of security
+# vulnerabilities and does not work at the moment"). A security review of that
+# code and an upstream-facing report accompany this build:
+# broker-auth/UPSTREAM-MS-RDPESC-REVIEW.md. Set WITH_SMARTCARD=0 to build
+# without it. This is independent of smart-card *login* (card -> broker ->
+# Mode C), which is always available via --enable-broker-auth.
+if [ "${WITH_SMARTCARD:-1}" = "0" ]; then
+    SC_FLAG=""
+    echo "== building WITHOUT smart-card redirection =="
+else
     SC_FLAG="--enable-smartcard"
-    PKGVER="${PKGVER}+sc"   # distinguishable from a production build
-    echo "!! WARNING: building with EXPERIMENTAL smart-card redirection"
-    echo "!! (known vulnerabilities per upstream; pre-prod interop testing only)"
+    echo "== building WITH experimental MS-RDPESC smart-card redirection =="
 fi
 ./configure --enable-broker-auth --disable-rfxcodec $SC_FLAG \
     --prefix=/usr --sysconfdir=/etc --localstatedir=/var >/dev/null
@@ -126,7 +127,8 @@ Description: XRDP with the Broker Authentication Framework (BAF)
  validates through the BAF JWT validator, trusted replay service, NSS/SSSD
  identity binding and PAM before starting a session. Preserves the classic
  username/password PAM login. Ships the xrdp-baf-replayd and xrdp-baf-handled
- trusted services.
+ trusted services. Built with experimental MS-RDPESC smart-card redirection
+ (--enable-smartcard); see broker-auth/UPSTREAM-MS-RDPESC-REVIEW.md.
 CTRL
 
 # conffiles: don't clobber admin-edited config on upgrade
@@ -178,10 +180,14 @@ if [ "$SKIP_XORG" -eq 0 ]; then
     XSTAGE="$OUT/xorgxrdp-baf"
     ( cd "$XSRC"
       ./bootstrap >/dev/null
-      # Build against the staged (not-yet-installed) xrdp devel files: sysroot
-      # makes pkg-config resolve xrdp's Cflags into the stage tree.
-      PKG_CONFIG_SYSROOT_DIR="$STAGE" \
-      PKG_CONFIG_PATH="$STAGE/usr/lib/pkgconfig:$STAGE/usr/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)/pkgconfig" \
+      # Build against the staged (not-yet-installed) xrdp devel headers.
+      # xorgxrdp's configure.ac honours a pre-set XRDP_CFLAGS and then skips its
+      # PKG_CHECK_MODULES([xrdp]) probe, so we point it straight at the staged
+      # headers. (Do NOT use PKG_CONFIG_SYSROOT_DIR for this: it rewrites *every*
+      # -I path, including the system xorg-server/libdrm includes, into the stage
+      # tree where they don't exist -> "xorg-server.h: No such file".) xorgxrdp
+      # is an Xorg driver module and links Xorg, not libxrdp, so headers suffice.
+      XRDP_CFLAGS="-I$STAGE/usr/include" \
         ./configure >/dev/null
       make -j"$(nproc)" >/dev/null
       make install DESTDIR="$XSTAGE" >/dev/null )
