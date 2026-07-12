@@ -9,8 +9,21 @@ handle.
 
 ## Install
 
+From a checkout of this repo:
+
 ```bash
 sudo packaging/uds/install.sh
+```
+
+Or download the self-contained installer tarball from the release repository
+([`dist/`](../../dist/)) — no repo checkout needed:
+
+```bash
+BASE=https://raw.githubusercontent.com/risi70/xrdp/mvp-broker-assertion/dist
+wget "$BASE/baf-uds-connector_0.10.80~baf1.tar.gz" "$BASE/SHA256SUMS"
+sha256sum -c SHA256SUMS --ignore-missing
+tar xzf baf-uds-connector_0.10.80~baf1.tar.gz
+sudo baf-uds-connector/packaging/uds/install.sh
 ```
 
 Installs to `/opt/baf-uds` (self-contained venv + broker components), the

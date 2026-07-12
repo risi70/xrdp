@@ -91,9 +91,30 @@ Perform these steps in the golden template. All commands run as root.
 Deploy the two BAF packages (`xrdp-baf` + the matching `xorgxrdp-baf`) rather
 than building from source on the golden template. Two options:
 
-**Option A — build the `.deb` once, install everywhere (recommended).** On a
-build host running the *same* Ubuntu release as the VDI (packages are
-release-specific: build on 24.04 for a 24.04 image, on 26.04 for 26.04):
+**Option A — download the prebuilt packages (fastest, Ubuntu 24.04).** The
+release repository under [`dist/`](../dist/) carries prebuilt, checksummed
+artifacts. On the golden template:
+
+```bash
+BASE=https://raw.githubusercontent.com/risi70/xrdp/mvp-broker-assertion/dist
+wget "$BASE/xrdp-baf_0.10.80~baf1+noble_amd64.deb" \
+     "$BASE/xorgxrdp-baf_0.10.80~baf1+noble_amd64.deb" \
+     "$BASE/SHA256SUMS"
+sha256sum -c SHA256SUMS --ignore-missing        # verify before installing
+apt-get update
+apt-get install -y ./xrdp-baf_*.deb ./xorgxrdp-baf_*.deb
+```
+
+The `xrdp-baf` package is built with in-session **smart-card redirection on by
+default** (`--enable-smartcard`); read
+[`UPSTREAM-MS-RDPESC-REVIEW.md`](UPSTREAM-MS-RDPESC-REVIEW.md) first. If you do
+not need in-session card use, build a `WITH_SMARTCARD=0` package instead
+(Option B). For **26.04**, the prebuilt debs (`noble`/24.04) do not apply —
+build per Option B on 26.04.
+
+**Option B — build the `.deb` from source.** On a build host running the *same*
+Ubuntu release as the VDI (packages are release-specific: build on 24.04 for a
+24.04 image, on 26.04 for 26.04):
 
 ```bash
 apt-get install -y build-essential autoconf automake libtool pkg-config \
@@ -104,24 +125,10 @@ apt-get install -y build-essential autoconf automake libtool pkg-config \
 git clone https://github.com/risi70/xrdp.git /opt/xrdp-src
 cd /opt/xrdp-src && git checkout mvp-broker-assertion
 packaging/deb/build-deb.sh        # -> packaging/deb/out/*.deb  (see packaging/deb/README.md)
-```
-
-This produces `xrdp-baf_<ver>~baf1+<codename>_<arch>.deb` and the matching
-`xorgxrdp-baf_..._<arch>.deb`. The `xrdp-baf` package is built with in-session
-**smart-card redirection on by default** (`--enable-smartcard`); if you do not
-need in-session card use, build with `WITH_SMARTCARD=0 packaging/deb/build-deb.sh`
-(read `broker-auth/UPSTREAM-MS-RDPESC-REVIEW.md` first — that code is upstream-
-experimental and we reviewed it before enabling it).
-
-Copy both `.deb`s into the golden template and install:
-
-```bash
+#   WITH_SMARTCARD=0 packaging/deb/build-deb.sh   # to build without redirection
 apt-get update
-apt-get install -y ./xrdp-baf_*.deb ./xorgxrdp-baf_*.deb
+apt-get install -y ./packaging/deb/out/*.deb
 ```
-
-**Option B — build directly in the template.** Run the `build-deb.sh` block
-above inside the template itself, then `apt-get install -y ./packaging/deb/out/*.deb`.
 
 The install lays down `xrdp`, `xrdp-sesman`, `xrdp-sesexec`, the BAF daemons
 `xrdp-baf-replayd`/`xrdp-baf-handled` (to `/usr/sbin`), and the matching Xorg
@@ -263,10 +270,15 @@ connector** on the UDS host (self-contained venv + the broker components + the
 `baf-uds-connect` CLI the transport calls; see `packaging/uds/README.md`):
 
 ```bash
-# on the UDS host, from a checkout of the xrdp repo:
-sudo packaging/uds/install.sh
+# on the UDS host — download the self-contained installer tarball:
+BASE=https://raw.githubusercontent.com/risi70/xrdp/mvp-broker-assertion/dist
+wget "$BASE/baf-uds-connector_0.10.80~baf1.tar.gz" "$BASE/SHA256SUMS"
+sha256sum -c SHA256SUMS --ignore-missing
+tar xzf baf-uds-connector_0.10.80~baf1.tar.gz
+sudo baf-uds-connector/packaging/uds/install.sh
 #   -> /opt/baf-uds (venv + components), /usr/local/bin/baf-uds-connect,
 #      /etc/baf-uds/config.yaml
+# (equivalently, from a full checkout of the xrdp repo: sudo packaging/uds/install.sh)
 ```
 
 Edit `/etc/baf-uds/config.yaml` so `issuer / audience / target / kid` **exactly

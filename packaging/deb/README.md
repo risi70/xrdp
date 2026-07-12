@@ -3,6 +3,15 @@
 Builds installable `.deb` packages of the broker-authenticated XRDP solution
 for **Ubuntu 24.04 (noble)** and **26.04**.
 
+> **Prebuilt (24.04):** don't want to build? Download checksummed packages from
+> the release repository in [`dist/`](../../dist/) and skip to *Install*:
+> ```bash
+> BASE=https://raw.githubusercontent.com/risi70/xrdp/mvp-broker-assertion/dist
+> wget "$BASE/xrdp-baf_0.10.80~baf1+noble_amd64.deb" \
+>      "$BASE/xorgxrdp-baf_0.10.80~baf1+noble_amd64.deb" "$BASE/SHA256SUMS"
+> sha256sum -c SHA256SUMS --ignore-missing
+> ```
+
 ## Build
 
 Packages are release-specific — build on the target release (build on 24.04
