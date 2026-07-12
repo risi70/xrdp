@@ -1,0 +1,26 @@
+# baf-uds-connect configuration.  Install to /etc/baf-uds/config.yaml and
+# restrict to the UDS service account (chmod 640, owner root:uds).
+#
+# These MUST match the target VDI's /etc/xrdp/sesman.ini [BrokerAuth] section
+# exactly, or the VDI validator will reject the assertion.
+
+issuer:  https://uds.example.com/baf
+audience: xrdp://ubuntu-vdi
+target:   urn:baf:desktop:pool:ubuntu-vdi
+
+# JWS key id; must equal sesman.ini KeyId and the trust-anchor key.
+kid: baf-key-1
+
+# Broker signing key (RS256 private key, PEM). Its public half is the VDI's
+# TrustAnchor. Protect with an HSM/KMS in production.
+issuer_key: /etc/baf-uds/issuer.key
+
+# CA trust anchor for --smartcard mode (validates the card certificate chain).
+ca: /etc/baf-uds/smartcard-ca.pem
+
+# The target VDI's handle service socket. Co-located: a local/forwarded UNIX
+# socket. Remote: forward it (socat/ssh) or implement the C6 mTLS bridge.
+handle_socket: /run/xrdp-baf/handle.sock
+
+# Handle / assertion lifetime in seconds (<= sesman.ini max_lifetime).
+ttl: 90

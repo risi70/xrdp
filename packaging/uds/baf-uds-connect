@@ -1,0 +1,162 @@
+#!/usr/bin/env python3
+"""baf-uds-connect — issue a Mode C handle for a UDS RDP transport.
+
+Called by the UDS Enterprise RDP transport once UDS has authenticated the
+user. It mints a BAF assertion for (user, target), registers it with the
+target VDI's trusted handle service, and prints the single-use handle (or a
+ready-made routing-token / JSON blob) for the transport to hand to the client.
+
+Auth modes:
+  --user <name>            UDS already authenticated the user (password/MFA/SAML)
+  --smartcard --p12 FILE   authenticate a certificate credential first
+                           (proof of possession + CA chain), then mint
+
+Config is read from /etc/baf-uds/config.yaml (see config.example.yaml); any
+value may be overridden on the command line.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+import uuid
+from pathlib import Path
+
+LIB = Path(__file__).resolve().parent / "lib"
+for p in (str(LIB), str(LIB / "reference-issuer"), str(LIB / "reference-broker")):
+    if p not in sys.path:
+        sys.path.insert(0, p)
+
+import baf_handle_client as handles          # noqa: E402
+from broker_issuer import build_claims, sign_claims  # noqa: E402
+
+
+def load_config(path: Path) -> dict:
+    cfg: dict[str, str] = {}
+    try:
+        text = path.read_text()
+    except OSError:
+        return cfg          # missing or not readable -> rely on CLI overrides
+    for raw in text.splitlines():
+        line = raw.split("#", 1)[0].strip()
+        if ":" in line:
+            k, v = line.split(":", 1)
+            cfg[k.strip()] = v.strip().strip('"').strip("'")
+    return cfg
+
+
+def parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(description=__doc__,
+                                formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--config", default="/etc/baf-uds/config.yaml")
+    p.add_argument("--user", help="NSS/SSSD username UDS authenticated")
+    p.add_argument("--target", help="desktop target id (overrides config)")
+    p.add_argument("--auth-method", default="pwd",
+                   help="comma-separated amr values for the assertion")
+    p.add_argument("--assurance", default="mfa")
+    # smart-card mode
+    p.add_argument("--smartcard", action="store_true")
+    p.add_argument("--p12")
+    p.add_argument("--pin", default="")
+    p.add_argument("--pkcs11-module")
+    p.add_argument("--token-label")
+    p.add_argument("--card-cert")
+    # overrides
+    p.add_argument("--issuer")
+    p.add_argument("--audience")
+    p.add_argument("--kid")
+    p.add_argument("--issuer-key")
+    p.add_argument("--ca")
+    p.add_argument("--handle-socket")
+    p.add_argument("--ttl", type=int)
+    p.add_argument("--format", choices=["handle", "cookie", "json"],
+                   default="handle",
+                   help="handle | routing-token cookie | JSON for the transport")
+    return p
+
+
+def main(argv=None) -> int:
+    args = parser().parse_args(argv)
+    cfg = load_config(Path(args.config))
+
+    def val(name, key, required=True, default=None):
+        v = getattr(args, name) or cfg.get(key) or default
+        if required and not v:
+            print(f"error: missing {key} (config or --{name.replace('_','-')})",
+                  file=sys.stderr)
+            raise SystemExit(2)
+        return v
+
+    issuer = val("issuer", "issuer")
+    audience = val("audience", "audience")
+    target = val("target", "target")
+    kid = val("kid", "kid")
+    issuer_key = val("issuer_key", "issuer_key")
+    handle_socket = val("handle_socket", "handle_socket")
+    ttl = args.ttl or int(cfg.get("ttl", "90"))
+
+    auth_method = tuple(m for m in args.auth_method.split(",") if m)
+    assurance = args.assurance
+
+    # 1. Determine the authenticated user.
+    if args.smartcard:
+        for p in (str(LIB / "reference-broker"),):
+            if p not in sys.path:
+                sys.path.insert(0, p)
+        from smartcard_auth import (P12Card, Pkcs11Card,  # noqa: E402
+                                    SmartCardAuthenticator, SmartCardError)
+        ca = val("ca", "ca")
+        if args.p12:
+            card = P12Card(args.p12, args.pin)
+        elif args.pkcs11_module and args.token_label and args.card_cert:
+            card = Pkcs11Card(args.pkcs11_module, args.token_label, args.pin,
+                              args.card_cert)
+        else:
+            print("error: smartcard mode needs --p12 or --pkcs11-module/"
+                  "--token-label/--card-cert", file=sys.stderr)
+            return 2
+        auth = SmartCardAuthenticator(trust_anchor_pem=Path(ca).read_bytes())
+        try:
+            ch = auth.new_challenge()
+            sig = card.sign(ch)
+            user, auth_method, assurance = auth.authenticate(
+                card.certificate_pem(), ch, sig)
+        except (SmartCardError, Exception) as exc:
+            print(f"smart-card authentication failed: {exc}", file=sys.stderr)
+            return 1
+    else:
+        user = args.user
+        if not user:
+            print("error: --user required (or --smartcard)", file=sys.stderr)
+            return 2
+
+    # 2. Mint the BAF assertion for (user, target).
+    claims = build_claims(
+        issuer=issuer, audience=audience, subject="uds-" + user,
+        preferred_username=user, groups=["vdi"], roles=["desktop-user"],
+        target=target, session_id="uds-" + uuid.uuid4().hex,
+        auth_context={"amr": list(auth_method), "acr": assurance,
+                      "device_trust": "unknown"},
+        lifetime=ttl)
+    assertion = sign_claims(claims, Path(issuer_key).read_bytes(), key_id=kid)
+
+    # 3. Register with the VDI handle service -> single-use handle.
+    try:
+        handle = handles.store(handle_socket, assertion.encode(), target, ttl)
+    except handles.HandleError as exc:
+        print(f"handle registration failed: {exc}", file=sys.stderr)
+        return 1
+
+    if args.format == "cookie":
+        sys.stdout.write(f"Cookie: msts={handle}\n")
+    elif args.format == "json":
+        json.dump({"handle": handle, "user": user, "target": target,
+                   "routing_token": f"Cookie: msts={handle}"}, sys.stdout)
+        sys.stdout.write("\n")
+    else:
+        sys.stdout.write(handle + "\n")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
