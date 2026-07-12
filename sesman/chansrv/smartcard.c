@@ -50,6 +50,26 @@
 #include "chansrv.h"
 
 /*
+ * The scard_handle_*_Return callbacks below run on a client-controlled
+ * [MS-RDPESC] IOCTL response of which devredir has validated only the 12-byte
+ * DR_DEVICE_IOCOMPLETION header. Guard the OutputBufferLen read before using
+ * the unchecked xstream_rd_u32_le accessor; the response payload itself is
+ * bounds-checked in the scard_function_*_return parsers (smartcard_pcsc.c).
+ * See broker-auth/UPSTREAM-MS-RDPESC-REVIEW.md (F3).
+ */
+#define SCARD_RD_RET_LEN(_s, _irp, _len)                                    \
+    do                                                                      \
+    {                                                                       \
+        if (!s_check_rem_and_log((_s), 4,                                   \
+                                 "[MS-RDPESC] smart-card IOCTL return len"))\
+        {                                                                   \
+            devredir_irp_delete(_irp);                                      \
+            return;                                                         \
+        }                                                                   \
+        xstream_rd_u32_le((_s), (_len));                                    \
+    } while (0)
+
+/*
  * TODO
  *
  * o ensure that all wide calls are handled correctly
@@ -2326,7 +2346,7 @@ scard_handle_EstablishContext_Return(struct stream *s, IRP *irp,
         return;
     }
     /* get OutputBufferLen */
-    xstream_rd_u32_le(s, len);
+    SCARD_RD_RET_LEN(s, irp, len);
     scard_function_establish_context_return(irp->user_data, s, len, IoStatus);
     devredir_irp_delete(irp);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "leaving");
@@ -2350,7 +2370,7 @@ scard_handle_ReleaseContext_Return(struct stream *s, IRP *irp,
         return;
     }
     /* get OutputBufferLen */
-    xstream_rd_u32_le(s, len);
+    SCARD_RD_RET_LEN(s, irp, len);
     scard_function_release_context_return(irp->user_data, s, len, IoStatus);
     devredir_irp_delete(irp);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "leaving");
@@ -2376,7 +2396,7 @@ scard_handle_IsContextValid_Return(struct stream *s, IRP *irp,
     }
 
     /* get OutputBufferLen */
-    xstream_rd_u32_le(s, len);
+    SCARD_RD_RET_LEN(s, irp, len);
     scard_function_is_context_valid_return(irp->user_data, s, len, IoStatus);
     devredir_irp_delete(irp);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "leaving");
@@ -2400,7 +2420,7 @@ scard_handle_ListReaders_Return(struct stream *s, IRP *irp,
         return;
     }
     /* get OutputBufferLen */
-    xstream_rd_u32_le(s, len);
+    SCARD_RD_RET_LEN(s, irp, len);
     scard_function_list_readers_return(irp->user_data, s, len, IoStatus);
     devredir_irp_delete(irp);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "leaving");
@@ -2424,7 +2444,7 @@ scard_handle_GetStatusChange_Return(struct stream *s, IRP *irp,
         return;
     }
     /* get OutputBufferLen */
-    xstream_rd_u32_le(s, len);
+    SCARD_RD_RET_LEN(s, irp, len);
     scard_function_get_status_change_return(irp->user_data, s, len, IoStatus);
     devredir_irp_delete(irp);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "leaving");
@@ -2450,7 +2470,7 @@ scard_handle_Connect_Return(struct stream *s, IRP *irp,
     }
 
     /* get OutputBufferLen */
-    xstream_rd_u32_le(s, len);
+    SCARD_RD_RET_LEN(s, irp, len);
 
     scard_function_connect_return(irp->user_data, s, len, IoStatus);
     devredir_irp_delete(irp);
@@ -2478,7 +2498,7 @@ scard_handle_Reconnect_Return(struct stream *s, IRP *irp,
     }
 
     /* get OutputBufferLen */
-    xstream_rd_u32_le(s, len);
+    SCARD_RD_RET_LEN(s, irp, len);
     scard_function_reconnect_return(irp->user_data, s, len, IoStatus);
     devredir_irp_delete(irp);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "leaving");
@@ -2504,7 +2524,7 @@ scard_handle_BeginTransaction_Return(struct stream *s, IRP *irp,
     }
 
     /* get OutputBufferLen */
-    xstream_rd_u32_le(s, len);
+    SCARD_RD_RET_LEN(s, irp, len);
     scard_function_begin_transaction_return(irp->user_data, s, len, IoStatus);
     devredir_irp_delete(irp);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "leaving");
@@ -2530,7 +2550,7 @@ scard_handle_EndTransaction_Return(struct stream *s, IRP *irp,
     }
 
     /* get OutputBufferLen */
-    xstream_rd_u32_le(s, len);
+    SCARD_RD_RET_LEN(s, irp, len);
     scard_function_end_transaction_return(irp->user_data, s, len, IoStatus);
     devredir_irp_delete(irp);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "leaving");
@@ -2556,7 +2576,7 @@ scard_handle_Status_Return(struct stream *s, IRP *irp,
     }
 
     /* get OutputBufferLen */
-    xstream_rd_u32_le(s, len);
+    SCARD_RD_RET_LEN(s, irp, len);
     scard_function_status_return(irp->user_data, s, len, IoStatus);
     devredir_irp_delete(irp);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "leaving");
@@ -2582,7 +2602,7 @@ scard_handle_Disconnect_Return(struct stream *s, IRP *irp,
     }
 
     /* get OutputBufferLen */
-    xstream_rd_u32_le(s, len);
+    SCARD_RD_RET_LEN(s, irp, len);
     scard_function_disconnect_return(irp->user_data, s, len, IoStatus);
     devredir_irp_delete(irp);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "leaving");
@@ -2607,7 +2627,7 @@ scard_handle_Transmit_Return(struct stream *s, IRP *irp, tui32 DeviceId,
     }
 
     /* get OutputBufferLen */
-    xstream_rd_u32_le(s, len);
+    SCARD_RD_RET_LEN(s, irp, len);
     scard_function_transmit_return(irp->user_data, s, len, IoStatus);
     devredir_irp_delete(irp);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "leaving");
@@ -2632,7 +2652,7 @@ scard_handle_Control_Return(struct stream *s, IRP *irp, tui32 DeviceId,
     }
 
     /* get OutputBufferLen */
-    xstream_rd_u32_le(s, len);
+    SCARD_RD_RET_LEN(s, irp, len);
     scard_function_control_return(irp->user_data, s, len, IoStatus);
     devredir_irp_delete(irp);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "leaving");
@@ -2657,7 +2677,7 @@ scard_handle_Cancel_Return(struct stream *s, IRP *irp, tui32 DeviceId,
     }
 
     /* get OutputBufferLen */
-    xstream_rd_u32_le(s, len);
+    SCARD_RD_RET_LEN(s, irp, len);
     scard_function_cancel_return(irp->user_data, s, len, IoStatus);
     devredir_irp_delete(irp);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "leaving");
@@ -2682,7 +2702,7 @@ scard_handle_GetAttrib_Return(struct stream *s, IRP *irp, tui32 DeviceId,
     }
 
     /* get OutputBufferLen */
-    xstream_rd_u32_le(s, len);
+    SCARD_RD_RET_LEN(s, irp, len);
     scard_function_get_attrib_return(irp->user_data, s, len, IoStatus);
     devredir_irp_delete(irp);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "leaving");
