@@ -51,9 +51,18 @@ rsync -a --exclude packaging/deb/out --exclude ".git" \
   "$REMOTE_SRC/" "$BUILD/" 2>/dev/null
 cd "$BUILD"
 ./bootstrap >/tmp/scard-lab-boot.log 2>&1
+# Fuzzing needs a clang/libFuzzer-instrumented libcommon; when requested (and
+# clang is present) build the whole thing with clang so the unit test and the
+# fuzzer share one sanitizer runtime. Otherwise use the default gcc ASan build.
+if [ "${FUZZ_SECONDS:-0}" -gt 0 ] && command -v clang >/dev/null 2>&1; then
+  CONF_CC="CC=clang"
+  CONF_CFLAGS="-fsanitize=fuzzer-no-link,address,undefined -fno-sanitize=alignment -g -O1 -fno-omit-frame-pointer"
+else
+  CONF_CC=""
+  CONF_CFLAGS="-fsanitize=address,undefined -g -O1 -fno-omit-frame-pointer"
+fi
 ./configure --enable-broker-auth --enable-smartcard --disable-rfxcodec \
-  CFLAGS="-fsanitize=address,undefined -g -O1 -fno-omit-frame-pointer" \
-  >/tmp/scard-lab-conf.log 2>&1
+  $CONF_CC CFLAGS="$CONF_CFLAGS" >/tmp/scard-lab-conf.log 2>&1
 make -C common >/tmp/scard-lab-common.log 2>&1
 make -C tests/baf test_smartcard_scard >/tmp/scard-lab-build.log 2>&1
 
@@ -64,18 +73,41 @@ ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1 \
 [ "$rc" -eq 0 ] && echo "SMARTCARD TESTS: PASS" || { echo "SMARTCARD TESTS: FAIL (rc=$rc)"; exit 1; }
 
 if [ "${FUZZ_SECONDS:-0}" -gt 0 ] && command -v clang >/dev/null 2>&1; then
-  echo "---- libFuzzer smoke (${FUZZ_SECONDS}s) ----"
-  cd tests/baf/fuzz
-  clang -g -O1 -fsanitize=fuzzer,address,undefined \
+  echo "---- libFuzzer run (${FUZZ_SECONDS}s) ----"
+  # -fno-sanitize=alignment: parse.h's x86 fast-path macros do intentional
+  # unaligned int access (byte-wise only under NEED_ALIGN); that pre-existing,
+  # x86-benign UB is not the target here.
+  clang -g -O1 -fsanitize=fuzzer,address,undefined -fno-sanitize=alignment \
+    -DXRDP_SOCKET_ROOT_PATH='"/tmp"' \
     -I"$BUILD" -I"$BUILD/common" -I"$BUILD/sesman/chansrv" \
-    fuzz_smartcard_scard.c \
+    "$BUILD/tests/baf/fuzz/fuzz_smartcard_scard.c" \
     "$BUILD"/common/.libs/libcommon.a \
-    -lpthread -lcrypto -o /tmp/fuzz_smartcard_scard 2>/tmp/scard-lab-fuzz-build.log \
-    && /tmp/fuzz_smartcard_scard -max_total_time="$FUZZ_SECONDS" -print_final_stats=1 \
-       2>&1 | tail -5 \
-    || echo "fuzz smoke skipped (build failed; see /tmp/scard-lab-fuzz-build.log)"
+    -lssl -lcrypto -lpthread -o /tmp/fuzz_smartcard_scard 2>/tmp/scard-lab-fuzz-build.log \
+    || { echo "fuzz build failed (see /tmp/scard-lab-fuzz-build.log)"; exit 0; }
+  # Seed one valid [MS-RDPESC] response per parser selector + edges.
+  CORP=/tmp/scard-fuzz-corpus; mkdir -p "$CORP" /tmp/scard-fuzz-art
+  python3 - "$CORP" <<'PY'
+import os, struct, sys
+d=sys.argv[1]
+u=lambda v: struct.pack("<I", v & 0xffffffff); Z=lambda n: bytes(n)
+w=lambda n,b: open(os.path.join(d,n),"wb").write(bytes(b))
+w("s0", b"\x00\x01"+Z(28)+u(8)+b"CTX01234")
+w("s1", b"\x01\x01"+Z(20)+u(0)+Z(4)+u(1)+u(4)+b"9000")
+w("s2", b"\x02\x01"+Z(28)+u(4)+b"9000")
+w("s3", b"\x03\x01"+Z(36)+u(2)+u(8)+b"CARD0123")
+w("s4", b"\x04\x01"+Z(28)+u(1)+u(0x22)+u(0x122)+u(4)+Z(36))
+w("s5", b"\x05\x01"+Z(16)+Z(4)+u(0)+Z(4)+u(0)+u(2)+Z(32)+u(4))
+w("s6", b"\x06\x01"+Z(16)+Z(12)+u(20)+"R1\0R2\0".encode("utf-16-le"))
+PY
+  ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1 \
+    /tmp/fuzz_smartcard_scard -fork=2 -ignore_crashes=1 -ignore_timeouts=1 -ignore_ooms=1 \
+      -max_total_time="$FUZZ_SECONDS" -artifact_prefix=/tmp/scard-fuzz-art/ \
+      "$CORP" 2>&1 | grep -iE "cov:.*crash:|SUMMARY" | tail -3
+  nart=$(ls /tmp/scard-fuzz-art/crash-* /tmp/scard-fuzz-art/*-* 2>/dev/null | wc -l)
+  echo "FUZZ ARTIFACTS (crashes/timeouts/ooms): $nart"
+  [ "$nart" -eq 0 ] && echo "FUZZ: CLEAN" || echo "FUZZ: FINDINGS in /tmp/scard-fuzz-art/"
 else
-  echo "(fuzz smoke skipped: pass --fuzz-seconds N and install clang to enable)"
+  echo "(fuzz run skipped: pass --fuzz-seconds N and install clang to enable)"
 fi
 REMOTE
 

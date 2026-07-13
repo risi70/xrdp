@@ -1637,7 +1637,9 @@ scard_function_status_return(void *user_data,
         in_uint32_le(in_s, dwReaderLen);
         in_uint8s(in_s, 4); // Referent Identifier
         in_uint32_le(in_s, dwState);
-        dwState = g_ms2pc[dwState % 6];
+        /* dwState is a client-supplied value read into a signed int; use an
+         * unsigned modulo so a high-bit value cannot index g_ms2pc[] negatively. */
+        dwState = g_ms2pc[((unsigned int)dwState) % 6];
         in_uint32_le(in_s, dwProtocol);
         in_uint8a(in_s, attr, 32);
         in_uint32_le(in_s, dwAtrLen);

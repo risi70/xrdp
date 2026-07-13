@@ -364,6 +364,25 @@ static void test_security(void)
               "F7: status oversized dwAtrLen clamped (no attr[32] over-read)");
     }
 
+    /* status dwState with the high bit set must not index g_ms2pc[] negatively
+     * (dwState is read into a signed int; found by fuzzing). */
+    {
+        struct pcsc_status *ps = (struct pcsc_status *)
+                                 g_malloc(sizeof(struct pcsc_status), 1);
+        new_client(&id); ps->uds_client_id = id; ps->cchReaderLen = 0;
+        bb_reset(&b);
+        bb_zeros(&b, 16); bb_zeros(&b, 4);
+        bb_u32(&b, 0);           /* dwReaderLen = 0 */
+        bb_zeros(&b, 4);
+        bb_u32(&b, 0x80000005);  /* dwState, high bit set */
+        bb_u32(&b, 2);           /* dwProtocol */
+        bb_zeros(&b, 32);        /* attr[32] */
+        bb_u32(&b, 4);           /* dwAtrLen */
+        in_from_bb(&in, &b);
+        CHECK(scard_function_status_return((void *)ps, &in, b.n, 0) == 0,
+              "status high-bit dwState does not index g_ms2pc negatively");
+    }
+
     /* F3/F4: list_readers truncated header. */
     {
         struct pcsc_list_readers *pl = (struct pcsc_list_readers *)
