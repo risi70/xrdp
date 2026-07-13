@@ -175,6 +175,25 @@ static void test_positive(void)
               "transmit valid (4-byte APDU) returns success");
     }
 
+    /* Transmit_Return: no PCI and no recv buffer (val2=0) -> the reply copies
+     * a NULL source of length 0; must be a clean no-op (no memcpy(NULL) UB). */
+    {
+        struct pcsc_transmit *pt = (struct pcsc_transmit *)
+                                   g_malloc(sizeof(struct pcsc_transmit), 1);
+        int id2b;
+        new_client(&id2b);
+        pt->uds_client_id = id2b;
+        pt->cbRecvLength = 0;
+        bb_reset(&b);
+        bb_zeros(&b, 20);
+        bb_u32(&b, 0);          /* pioRecvPci NULL */
+        bb_zeros(&b, 4);
+        bb_u32(&b, 0);          /* pbRecvBuffer NULL */
+        in_from_bb(&in, &b);
+        CHECK(scard_function_transmit_return((void *)pt, &in, b.n, 0) == 0,
+              "transmit valid (no PCI, no recv buffer) returns success");
+    }
+
     /* GetStatusChange_Return: cReaders=1, one reader record (48 bytes) */
     {
         int id3;
@@ -239,6 +258,22 @@ static void test_security(void)
         in_from_bb(&in, &b);
         CHECK(scard_function_transmit_return((void *)pt, &in, b.n, 0) == 1,
               "F1/F2: transmit oversized cbRecvLength fails closed");
+    }
+
+    /* [MS-RDPESC] range: transmit cbRecvLength beyond 66560 rejected even when
+     * the bytes are present in-buffer (spec-conformant hardening). */
+    {
+        struct pcsc_transmit *pt = (struct pcsc_transmit *)
+                                   g_malloc(sizeof(struct pcsc_transmit), 1);
+        new_client(&id); pt->uds_client_id = id; pt->cbRecvLength = 0;
+        bb_reset(&b);
+        bb_zeros(&b, 20); bb_u32(&b, 0); bb_zeros(&b, 4);
+        bb_u32(&b, 1);          /* pbRecvBuffer present */
+        bb_u32(&b, 70000);      /* cbRecvLength > 66560 */
+        bb_zeros(&b, 70000);    /* bytes actually present */
+        in_from_bb(&in, &b);
+        CHECK(scard_function_transmit_return((void *)pt, &in, b.n, 0) == 1,
+              "MS-RDPESC range: transmit cbRecvLength > 66560 rejected in-buffer");
     }
 
     /* F1: transmit extra_bytes (PCI) huge but stream short. */

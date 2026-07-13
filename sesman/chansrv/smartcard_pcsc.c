@@ -71,6 +71,14 @@ extern char g_display_str[]; /* in chansrv.c */
 /* Sanity cap on the GetStatusChange reader array (pcsc-lite uses 16). */
 #define SCARD_MAX_READERS 64
 
+/* [MS-RDPESC] IDL length ranges, enforced as spec-conformant hardening (in
+ * addition to the buffer-remaining checks): a well-formed card response never
+ * exceeds these, so rejecting larger declared lengths early bounds the reply
+ * allocation and rejects out-of-spec responses. Transmit_Return.cbRecvLength is
+ * range(0, 66560); ListReaders_Return.cBytes is range(0, 65536). */
+#define SCARD_MAX_RECV_BYTES 66560
+#define SCARD_MAX_MSZ_BYTES  65536
+
 /*
  * Require _n more bytes in the untrusted response stream _s. On a short or
  * negative-length response, log and make the caller return an error (1) rather
@@ -1326,6 +1334,13 @@ scard_function_transmit_return(void *user_data,
         {
             SCARD_NEED(in_s, 4);
             in_uint32_le(in_s, cbRecvLength);
+            /* [MS-RDPESC] 2.2.3.11: cbRecvLength range(0, 66560) */
+            if (cbRecvLength > SCARD_MAX_RECV_BYTES)
+            {
+                LOG(LOG_LEVEL_ERROR, "scard_function_transmit_return: "
+                    "cbRecvLength %d exceeds [MS-RDPESC] max", cbRecvLength);
+                return 1;
+            }
             SCARD_NEED(in_s, cbRecvLength);
             in_uint8p(in_s, recvBuf, cbRecvLength);
         }
@@ -1342,9 +1357,15 @@ scard_function_transmit_return(void *user_data,
     out_uint32_le(out_s, recv_ior.dwProtocol);
     out_uint32_le(out_s, recv_ior.cbPciLength);
     out_uint32_le(out_s, recv_ior.extra_bytes);
-    out_uint8a(out_s, recv_ior.extra_data, recv_ior.extra_bytes);
+    if (recv_ior.extra_bytes > 0 && recv_ior.extra_data != NULL)
+    {
+        out_uint8a(out_s, recv_ior.extra_data, recv_ior.extra_bytes);
+    }
     out_uint32_le(out_s, cbRecvLength);
-    out_uint8a(out_s, recvBuf, cbRecvLength);
+    if (cbRecvLength > 0 && recvBuf != NULL)
+    {
+        out_uint8a(out_s, recvBuf, cbRecvLength);
+    }
     out_uint32_le(out_s, status); /* SCARD_S_SUCCESS status */
     s_mark_end(out_s);
     bytes = (int) (out_s->end - out_s->data);
@@ -1430,6 +1451,13 @@ scard_function_control_return(void *user_data,
         SCARD_NEED(in_s, 28 + 4);
         in_uint8s(in_s, 28);
         in_uint32_le(in_s, cbRecvLength);
+        /* [MS-RDPESC] 2.2.3.13 Control_Return: bound the returned buffer */
+        if (cbRecvLength > SCARD_MAX_RECV_BYTES)
+        {
+            LOG(LOG_LEVEL_ERROR, "scard_function_control_return: "
+                "cbRecvLength %d exceeds [MS-RDPESC] max", cbRecvLength);
+            return 1;
+        }
         SCARD_NEED(in_s, cbRecvLength);
         in_uint8p(in_s, recvBuf, cbRecvLength);
     }
@@ -1442,7 +1470,10 @@ scard_function_control_return(void *user_data,
     }
     s_push_layer(out_s, iso_hdr, 8);
     out_uint32_le(out_s, cbRecvLength);
-    out_uint8a(out_s, recvBuf, cbRecvLength);
+    if (cbRecvLength > 0 && recvBuf != NULL)
+    {
+        out_uint8a(out_s, recvBuf, cbRecvLength);
+    }
     out_uint32_le(out_s, status); /* SCARD_S_SUCCESS status */
     s_mark_end(out_s);
     bytes = (int) (out_s->end - out_s->data);
