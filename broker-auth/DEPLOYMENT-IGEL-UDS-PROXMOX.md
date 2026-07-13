@@ -388,11 +388,29 @@ from the authenticated identity:
 `iss/aud/target/kid` and the signing key must still match the VDI `[BrokerAuth]`
 values (§4.5); Keycloak does not change any of those.
 
-**Broker-native OIDC (non-UDS).** If you drive BAF without UDS, a broker
-component can run the OIDC authorization-code (or device) flow against the same
-Keycloak client, read the ID-token claims, and mint the assertion the same way.
-The Keycloak realm/client/mapper setup above is identical; only the component
-that consumes the token changes.
+**Broker-native OIDC (non-UDS).** The connector can also authenticate against
+Keycloak directly, via `--keycloak` — useful when you drive BAF without UDS, or
+want the assertion's `groups`/`roles`/`auth_method`/`assurance_level` taken
+straight from the Keycloak token rather than filled in by UDS. Set the
+`keycloak_*` values in `config.yaml` (base URL, realm, client id, optional
+secret) and use one of:
+
+```bash
+# (a) verify a Keycloak OIDC token the front-end already obtained (recommended):
+baf-uds-connect --keycloak --keycloak-token-file /run/user-oidc.jwt --format cookie
+
+# (b) Resource-Owner (Keycloak "Direct access grants") for a self-contained
+#     broker or for testing — credentials via files, never on the command line:
+baf-uds-connect --keycloak --kc-username "$USERNAME" \
+    --kc-password-file /run/pw --kc-otp "$OTP" --format cookie
+```
+
+The token is verified against the realm JWKS (signature, issuer, expiry); the
+username, groups, roles, `amr` and `acr` are read from its claims (group paths
+reduced to leaf names to match VDI/SSSD group names) and mapped into the
+assertion. Keycloak is still only the IdP — `Issuer/KeyId/TrustAnchor` and the
+signing key remain the broker's (§4.5). The Keycloak realm/client/mapper setup
+above is identical whether UDS or the connector consumes the token.
 
 ---
 

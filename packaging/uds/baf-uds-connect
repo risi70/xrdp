@@ -10,6 +10,10 @@ Auth modes:
   --user <name>            UDS already authenticated the user (password/MFA/SAML)
   --smartcard --p12 FILE   authenticate a certificate credential first
                            (proof of possession + CA chain), then mint
+  --keycloak               authenticate against Keycloak (OIDC): verify a
+                           supplied token (--keycloak-token[-file]) or run a
+                           direct grant (--kc-username --kc-password-file), map
+                           its claims (username/groups/roles/amr/acr), then mint
 
 Config is read from /etc/baf-uds/config.yaml (see config.example.yaml); any
 value may be overridden on the command line.
@@ -61,6 +65,21 @@ def parser() -> argparse.ArgumentParser:
     p.add_argument("--pkcs11-module")
     p.add_argument("--token-label")
     p.add_argument("--card-cert")
+    # Keycloak (OIDC) mode: broker authenticates the user against Keycloak
+    p.add_argument("--keycloak", action="store_true",
+                   help="authenticate via a Keycloak OIDC token or direct grant")
+    p.add_argument("--keycloak-token",
+                   help="a Keycloak-issued OIDC token (JWT) to verify")
+    p.add_argument("--keycloak-token-file",
+                   help="file holding the OIDC token (safer than the CLI)")
+    p.add_argument("--kc-username", help="direct-grant (ROPC) username")
+    p.add_argument("--kc-password-file",
+                   help="file holding the direct-grant password")
+    p.add_argument("--kc-otp", help="direct-grant TOTP, if the flow requires it")
+    p.add_argument("--keycloak-base-url")
+    p.add_argument("--keycloak-realm")
+    p.add_argument("--keycloak-client-id")
+    p.add_argument("--keycloak-client-secret")
     # overrides
     p.add_argument("--issuer")
     p.add_argument("--audience")
@@ -97,6 +116,11 @@ def main(argv=None) -> int:
 
     auth_method = tuple(m for m in args.auth_method.split(",") if m)
     assurance = args.assurance
+    # Identity fields. Defaults apply to the UDS/--user and --smartcard paths
+    # (unchanged behaviour); the Keycloak path fills them from the token.
+    groups = ["vdi"]
+    roles = ["desktop-user"]
+    subject = None
 
     # 1. Determine the authenticated user.
     if args.smartcard:
@@ -124,16 +148,56 @@ def main(argv=None) -> int:
         except (SmartCardError, Exception) as exc:
             print(f"smart-card authentication failed: {exc}", file=sys.stderr)
             return 1
+    elif args.keycloak:
+        for p in (str(LIB / "reference-broker"),):
+            if p not in sys.path:
+                sys.path.insert(0, p)
+        from keycloak_auth import (KeycloakAuthenticator,  # noqa: E402
+                                   KeycloakError)
+        kc = KeycloakAuthenticator(
+            val("keycloak_base_url", "keycloak_base_url"),
+            val("keycloak_realm", "keycloak_realm"),
+            val("keycloak_client_id", "keycloak_client_id"),
+            client_secret=(args.keycloak_client_secret
+                           or cfg.get("keycloak_client_secret") or None))
+        token = args.keycloak_token
+        if not token and args.keycloak_token_file:
+            token = Path(args.keycloak_token_file).read_text().strip()
+        try:
+            if token:
+                identity = kc.validate_token(token)
+            elif args.kc_username and args.kc_password_file:
+                password = Path(args.kc_password_file).read_text().rstrip("\n")
+                identity = kc.password_login(args.kc_username, password,
+                                             otp=args.kc_otp)
+            else:
+                print("error: keycloak mode needs --keycloak-token(-file) or "
+                      "--kc-username with --kc-password-file", file=sys.stderr)
+                return 2
+        except KeycloakError as exc:
+            print(f"keycloak authentication failed: {exc}", file=sys.stderr)
+            return 1
+        # Identity comes from the verified token, not fabricated defaults.
+        user = identity.username
+        auth_method = tuple(identity.auth_method)
+        assurance = identity.assurance
+        groups = identity.groups
+        roles = identity.roles
+        subject = identity.subject
     else:
         user = args.user
         if not user:
-            print("error: --user required (or --smartcard)", file=sys.stderr)
+            print("error: --user required (or --smartcard / --keycloak)",
+                  file=sys.stderr)
             return 2
+
+    if subject is None:
+        subject = "uds-" + user
 
     # 2. Mint the BAF assertion for (user, target).
     claims = build_claims(
-        issuer=issuer, audience=audience, subject="uds-" + user,
-        preferred_username=user, groups=["vdi"], roles=["desktop-user"],
+        issuer=issuer, audience=audience, subject=subject,
+        preferred_username=user, groups=groups, roles=roles,
         target=target, session_id="uds-" + uuid.uuid4().hex,
         auth_context={"amr": list(auth_method), "acr": assurance,
                       "device_trust": "unknown"},

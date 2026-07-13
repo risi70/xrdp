@@ -18,6 +18,16 @@ issuer_key: /etc/baf-uds/issuer.key
 # CA trust anchor for --smartcard mode (validates the card certificate chain).
 ca: /etc/baf-uds/smartcard-ca.pem
 
+# Keycloak (OIDC) settings for --keycloak mode. Keycloak authenticates the user;
+# the broker still mints/signs the assertion with issuer_key above (Keycloak is
+# NOT the VDI TrustAnchor). base_url is the Keycloak root (no trailing /realms).
+keycloak_base_url:  https://keycloak.example.com
+keycloak_realm:     vdi
+keycloak_client_id: baf-broker
+# Only for a confidential client / direct-grant; prefer a file-based secret in
+# production. Leave empty for a public client.
+keycloak_client_secret:
+
 # The target VDI's handle service socket. Co-located: a local/forwarded UNIX
 # socket. Remote: forward it (socat/ssh) or implement the C6 mTLS bridge.
 handle_socket: /run/xrdp-baf/handle.sock

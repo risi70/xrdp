@@ -67,6 +67,21 @@ baf-uds-connect --smartcard --pkcs11-module /usr/lib/softhsm/libsofthsm2.so \
 The mapped Linux username comes from the certificate identity (SAN/CN); it
 must resolve on the VDI via NSS/SSSD.
 
+Keycloak (OIDC) mode — Keycloak authenticates the user; `groups`, `roles`,
+`amr` and `acr` come from the verified token (set the `keycloak_*` values in
+`config.yaml` first, see the deployment guide §5.2):
+
+```bash
+# verify a token the front-end already obtained (recommended):
+baf-uds-connect --keycloak --keycloak-token-file /run/user-oidc.jwt --format cookie
+# or Direct Access Grant (credentials via files, not the command line):
+baf-uds-connect --keycloak --kc-username "$USERNAME" \
+    --kc-password-file /run/pw --format cookie
+```
+
+The token's `preferred_username` must resolve on the VDI via NSS/SSSD. Keycloak
+is only the IdP — the broker still signs the assertion with `issuer_key`.
+
 ## Reaching the VDI handle service
 
 `handle_socket` is the target VDI's handle service. `baf_handle_client.py`

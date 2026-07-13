@@ -33,6 +33,7 @@ install -m 0644 "$ROOT/broker-auth/spec/broker-assertion.schema.json" \
     "$LIB/spec/"
 install -m 0644 "$ROOT/broker-auth/reference-broker/smartcard_auth.py" \
     "$ROOT/broker-auth/reference-broker/smartcard_login.py" \
+    "$ROOT/broker-auth/reference-broker/keycloak_auth.py" \
     "$LIB/reference-broker/"
 install -m 0644 "$HERE/baf_handle_client.py" "$LIB/"
 install -m 0755 "$HERE/baf-uds-connect" "$PREFIX/baf-uds-connect"

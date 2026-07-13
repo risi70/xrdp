@@ -35,6 +35,7 @@ tar czf "$HERE/baf-uds-connector_${VER}.tar.gz" -C "$ROOT" \
     broker-auth/reference-issuer/broker_issuer.py \
     broker-auth/reference-broker/smartcard_auth.py \
     broker-auth/reference-broker/smartcard_login.py \
+    broker-auth/reference-broker/keycloak_auth.py \
     broker-auth/spec/broker-assertion.schema.json
 
 echo "== checksums =="
