@@ -10,15 +10,14 @@
  * Not built by normal `make`. Build with Clang/libFuzzer, e.g.:
  *
  *   clang -g -O1 -fsanitize=fuzzer,address,undefined \
- *     -I../../.. -I../../../common -I../../../sesman/chansrv \
- *     fuzz_smartcard_scard.c \
- *     ../../../common/os_calls.c ../../../common/parse.c \
- *     ../../../common/string_calls.c ../../../common/list.c \
- *     ../../../common/log.c ../../../common/trans.c \
- *     ../../../common/file.c ../../../common/os_calls_fips.c \
+ *     -DXRDP_SOCKET_ROOT_PATH='"/tmp"' \
+ *     -I<builddir> -I<builddir>/common -I<builddir>/sesman/chansrv \
+ *     fuzz_smartcard_scard.c <builddir>/common/.libs/libcommon.a \
  *     -lpthread -lcrypto -o fuzz_smartcard_scard
  *
- * (link whatever common/*.c your tree needs; simplest is to link libcommon.la.)
+ * (libcommon must be built with matching instrumentation, e.g. configure with
+ * CC=clang CFLAGS="-fsanitize=fuzzer-no-link,address,undefined". The lab runner
+ * test-lab/kvm/scripts/run-smartcard-tests.sh does all of this.)
  */
 
 #include <config_ac.h>
@@ -31,6 +30,7 @@
 #include "parse.h"
 #include "trans.h"
 #include "list.h"
+#include "log.h"
 #include "smartcard_internal.h"
 
 /* chansrv global referenced by smartcard_pcsc.c's socket setup. */
@@ -67,7 +67,25 @@ int scard_send_get_attrib(void *u, char *card, int b, READER_STATE *r)
 
 #include "smartcard_pcsc.c"
 
-static struct trans *g_con;
+/* Silence the fail-closed logging (fires on every malformed input) so it does
+ * not dominate I/O at fuzzing speed. */
+int
+LLVMFuzzerInitialize(int *argc, char ***argv)
+{
+    struct log_config *lc;
+    (void)argc; (void)argv;
+    lc = log_config_init_for_console(LOG_LEVEL_NEVER, NULL);
+    if (lc != NULL)
+    {
+        lc->enable_console = 0;
+        lc->enable_syslog = 0;
+        lc->log_level = LOG_LEVEL_NEVER;
+        lc->console_level = LOG_LEVEL_NEVER;
+        log_start_from_param(lc);
+        log_config_free(lc);
+    }
+    return 0;
+}
 
 static int
 fake_trans_send(struct trans *self, const char *data, int len)
@@ -76,17 +94,8 @@ fake_trans_send(struct trans *self, const char *data, int len)
     return len;
 }
 
-static void
-ensure_init(void)
-{
-    if (g_con == NULL)
-    {
-        g_con = trans_create(TRANS_MODE_UNIX, 8192, 8192);
-        g_con->trans_send = fake_trans_send;
-        g_con->status = TRANS_STATUS_UP;
-    }
-}
-
+/* free_uds_client() also trans_delete()s the client's con, so each iteration
+ * gets its own trans (mirroring one connection per client in production). */
 static void
 drop_client(struct pcsc_uds_client *c)
 {
@@ -103,12 +112,12 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     struct stream in;
     struct pcsc_uds_client *c;
+    struct trans *con;
     char *buf;
     int id;
     int status;
     unsigned sel;
 
-    ensure_init();
     if (size < 2)
     {
         return 0;
@@ -127,7 +136,10 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     in.size = (int) size;
     in.next_packet = NULL;
 
-    c = create_uds_client(g_con);
+    con = trans_create(TRANS_MODE_UNIX, 8192, 8192);
+    con->trans_send = fake_trans_send;
+    con->status = TRANS_STATUS_UP;
+    c = create_uds_client(con);
     if (g_uds_clients == 0)
     {
         g_uds_clients = list_create();
