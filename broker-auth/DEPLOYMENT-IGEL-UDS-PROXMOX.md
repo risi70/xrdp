@@ -18,8 +18,8 @@ authenticate the RDP connection the way it does on Windows. Instead the
 handle** that rides standard RDP to the VDI:
 
 ```
-IGEL OS 12  ──user auth──▶  UDS Enterprise ──validates cert/pwd/MFA──▶  identity
-                                    │
+IGEL OS 12  ──user auth──▶  UDS Enterprise ──(SAML/OIDC)──▶  Keycloak / IdP ──▶ identity
+                                    │        validates cert/pwd/MFA
                                     ├─ requests a BAF assertion for (user,target)
                                     ├─ registers it with the VDI handle service ─▶ one-time handle
                                     ▼
@@ -55,7 +55,8 @@ the VDI — the broker never bypasses local Linux authority.
   endpoints, and (recommended) an isolated segment for the BAF services.
 - DNS names for the UDS server and each VDI, and an NTP source (BAF
   assertions are time-bound; clock sync is mandatory).
-- An identity source for UDS: AD/LDAP, SAML/OIDC IdP, or a smart-card CA.
+- An identity source for UDS: **Keycloak** (SAML/OIDC, recommended — see §5.2)
+  federated to your directory, or AD/LDAP directly, or a smart-card CA.
 - The XRDP+BAF source (this repository, branch `mvp-broker-assertion`).
 
 ---
@@ -246,8 +247,9 @@ deploy OpenUDS). Then, in the UDS admin UI:
    at the Proxmox API with the `uds@pve!uds` token; select the Ubuntu 24.04
    template (`9000`) as a linked-clone service.
 
-2. **Authenticator** — *Authenticators*: add your identity source (AD/LDAP,
-   SAML, or a **certificate authenticator** for smart cards). The username UDS
+2. **Authenticator** — *Authenticators*: add your identity source. Recommended
+   is **Keycloak via SAML** (see §5.2); AD/LDAP or a **certificate
+   authenticator** (smart cards) also work. Whichever you pick, the username UDS
    authenticates must equal the Linux/SSSD username on the VDI.
 
 3. **OS Manager** — Linux OS Manager, "remove on logout" or "keep" as policy.
@@ -311,6 +313,86 @@ the long-term integration that removes the CLI hop.
 
 The broker's signing key must correspond to the VDI's `TrustAnchor`, and its
 `issuer/audience/target/kid` must match the VDI `[BrokerAuth]` values exactly.
+
+### 5.2 Keycloak as the identity provider
+
+**Where Keycloak sits.** Keycloak is the OIDC/SAML **identity provider that
+authenticates the user for the broker** — it is *not* the issuer that XRDP
+trusts directly. The chain is:
+
+```
+user ──auth──▶ Keycloak ──identity──▶ broker (UDS + baf-uds-connect)
+                                         │ mints the BAF assertion (its own RS256 key)
+                                         ▼
+                                       XRDP VDI  (validates the assertion vs TrustAnchor)
+```
+
+This separation is deliberate and matters for configuration:
+
+- XRDP's BAF validator loads a **single local RS256 public key** (`TrustAnchor`,
+  a PEM file) and checks per-connection claims (`aud`, `target`, single-use
+  `jti`, short `nbf/exp`). It does **not** fetch a JWKS URL and cannot consume a
+  Keycloak access/ID token directly. So **do not** point `TrustAnchor` at
+  Keycloak or set `Issuer` to the Keycloak realm URL — the broker mints and
+  signs the assertion, and `Issuer/KeyId/TrustAnchor` stay the *broker's*.
+- Keycloak supplies the *identity* (username, groups, roles, LoA, auth method);
+  the broker copies those into the assertion and adds the per-target binding.
+
+**Keycloak realm and client.** In the Keycloak admin console:
+
+1. **Realm** — create/choose a realm, e.g. `vdi`.
+2. **User federation** — federate the **same** directory the VDIs use for NSS/
+   SSSD (LDAP/AD/FreeIPA), so `preferred_username` from Keycloak resolves to a
+   real account on the VDI (`getent passwd <user>` must succeed — see §4.4).
+   Map the LDAP `uid`/`sAMAccountName` to Keycloak's **username** so the values
+   line up exactly.
+3. **Client for UDS (SAML, recommended)** — *Clients → Create*:
+   - Client type **SAML**, Client ID = the UDS SP entity ID (from the UDS SAML
+     authenticator metadata), redirect/ACS URL = the UDS SAML endpoint.
+   - Add mappers so the assertion carries the identity BAF needs:
+     - **Username** → NameID / `preferred_username`
+     - **Group membership** mapper → `groups` (full group paths off, so values
+       match VDI group names)
+     - **Role list** mapper → `roles`
+   - Sign the SAML assertion; give UDS the realm signing certificate.
+   *(OIDC works too if your UDS build has an OIDC authenticator: client type
+   **OpenID Connect**, confidential, add `groups` and realm-`roles` mappers plus
+   a `preferred_username` mapper.)*
+4. **Assurance / auth method** — set the client/authentication flow so the token
+   conveys the level of assurance and method (`acr`/`amr` for OIDC, or an
+   attribute for SAML). Map these to the assertion's `assurance_level` and
+   `auth_method`; the VDI can require a minimum via a future assurance gate.
+
+**Wire it to UDS and the connector.** Configure the **UDS SAML authenticator**
+(step 2 above) against this Keycloak client. UDS authenticates the user through
+Keycloak, then hands the authenticated username to the transport, which calls
+`baf-uds-connect --user "$USERNAME"` (§5.1). Pass the Keycloak-derived assurance
+and method through if you want them reflected in the assertion:
+
+```bash
+baf-uds-connect --user "$USERNAME" \
+    --auth-method "$AMR" --assurance "$ACR" --format cookie
+```
+
+**Claim mapping (Keycloak → BAF assertion).** The connector fills the assertion
+from the authenticated identity:
+
+| BAF assertion claim | Source |
+|---|---|
+| `preferred_username` | Keycloak username (must resolve via VDI SSSD) |
+| `groups`, `roles` | Keycloak group-membership / role-list mappers |
+| `auth_method` (`amr`), `assurance_level` (`acr`) | Keycloak auth flow / LoA |
+| `sub` | broker-scoped subject (e.g. `uds-<username>`) |
+| `iss`, `aud`, `target`, `broker_session_id`, `jti`, `nbf/exp` | minted by the broker per connection — **not** from Keycloak |
+
+`iss/aud/target/kid` and the signing key must still match the VDI `[BrokerAuth]`
+values (§4.5); Keycloak does not change any of those.
+
+**Broker-native OIDC (non-UDS).** If you drive BAF without UDS, a broker
+component can run the OIDC authorization-code (or device) flow against the same
+Keycloak client, read the ID-token claims, and mint the assertion the same way.
+The Keycloak realm/client/mapper setup above is identical; only the component
+that consumes the token changes.
 
 ---
 
