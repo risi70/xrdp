@@ -21,9 +21,11 @@ Normative decisions:
 
 - [SD-002 — Separation of Assertion Validation and Linux Identity Binding](decisions/SD-002-validation-identity-separation.md)
 - [SD-003 — Phase Ownership and Assertion Transport Size](decisions/SD-003-phase-ownership-transport-size.md)
-- [SD-006 — One-time Server-side Assertion Handles](decisions/SD-006-one-time-server-side-assertion-handles.md)
 - [SD-004 — Trusted Replay Service for Live Broker Authentication](decisions/SD-004-trusted-replay-service.md)
+- [SD-006 — One-time Server-side Assertion Handles](decisions/SD-006-one-time-server-side-assertion-handles.md)
+- [SD-007 — Target-mismatched Handle Resolution Consumes the Handle](decisions/SD-007-target-mismatch-consumes-handle.md)
 - [SD-008 — RDS AAD Auth-style Pre-logon Assertion Ingress](decisions/SD-008-rdsaad-style-prelogon-assertion-ingress.md)
+- [SD-009 — Robust Ingress Tracks and Buildable Missing Components (Mode C — shipped)](decisions/SD-009-robust-ingress-tracks.md)
 
 ## Conformance
 

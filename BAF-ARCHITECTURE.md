@@ -4,9 +4,12 @@ This branch contains an experimental Broker Authentication Framework (BAF) for
 XRDP.
 
 BAF adds broker-authenticated pre-logon support while preserving the existing
-XRDP username/password PAM path. The current implementation is intentionally
-conservative: RDSAAD-style ingress is scaffolded and fails closed until the
-sesman/sesexec session-ready handoff is implemented.
+XRDP username/password PAM path. The shipped ingress is **Mode C** (SD-009):
+stock, unmodified RDP clients present a single-use server-side handle. The
+RDSAAD-style pre-logon exchange is also implemented. Both fail closed and run
+the full sesman/xrdp-sesexec chain — assertion validation, trusted replay,
+NSS/SSSD identity binding, UID 0 rejection and PAM preconditions — before a
+session starts. See [broker-auth/MODE-C-ONE-TIME-HANDLE.md](broker-auth/MODE-C-ONE-TIME-HANDLE.md).
 
 ## Goals
 
@@ -44,10 +47,13 @@ sesman/sesexec session-ready handoff is implemented.
   requires effective transport-size bounds.
 - SD-004 makes the trusted replay service mandatory for live activation.
 - SD-005 preserves standard RDP client neutrality.
-- SD-006 and SD-007 defined one-time server-side handles. They are now
-  superseded for the MVP production ingress.
-- SD-008 selects RDSAAD-style pre-logon assertion ingress as the preferred MVP
-  path.
+- SD-006 and SD-007 define one-time server-side handles; SD-009 promotes them
+  from superseded to the shipped **Mode C** production ingress for stock RDP
+  clients.
+- SD-008 defines the RDSAAD-style pre-logon assertion ingress (also implemented).
+- SD-009 defines the robust ingress tracks; Mode C (one-time handle) is the
+  shipped MVP path (see
+  [broker-auth/MODE-C-ONE-TIME-HANDLE.md](broker-auth/MODE-C-ONE-TIME-HANDLE.md)).
 
 ## High-Level Flow
 

@@ -8,7 +8,16 @@
 
 ## Broker Authentication Framework
 
-This branch contains an experimental Broker Authentication Framework for XRDP. See [BAF-ARCHITECTURE.md](BAF-ARCHITECTURE.md), [broker-auth/PHASE5.md](broker-auth/PHASE5.md), and [broker-auth/reference-broker/README.md](broker-auth/reference-broker/README.md).
+This branch contains an experimental Broker Authentication Framework for XRDP.
+Start with [BAF-ARCHITECTURE.md](BAF-ARCHITECTURE.md) and the normative
+[specification/](specification/) set. The shipped pre-logon ingress is
+[broker-auth/MODE-C-ONE-TIME-HANDLE.md](broker-auth/MODE-C-ONE-TIME-HANDLE.md);
+to deploy, see
+[broker-auth/DEPLOYMENT-IGEL-UDS-PROXMOX.md](broker-auth/DEPLOYMENT-IGEL-UDS-PROXMOX.md)
+and the reference broker in
+[broker-auth/reference-broker/README.md](broker-auth/reference-broker/README.md).
+Superseded design tracks and phase notes are kept under
+[broker-auth/archive/](broker-auth/archive/).
 
 
 ## Overview
