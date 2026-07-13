@@ -2,6 +2,7 @@ AM_CPPFLAGS = \
   -I$(top_builddir) \
   -I$(top_srcdir)/common \
   -I$(top_srcdir)/sesman/libsesman \
+  -I$(top_srcdir)/sesman/chansrv \
   -I$(top_srcdir)/libipm \
   -DXRDP_SOCKET_ROOT_PATH=\"/tmp\" \
   $(BROKER_AUTH_CFLAGS) \
@@ -65,6 +66,15 @@ test_rdsaad_ingress_LDADD = \
   $(top_builddir)/sesman/libsesman/libsesman.la \
   $(top_builddir)/common/libcommon.la \
   $(BROKER_AUTH_LIBS)
+
+# MS-RDPESC smart-card response parser tests: only when redirection is built.
+if XRDP_SMARTCARD
+TESTS += test_smartcard_scard
+check_PROGRAMS += test_smartcard_scard
+test_smartcard_scard_SOURCES = test_smartcard_scard.c
+test_smartcard_scard_LDADD = \
+  $(top_builddir)/common/libcommon.la
+endif
 endif
 
 EXTRA_DIST = \
@@ -85,6 +95,8 @@ EXTRA_DIST = \
   test_phase5_suite_integration.py \
   test_rdsaad_ingress.c \
   test_replay_service.c \
-  test_security_contract.py
+  test_security_contract.py \
+  test_smartcard_scard.c \
+  fuzz/fuzz_smartcard_scard.c
 
 # Top-level EXTRA_DIST includes broker-auth, preserving vector asset paths.
