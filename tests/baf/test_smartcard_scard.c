@@ -573,6 +573,136 @@ test_socket_handoff(void)
     rmdir(home);
 }
 
+/* ================================================================== */
+/* Local socket transport: framing, accept, dispatch, lifecycle and    */
+/* reaping through the real event loop scard_pcsc_check_wait_objs().    */
+/* ================================================================== */
+static int
+connect_client(void)
+{
+    struct sockaddr_un sa;
+    const char *ipc_path = g_pcsclite_ipc_file;
+    int cs = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (cs < 0) { return -1; }
+    memset(&sa, 0, sizeof(sa));
+    sa.sun_family = AF_UNIX;
+    g_snprintf(sa.sun_path, sizeof(sa.sun_path), "%s", ipc_path);
+    if (connect(cs, (struct sockaddr *)&sa, sizeof(sa)) != 0)
+    {
+        close(cs);
+        return -1;
+    }
+    return cs;
+}
+
+/* Send a framed PC/SC message: [size][command][body]. Sends the full body so
+ * the server's (blocking) trans_force_read never stalls the test. */
+static int
+send_msg(int fd, unsigned int command, const unsigned char *body,
+         unsigned int blen)
+{
+    unsigned char hdr[8];
+    put_u32le(hdr + 0, blen);
+    put_u32le(hdr + 4, command);
+    if (write(fd, hdr, 8) != 8) { return -1; }
+    if (blen > 0 && write(fd, body, blen) != (ssize_t) blen) { return -1; }
+    return 0;
+}
+
+static void
+xwrite(int fd, const void *buf, size_t n)   /* write, result intentionally used */
+{
+    ssize_t r = write(fd, buf, n);
+    (void) r;
+}
+
+static void
+pump(int n)   /* run the real chansrv PC/SC event loop n times */
+{
+    while (n-- > 0) { (void) scard_pcsc_check_wait_objs(); }
+}
+
+static int
+client_count(void)
+{
+    return (g_uds_clients == NULL) ? 0 : g_uds_clients->count;
+}
+
+static void
+test_socket_transport(void)
+{
+    char tmpl[] = "/tmp/scard_tx_XXXXXX";
+    char *home;
+    unsigned char scope[4];
+    unsigned char hdr[8];
+    int c1, c2, c3;
+
+    printf("[transport: socket framing / dispatch / lifecycle]\n");
+
+    home = mkdtemp(tmpl);
+    if (home == NULL) { CHECK(0, "mkdtemp"); return; }
+    setenv("HOME", home, 1);
+    CHECK(scard_pcsc_init() == 0, "listener up");
+
+    /* Isolate from the fake-trans clients the earlier parser tests registered
+     * in g_uds_clients (they share a fake con and are never reaped): start this
+     * test with a fresh empty list so client counts are exact. The old list is
+     * intentionally orphaned (leak ok under detect_leaks=0). */
+    g_uds_clients = list_create();
+
+    /* multiple concurrent connections all get accepted */
+    c1 = connect_client();
+    c2 = connect_client();
+    c3 = connect_client();
+    CHECK(c1 >= 0 && c2 >= 0 && c3 >= 0, "three clients connect");
+    pump(6);
+    CHECK(client_count() == 3, "three connections accepted");
+
+    /* a valid ESTABLISH_CONTEXT (returns 0) keeps the connection open */
+    put_u32le(scope, 0x02);
+    send_msg(c1, 0x01, scope, 4);
+    pump(2);
+    CHECK(client_count() == 3, "valid ESTABLISH_CONTEXT keeps the connection");
+
+    /* an unknown command fails closed (rv=1) -> the client is reaped */
+    send_msg(c2, 0x0099, NULL, 0);
+    pump(2);
+    CHECK(client_count() == 2, "unknown command reaps the client");
+
+    /* client disconnect is detected and reaped */
+    close(c3);
+    pump(2);
+    CHECK(client_count() == 1, "client disconnect reaps the client");
+
+    /* a header split across two writes is reassembled (data_in fires only at
+     * exactly header_size), not mis-parsed or reaped */
+    put_u32le(hdr + 0, 4);       /* size */
+    put_u32le(hdr + 4, 0x01);    /* ESTABLISH_CONTEXT */
+    xwrite(c1, hdr, 3);          /* partial header */
+    pump(2);
+    CHECK(client_count() == 1, "partial header buffered, not reaped");
+    xwrite(c1, hdr + 3, 5);      /* rest of header */
+    xwrite(c1, scope, 4);        /* body */
+    pump(2);
+    CHECK(client_count() == 1, "reassembled framed message processed");
+
+    /* two pipelined messages in one write are both processed */
+    {
+        unsigned char two[24];
+        put_u32le(two + 0, 4); put_u32le(two + 4, 0x01); put_u32le(two + 8, 0);
+        put_u32le(two + 12, 4); put_u32le(two + 16, 0x01); put_u32le(two + 20, 0);
+        xwrite(c1, two, sizeof(two));
+        pump(4);
+        CHECK(client_count() == 1, "pipelined messages processed, client alive");
+    }
+
+    close(c1);
+    pump(2);
+    scard_pcsc_deinit();
+    CHECK(client_count() == 0 && g_lis == NULL, "all connections drained on deinit");
+    rmdir(home);
+}
+
 int
 main(void)
 {
@@ -586,6 +716,7 @@ main(void)
     test_security();
     test_request_parsers();
     test_socket_handoff();
+    test_socket_transport();
     printf("== %d checks, %d failures ==\n", g_checks, g_fails);
     return g_fails == 0 ? 0 : 1;
 }
