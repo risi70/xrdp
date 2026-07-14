@@ -79,6 +79,13 @@ extern char g_display_str[]; /* in chansrv.c */
 #define SCARD_MAX_RECV_BYTES 66560
 #define SCARD_MAX_MSZ_BYTES  65536
 
+/* Upper bound on a single PC/SC socket message body (the size field in the
+ * 8-byte header). The largest legitimate message is a TRANSMIT carrying an
+ * extended APDU (cbRecvLength range is 0..66560); 128 KiB leaves generous
+ * headroom. Bounding it stops a client from making my_pcsc_trans_data_in do a
+ * blocking, unbounded trans_force_read that would stall the PC/SC loop. */
+#define SCARD_MAX_MSG_SIZE   (128 * 1024)
+
 /*
  * Require _n more bytes in the untrusted response stream _s. On a short or
  * negative-length response, log and make the caller return an error (1) rather
@@ -2063,6 +2070,13 @@ my_pcsc_trans_data_in(struct trans *trans)
     in_uint32_le(s, size);
     in_uint32_le(s, command);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "my_pcsc_trans_data_in: size %d command %d", size, command);
+    /* size is client-supplied; bound it before the (blocking) trans_force_read
+     * so a bogus large/negative size cannot stall or over-allocate the loop. */
+    if (size < 0 || size > SCARD_MAX_MSG_SIZE)
+    {
+        LOG(LOG_LEVEL_ERROR, "my_pcsc_trans_data_in: bad message size %d", size);
+        return 1;
+    }
     error = trans_force_read(trans, size);
     if (error == 0)
     {

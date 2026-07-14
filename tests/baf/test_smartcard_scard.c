@@ -696,6 +696,14 @@ test_socket_transport(void)
         CHECK(client_count() == 1, "pipelined messages processed, client alive");
     }
 
+    /* an oversized declared size is rejected before the blocking read and the
+     * client is reaped -- it must not stall the loop (header only, no body) */
+    put_u32le(hdr + 0, 0x7fffffff);
+    put_u32le(hdr + 4, 0x01);
+    xwrite(c1, hdr, 8);
+    pump(2);
+    CHECK(client_count() == 0, "oversized message size rejected and reaped");
+
     close(c1);
     pump(2);
     scard_pcsc_deinit();

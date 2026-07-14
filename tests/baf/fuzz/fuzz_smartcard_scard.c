@@ -123,8 +123,13 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
         return 0;
     }
     /* 0..6 = card-response return parsers; 7..22 = request-side scard_process_*
-     * (transport message) parsers via commands 0x01..0x10. */
+     * (transport message) parsers via commands 0x01..0x10. Build with
+     * -DFUZZ_REQUEST_ONLY to fuzz only the request/transport side. */
+#ifdef FUZZ_REQUEST_ONLY
+    sel = 7 + (data[0] % 16);
+#else
     sel = data[0] % 23;
+#endif
     status = (data[1] & 1) ? 0 : 0x80100002; /* success vs card error */
     data += 2;
     size -= 2;
