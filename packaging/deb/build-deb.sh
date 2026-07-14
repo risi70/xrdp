@@ -60,7 +60,7 @@ cd "$BUILD"
 # tree carries commit 7a2ac0c1 ("smartcard code contains a number of security
 # vulnerabilities and does not work at the moment"). A security review of that
 # code and an upstream-facing report accompany this build:
-# broker-auth/UPSTREAM-MS-RDPESC-REVIEW.md. Set WITH_SMARTCARD=0 to build
+# the internal MS-RDPESC security review. Set WITH_SMARTCARD=0 to build
 # without it. This is independent of smart-card *login* (card -> broker ->
 # Mode C), which is always available via --enable-broker-auth.
 if [ "${WITH_SMARTCARD:-1}" = "0" ]; then
@@ -128,7 +128,7 @@ Description: XRDP with the Broker Authentication Framework (BAF)
  identity binding and PAM before starting a session. Preserves the classic
  username/password PAM login. Ships the xrdp-baf-replayd and xrdp-baf-handled
  trusted services. Built with experimental MS-RDPESC smart-card redirection
- (--enable-smartcard); see broker-auth/UPSTREAM-MS-RDPESC-REVIEW.md.
+ (--enable-smartcard); see the internal MS-RDPESC security review.
 CTRL
 
 # conffiles: don't clobber admin-edited config on upgrade

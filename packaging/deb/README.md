@@ -74,10 +74,10 @@ survive upgrades.
   vulnerabilities and does not work at the moment"*).
 
   We reviewed that code before turning it on; the findings — and their
-  operational containment — are in
-  [`broker-auth/UPSTREAM-MS-RDPESC-REVIEW.md`](../../broker-auth/UPSTREAM-MS-RDPESC-REVIEW.md),
-  which is also our upstream-facing report to neutrinolabs. **Read it before
-  exposing redirection to untrusted clients.** The redirected pcsc socket lives
+  operational containment — are captured in an **internal MS-RDPESC security
+  review** (held privately pending coordinated upstream disclosure; ask the
+  maintainers). **Read it before exposing redirection to untrusted clients.**
+  The redirected pcsc socket lives
   in the *user's own session* (`$HOME/.pcsc<display>`, dir mode 0700), so the
   parsing bugs are reachable only by the RDP client already bound to that
   session — a client attacking its own session — not by other local users.

@@ -107,8 +107,8 @@ apt-get install -y ./xrdp-baf_*.deb ./xorgxrdp-baf_*.deb
 ```
 
 The `xrdp-baf` package is built with in-session **smart-card redirection on by
-default** (`--enable-smartcard`); read
-[`UPSTREAM-MS-RDPESC-REVIEW.md`](UPSTREAM-MS-RDPESC-REVIEW.md) first. If you do
+default** (`--enable-smartcard`); read the internal MS-RDPESC security review
+(held privately pending coordinated upstream disclosure) first. If you do
 not need in-session card use, build a `WITH_SMARTCARD=0` package instead
 (Option B). For **26.04**, the prebuilt debs (`noble`/24.04) do not apply —
 build per Option B on 26.04.
@@ -514,10 +514,11 @@ redirection ([MS-RDPESC]). Enable it only if you need in-session card use.
   against your specific MS RD Core SDK client build before relying on it. It
   does **not** require NLA (redirection runs on the post-connection `rdpdr`
   channel).
-- **Read `broker-auth/UPSTREAM-MS-RDPESC-REVIEW.md` first.** We reviewed this
-  upstream code before enabling it: the return-path parsers trust
-  client-supplied lengths without bounds checks (OOB read/write reachable by
-  the RDP client bound to the session). The redirected pcsc socket is `0700`
+- **Read the internal MS-RDPESC security review first** (held privately pending
+  coordinated upstream disclosure). We reviewed this upstream code before
+  enabling it: the return-path parsers trust client-supplied lengths without
+  bounds checks (OOB read/write reachable by the RDP client bound to the
+  session). The redirected pcsc socket is `0700`
   under the session `$HOME`, so the exposure is confined to that user's own
   session (crash/DoS + memory disclosure into its own pcsc response), not a
   cross-user host compromise — but it is a real reason to restrict redirection

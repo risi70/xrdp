@@ -55,7 +55,7 @@
  * DR_DEVICE_IOCOMPLETION header. Guard the OutputBufferLen read before using
  * the unchecked xstream_rd_u32_le accessor; the response payload itself is
  * bounds-checked in the scard_function_*_return parsers (smartcard_pcsc.c).
- * See broker-auth/UPSTREAM-MS-RDPESC-REVIEW.md (F3).
+ * See the internal MS-RDPESC security review (F3).
  */
 #define SCARD_RD_RET_LEN(_s, _irp, _len)                                    \
     do                                                                      \

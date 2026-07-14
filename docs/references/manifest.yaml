@@ -17,8 +17,8 @@ references:
     # Authoritative wire format for the chansrv --enable-smartcard redirection
     # code (SCARD_IOCTL_* set, section 3.1.4; call/return structures, 2.2.2/2.2.3;
     # NDR/RPCE type-serialization headers). Basis for the smart-card test vectors
-    # in tests/baf/test_smartcard_scard.c and the security review
-    # (broker-auth/UPSTREAM-MS-RDPESC-REVIEW.md). Reviewed revision: 17.0
+    # in tests/baf/test_smartcard_scard.c and an internal MS-RDPESC security
+    # review. Reviewed revision: 17.0
     # (2024-04-23). Structures/IDL usable per the MS Open Specifications IP notice.
     relevance: "MS-RDPESC smart-card redirection: IOCTL codes, call/return structures, NDR marshaling, length range constraints (e.g. Transmit_Return cbRecvLength range(0,66560))."
     fetch: true

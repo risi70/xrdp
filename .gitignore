@@ -64,3 +64,6 @@ xrdp_configure_options.h
 xrdpapi/xrdp-xrdpapi-simple
 .vscode/*
 xrdp_accel_assist/xrdp-accel-assist
+
+# Private security reports — vulns not yet fixed upstream; do not publish.
+broker-auth/private/

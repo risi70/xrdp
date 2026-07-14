@@ -4,7 +4,7 @@
  *
  * The scard_function_*_return() parsers decode client-controlled [MS-RDPESC]
  * IOCTL responses (see docs/references/microsoft/NOTES.md and
- * broker-auth/UPSTREAM-MS-RDPESC-REVIEW.md). They are static, so we #include the
+ * the internal MS-RDPESC security review). They are static, so we #include the
  * translation unit directly and stub its two external collaborators:
  *   - the request/send side (scard_send_*), which lives in smartcard.c; and
  *   - the trans output layer, stubbed so the reply is marshalled into a real

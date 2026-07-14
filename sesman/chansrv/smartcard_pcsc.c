@@ -65,7 +65,7 @@ extern char g_display_str[]; /* in chansrv.c */
  * accessors used here do NOT bounds-check the received buffer, so every read of
  * an untrusted response must be guarded: verify the bytes are present before
  * reading, reject insane declared lengths, and size output streams to the
- * (now-bounded) payload. See broker-auth/UPSTREAM-MS-RDPESC-REVIEW.md (F1-F5).
+ * (now-bounded) payload. See the internal MS-RDPESC security review (F1-F5).
  */
 
 /* Sanity cap on the GetStatusChange reader array (pcsc-lite uses 16). */

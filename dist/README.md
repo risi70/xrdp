@@ -7,9 +7,8 @@ downloadable by raw URL (see below) and covered by `SHA256SUMS`.
 > These are built for **Ubuntu 24.04 (noble)**. `.deb` packages are
 > release-specific — for 26.04 build with `packaging/deb/build-deb.sh` on 26.04.
 > The `xrdp-baf` package is built with in-session smart-card redirection
-> enabled (`--enable-smartcard`); read
-> [`../broker-auth/UPSTREAM-MS-RDPESC-REVIEW.md`](../broker-auth/UPSTREAM-MS-RDPESC-REVIEW.md)
-> first.
+> enabled (`--enable-smartcard`); read the internal MS-RDPESC security review
+> (held privately pending coordinated upstream disclosure) first.
 
 ## Artifacts
 

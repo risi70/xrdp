@@ -6,7 +6,7 @@
 # Extends the lab to exercise the --enable-smartcard redirection code
 # (sesman/chansrv/smartcard*.c). The tests decode client-controlled [MS-RDPESC]
 # IOCTL responses; running them under ASan/UBSan turns the F1-F9 bounds-check
-# fixes (broker-auth/UPSTREAM-MS-RDPESC-REVIEW.md) into an enforced contract.
+# fixes (the internal MS-RDPESC security review) into an enforced contract.
 #
 #   scripts/run-smartcard-tests.sh --host 192.168.126.20 [--user ansible]
 #                                  [--fuzz-seconds 30]
