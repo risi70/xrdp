@@ -9,7 +9,12 @@ stock, unmodified RDP clients present a single-use server-side handle. The
 RDSAAD-style pre-logon exchange is also implemented. Both fail closed and run
 the full sesman/xrdp-sesexec chain — assertion validation, trusted replay,
 NSS/SSSD identity binding, UID 0 rejection and PAM preconditions — before a
-session starts. See [broker-auth/MODE-C-ONE-TIME-HANDLE.md](broker-auth/MODE-C-ONE-TIME-HANDLE.md).
+session starts. See [broker-auth/BROKER-RDP-HANDLE.md](broker-auth/BROKER-RDP-HANDLE.md).
+
+> **Codename:** Broker-RDP Handle is called **"Mode C"** in the source and
+> config (identifiers `modec_*`, keys `ModeCOneTimeCredential` /
+> `broker_auth_modec_ingress_enabled`) — its SD-009 track name, after the
+> archived Mode A/B RDSAAD tracks. See BROKER-RDP-HANDLE.md § "Naming".
 
 ## Goals
 
@@ -53,7 +58,7 @@ session starts. See [broker-auth/MODE-C-ONE-TIME-HANDLE.md](broker-auth/MODE-C-O
 - SD-008 defines the RDSAAD-style pre-logon assertion ingress (also implemented).
 - SD-009 defines the robust ingress tracks; Broker-RDP Handle (one-time handle) is the
   shipped MVP path (see
-  [broker-auth/MODE-C-ONE-TIME-HANDLE.md](broker-auth/MODE-C-ONE-TIME-HANDLE.md)).
+  [broker-auth/BROKER-RDP-HANDLE.md](broker-auth/BROKER-RDP-HANDLE.md)).
 
 ## High-Level Flow
 
@@ -121,7 +126,7 @@ Implemented pieces include:
   `urn:baf:ts_nonce` extension claim and the fail-closed
   `RequireNonceBinding` gate, and Broker-RDP Handle ingress for stock
   clients through both an X.224 routing-token channel and a one-time
-  credential channel (see `broker-auth/MODE-C-ONE-TIME-HANDLE.md`). The
+  credential channel (see `broker-auth/BROKER-RDP-HANDLE.md`). The
   SD-006 handle service is promoted from superseded to production for
   Broker-RDP Handle.
 

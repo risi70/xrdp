@@ -13,6 +13,26 @@ Two delivery channels feed the same authorization chain
 NSS/SSSD identity binding → UID 0 rejection → PAM account preconditions →
 group access policy):
 
+## Naming: "Mode C" in the code and config
+
+"Broker-RDP Handle" is the descriptive name for this ingress. In the **source
+and configuration it is still called "Mode C"** — its internal codename from
+[SD-009](../specification/decisions/SD-009-robust-ingress-tracks.md), where it
+was the third robust-ingress *track* after **Mode A** (native RDSAAD client) and
+**Mode B** (broker-gateway RDSAAD), both now superseded and archived under
+[`archive/`](archive/). When reading the tree you will see the old codename in:
+
+| Where | Identifier |
+|---|---|
+| C / Python symbols | `modec_*` — e.g. `modec_resolve_handle`, `modec_preauth`, `modec_sec` |
+| `sesman.ini` `[BrokerAuth]` | `ModeCOneTimeCredential` |
+| `xrdp.ini` `[Globals]` | `broker_auth_modec_ingress_enabled` |
+| tests / lab | `test_modec_live.c`, `test-lab/phase6/modec-smoke/` |
+
+They all denote the Broker-RDP Handle mechanism described here. The codename was
+deliberately left in the identifiers and config keys so existing build and
+config files keep working; only the human-readable prose was renamed.
+
 ## Channel 1 - Routing token (pre-MCS, no credential fields)
 
 The client sends the handle as an X.224 routing token of the exact form:

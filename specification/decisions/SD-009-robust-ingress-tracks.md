@@ -5,7 +5,7 @@
 **Implementation status:** Wave 1 (C5 + C3) is implemented on this branch:
 nonce plumb-through with `urn:baf:ts_nonce`/`RequireNonceBinding`, the Broker-RDP Handle
 one-time-credential PAM path, and the Broker-RDP Handle routing-token pre-MCS ingress.
-See `broker-auth/MODE-C-ONE-TIME-HANDLE.md`.
+See `broker-auth/BROKER-RDP-HANDLE.md`.
 
 ## Context
 
