@@ -122,7 +122,9 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     {
         return 0;
     }
-    sel = data[0] % 7;
+    /* 0..6 = card-response return parsers; 7..22 = request-side scard_process_*
+     * (transport message) parsers via commands 0x01..0x10. */
+    sel = data[0] % 23;
     status = (data[1] & 1) ? 0 : 0x80100002; /* success vs card error */
     data += 2;
     size -= 2;
@@ -189,6 +191,13 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
             scard_function_list_readers_return((void *) pl, &in, (int) size, status);
             break;
         }
+        default:
+            /* request side (transport): the PC/SC socket message parsers,
+             * dispatched exactly as my_pcsc_trans_data_in does. sel 7..22 ->
+             * command 0x01..0x10. con->callback_data was set by
+             * create_uds_client(). */
+            scard_process_msg(con, &in, (int)(sel - 6));
+            break;
     }
 
     drop_client(c);

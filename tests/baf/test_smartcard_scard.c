@@ -23,6 +23,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <sys/stat.h>
 
 #include "arch.h"
 #include "parse.h"
@@ -443,6 +447,132 @@ static void test_security(void)
           "error status get_status_change returns cleanly without parsing");
 }
 
+/* ================================================================== */
+/* Request side: the PC/SC socket message parsers (scard_process_*)     */
+/* reached via the transport dispatcher scard_process_msg().            */
+/* ================================================================== */
+static void
+test_request_parsers(void)
+{
+    struct bb b;
+    struct stream in;
+    int id;
+
+    printf("[transport: request parsers via scard_process_msg]\n");
+
+    /* ESTABLISH_CONTEXT (0x01): body is dwScope (4 bytes). con->callback_data
+     * is set to the client by create_uds_client(). */
+    new_client(&id);
+    bb_reset(&b); bb_u32(&b, 0x02);      /* dwScope */
+    in_from_bb(&in, &b);
+    CHECK(scard_process_msg(g_con, &in, 0x01) == 0,
+          "process ESTABLISH_CONTEXT ok");
+
+    /* Unknown command must fail closed (rv=1), not crash. */
+    new_client(&id);
+    bb_reset(&b); bb_zeros(&b, 4);
+    in_from_bb(&in, &b);
+    CHECK(scard_process_msg(g_con, &in, 0x9999) == 1,
+          "process unknown command fails closed");
+
+    /* Truncated bodies must not read out of bounds (ASan enforces). These
+     * exercise the request parsers with short input; we assert only that the
+     * call completes without a sanitizer abort. */
+    new_client(&id);
+    bb_reset(&b); bb_zeros(&b, 3);
+    in_from_bb(&in, &b);
+    (void) scard_process_msg(g_con, &in, 0x09);   /* TRANSMIT, short */
+    new_client(&id);
+    bb_reset(&b); bb_zeros(&b, 2);
+    in_from_bb(&in, &b);
+    (void) scard_process_msg(g_con, &in, 0x04);   /* CONNECT, short */
+    new_client(&id);
+    bb_reset(&b);
+    in_from_bb(&in, &b);
+    (void) scard_process_msg(g_con, &in, 0x0B);   /* STATUS, empty */
+    CHECK(1, "process truncated TRANSMIT/CONNECT/STATUS did not crash");
+}
+
+static void
+put_u32le(unsigned char *p, unsigned int v)
+{
+    p[0] = (unsigned char) v; p[1] = (unsigned char)(v >> 8);
+    p[2] = (unsigned char)(v >> 16); p[3] = (unsigned char)(v >> 24);
+}
+
+/* ================================================================== */
+/* Socket handoff: the real $HOME/.pcsc<display>/pcscd.comm UNIX socket */
+/* end to end — init, 0700 perms, connect, accept, framed dispatch.     */
+/* ================================================================== */
+static void
+test_socket_handoff(void)
+{
+    char tmpl[] = "/tmp/scard_test_XXXXXX";
+    char *home;
+    struct stat st;
+    struct sockaddr_un sa;
+    struct pcsc_uds_client *uc;
+    const char *ipc_path;
+    unsigned char msg[12];
+    int cs;
+
+    printf("[transport: PC/SC UNIX socket handoff]\n");
+
+    home = mkdtemp(tmpl);
+    if (home == NULL) { CHECK(0, "mkdtemp"); return; }
+    setenv("HOME", home, 1);
+
+    /* init creates $HOME/.pcsc<display>/ (0700) and listens on pcscd.comm */
+    CHECK(scard_pcsc_init() == 0, "scard_pcsc_init sets up the listener");
+    CHECK(g_pcsclite_ipc_dir[0] != 0 && g_directory_exist(g_pcsclite_ipc_dir),
+          "pcsc IPC directory created");
+    if (stat(g_pcsclite_ipc_dir, &st) == 0)
+    {
+        CHECK((st.st_mode & 0777) == 0700,
+              "pcsc IPC directory is mode 0700 (session-private)");
+    }
+    else
+    {
+        CHECK(0, "stat pcsc IPC dir");
+    }
+
+    /* a session app connects to the redirected pcsc socket */
+    cs = socket(AF_UNIX, SOCK_STREAM, 0);
+    CHECK(cs >= 0, "client socket");
+    memset(&sa, 0, sizeof(sa));
+    sa.sun_family = AF_UNIX;
+    ipc_path = g_pcsclite_ipc_file;
+    /* g_snprintf is a real function call (not the fortify macro), so the
+     * char[256] source does not trip -Wformat-truncation into sun_path[108]. */
+    g_snprintf(sa.sun_path, sizeof(sa.sun_path), "%s", ipc_path);
+    CHECK(connect(cs, (struct sockaddr *)&sa, sizeof(sa)) == 0,
+          "client connects to pcscd.comm");
+
+    /* pump the listener: accept -> my_pcsc_trans_conn_in registers a client */
+    trans_check_wait_objs(g_lis);
+    CHECK(g_uds_clients != NULL && g_uds_clients->count >= 1,
+          "server accepted the connection and registered a client");
+    uc = (struct pcsc_uds_client *)
+         list_get_item(g_uds_clients, g_uds_clients->count - 1);
+
+    /* send a framed ESTABLISH_CONTEXT: [size=4][command=0x01][dwScope=0] */
+    put_u32le(msg + 0, 4);       /* size (body length, excludes 8-byte header) */
+    put_u32le(msg + 4, 0x01);    /* command */
+    put_u32le(msg + 8, 0);       /* dwScope */
+    CHECK(write(cs, msg, sizeof(msg)) == (ssize_t) sizeof(msg),
+          "client sends framed ESTABLISH_CONTEXT");
+
+    /* pump the accepted connection: header -> data_in -> force_read body ->
+     * scard_process_msg -> scard_process_establish_context (send stubbed) */
+    CHECK(trans_check_wait_objs(uc->con) == 0,
+          "server frames and dispatches the request without error");
+
+    close(cs);
+    scard_pcsc_deinit();
+    CHECK(g_lis == NULL, "scard_pcsc_deinit tears down the listener");
+    rmdir(home);
+}
+
 int
 main(void)
 {
@@ -454,6 +584,8 @@ main(void)
 
     test_positive();
     test_security();
+    test_request_parsers();
+    test_socket_handoff();
     printf("== %d checks, %d failures ==\n", g_checks, g_fails);
     return g_fails == 0 ? 0 : 1;
 }

@@ -488,6 +488,7 @@ scard_process_establish_context(struct trans *con, struct stream *in_s)
 
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_establish_context:");
     uds_client = (struct pcsc_uds_client *) (con->callback_data);
+    SCARD_NEED(in_s, 4);
     in_uint32_le(in_s, dwScope);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_establish_context: dwScope 0x%8.8x", dwScope);
     user_data = (void *) (tintptr) (uds_client->uds_client_id);
@@ -573,6 +574,7 @@ scard_process_release_context(struct trans *con, struct stream *in_s)
 
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_release_context:");
     uds_client = (struct pcsc_uds_client *) (con->callback_data);
+    SCARD_NEED(in_s, 4);
     in_uint32_le(in_s, hContext);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_release_context: hContext 0x%8.8x", hContext);
     user_data = (void *) (tintptr) (uds_client->uds_client_id);
@@ -661,6 +663,7 @@ scard_process_list_readers(struct trans *con, struct stream *in_s)
 
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_list_readers:");
     uds_client = (struct pcsc_uds_client *) (con->callback_data);
+    SCARD_NEED(in_s, 4 + 4);
     in_uint32_le(in_s, hContext);
     in_uint32_le(in_s, bytes_groups);
     if (bytes_groups > (sizeof(groups) - 1))
@@ -669,8 +672,10 @@ scard_process_list_readers(struct trans *con, struct stream *in_s)
             bytes_groups);
         return 1;
     }
+    SCARD_NEED(in_s, bytes_groups);
     in_uint8a(in_s, groups, bytes_groups);
     groups[bytes_groups] = '\0';
+    SCARD_NEED(in_s, 4);
     in_uint32_le(in_s, cchReaders);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_list_readers: hContext 0x%8.8x cchReaders %d",
               hContext, cchReaders);
@@ -879,6 +884,7 @@ scard_process_connect(struct trans *con, struct stream *in_s)
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_connect:");
     uds_client = (struct pcsc_uds_client *) (con->callback_data);
     g_memset(&rs, 0, sizeof(rs));
+    SCARD_NEED(in_s, 4 + 100 + 4 + 4);
     in_uint32_le(in_s, hContext);
     in_uint8a(in_s, rs.reader_name, 100);
     in_uint32_le(in_s, rs.dwShareMode);
@@ -992,6 +998,7 @@ scard_process_disconnect(struct trans *con, struct stream *in_s)
 
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_disconnect:");
     uds_client = (struct pcsc_uds_client *) (con->callback_data);
+    SCARD_NEED(in_s, 4 + 4);
     in_uint32_le(in_s, hCard);
     in_uint32_le(in_s, dwDisposition);
     user_data = (void *) (tintptr) (uds_client->uds_client_id);
@@ -1061,6 +1068,7 @@ scard_process_begin_transaction(struct trans *con, struct stream *in_s)
 
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_begin_transaction:");
     uds_client = (struct pcsc_uds_client *) (con->callback_data);
+    SCARD_NEED(in_s, 4);
     in_uint32_le(in_s, hCard);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_begin_transaction: hCard 0x%8.8x", hCard);
     user_data = (void *) (tintptr) (uds_client->uds_client_id);
@@ -1132,6 +1140,7 @@ scard_process_end_transaction(struct trans *con, struct stream *in_s)
 
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_end_transaction:");
     uds_client = (struct pcsc_uds_client *) (con->callback_data);
+    SCARD_NEED(in_s, 4 + 4);
     in_uint32_le(in_s, hCard);
     in_uint32_le(in_s, dwDisposition);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_end_transaction: hCard 0x%8.8x", hCard);
@@ -1229,17 +1238,24 @@ scard_process_transmit(struct trans *con, struct stream *in_s)
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_transmit:");
     uds_client = (struct pcsc_uds_client *) (con->callback_data);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_transmit:");
+    SCARD_NEED(in_s, 4 + 4 + 4 + 4);
     in_uint32_le(in_s, hCard);
     in_uint32_le(in_s, send_ior.dwProtocol);
     in_uint32_le(in_s, send_ior.cbPciLength);
     in_uint32_le(in_s, send_ior.extra_bytes);
+    SCARD_NEED(in_s, send_ior.extra_bytes);
     in_uint8p(in_s, send_ior.extra_data, send_ior.extra_bytes);
+    SCARD_NEED(in_s, 4);
     in_uint32_le(in_s, send_bytes);
+    SCARD_NEED(in_s, send_bytes);
     in_uint8p(in_s, send_data, send_bytes);
+    SCARD_NEED(in_s, 4 + 4 + 4);
     in_uint32_le(in_s, recv_ior.dwProtocol);
     in_uint32_le(in_s, recv_ior.cbPciLength);
     in_uint32_le(in_s, recv_ior.extra_bytes);
+    SCARD_NEED(in_s, recv_ior.extra_bytes);
     in_uint8p(in_s, recv_ior.extra_data, recv_ior.extra_bytes);
+    SCARD_NEED(in_s, 4);
     in_uint32_le(in_s, recv_bytes);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_transmit: send dwProtocol %d cbPciLength %d "
               "recv dwProtocol %d cbPciLength %d send_bytes %d ",
@@ -1394,10 +1410,13 @@ scard_process_control(struct trans *con, struct stream *in_s)
     uds_client = (struct pcsc_uds_client *) (con->callback_data);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_control:");
 
+    SCARD_NEED(in_s, 4 + 4 + 4);
     in_uint32_le(in_s, hCard);
     in_uint32_le(in_s, control_code);
     in_uint32_le(in_s, send_bytes);
+    SCARD_NEED(in_s, send_bytes);
     in_uint8p(in_s, send_data, send_bytes);
+    SCARD_NEED(in_s, 4);
     in_uint32_le(in_s, recv_bytes);
 
     user_data = (void *) (tintptr) (uds_client->uds_client_id);
@@ -1506,6 +1525,7 @@ scard_process_status(struct trans *con, struct stream *in_s)
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_status:");
     uds_client = (struct pcsc_uds_client *) (con->callback_data);
 
+    SCARD_NEED(in_s, 4 + 4 + 4);
     in_uint32_le(in_s, hCard);
     in_uint32_le(in_s, cchReaderLen);
     in_uint32_le(in_s, cbAtrLen);
@@ -1705,6 +1725,7 @@ scard_process_get_status_change(struct trans *con, struct stream *in_s)
 
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_get_status_change:");
     uds_client = (struct pcsc_uds_client *) (con->callback_data);
+    SCARD_NEED(in_s, 4 + 4 + 4);
     in_uint32_le(in_s, hContext);
     in_uint32_le(in_s, dwTimeout);
     in_uint32_le(in_s, cReaders);
@@ -1713,6 +1734,9 @@ scard_process_get_status_change(struct trans *con, struct stream *in_s)
         LOG(LOG_LEVEL_ERROR, "scard_process_get_status_change: bad cReaders %d", cReaders);
         return 1;
     }
+    /* each reader record is 100 + 4 + 4 + 4 + 36 = 148 bytes; check up front so
+     * the read loop below cannot run past the buffer (and no rsa leak). */
+    SCARD_NEED(in_s, cReaders * 148);
     rsa = (READER_STATE *) g_malloc(sizeof(READER_STATE) * cReaders, 1);
 
     for (index = 0; index < cReaders; index++)
@@ -1850,6 +1874,7 @@ scard_process_cancel(struct trans *con, struct stream *in_s)
 
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_cancel:");
     uds_client = (struct pcsc_uds_client *) (con->callback_data);
+    SCARD_NEED(in_s, 4);
     in_uint32_le(in_s, hContext);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_cancel: hContext 0x%8.8x", hContext);
     user_data = (void *) (tintptr) (uds_client->uds_client_id);
