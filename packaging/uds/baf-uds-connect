@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""baf-uds-connect — issue a Mode C handle for a UDS RDP transport.
+"""baf-uds-connect — issue a Broker-RDP Handle for a UDS RDP transport.
 
 Called by the UDS Enterprise RDP transport once UDS has authenticated the
 user. It mints a BAF assertion for (user, target), registers it with the

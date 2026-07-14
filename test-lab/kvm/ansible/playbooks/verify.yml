@@ -26,7 +26,7 @@
       ansible.builtin.command: getent passwd {{ lab_test_user }}
       changed_when: false
 
-    - name: Run Mode C RDP-level smoke test
+    - name: Run Broker-RDP Handle RDP-level smoke test
       ansible.builtin.command: >
         bash {{ xrdp_source_dir }}/test-lab/phase6/modec-smoke/modec-smoke.sh
       environment:
@@ -41,7 +41,7 @@
       tags:
         - modec-smoke
 
-    - name: Run smart-card broker to Mode C session smoke test
+    - name: Run smart-card broker to Broker-RDP Handle session smoke test
       ansible.builtin.command: >
         bash {{ xrdp_source_dir }}/test-lab/phase6/modec-smoke/smartcard-smoke.sh
       environment:

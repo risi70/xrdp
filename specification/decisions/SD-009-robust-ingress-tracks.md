@@ -3,8 +3,8 @@
 **Status: PROPOSED (draft for review — not yet accepted)**
 
 **Implementation status:** Wave 1 (C5 + C3) is implemented on this branch:
-nonce plumb-through with `urn:baf:ts_nonce`/`RequireNonceBinding`, the Mode C
-one-time-credential PAM path, and the Mode C routing-token pre-MCS ingress.
+nonce plumb-through with `urn:baf:ts_nonce`/`RequireNonceBinding`, the Broker-RDP Handle
+one-time-credential PAM path, and the Broker-RDP Handle routing-token pre-MCS ingress.
 See `broker-auth/MODE-C-ONE-TIME-HANDLE.md`.
 
 ## Context
@@ -55,12 +55,12 @@ authorization chain (BAF JWT validator → trusted replay → NSS/SSSD identity
 binding → UID 0 rejection → PAM preconditions → `AllowSessionStart` gate).
 XRDP core stays broker-neutral.
 
-### Track 1 (primary, server-side): revive SD-006 handles as Mode C
+### Track 1 (primary, server-side): revive SD-006 handles as Broker-RDP Handle
 
 Stock, unmodified clients get a working path through changes confined to
 xrdp/sesman and the broker side:
 
-- **C3 — Mode C resolution hooks (xrdp/sesman).** (a) Handle acceptance from
+- **C3 — Broker-RDP Handle resolution hooks (xrdp/sesman).** (a) Handle acceptance from
   X.224 routing token / FreeRDP `/pcb:` preconnection material, and (b) a
   one-time-credential path through the existing sesman PAM auth flow (handle
   as single-use password), both resolving through the existing
@@ -78,10 +78,10 @@ xrdp/sesman and the broker side:
   launches the client with the right parameters. Lives in the broker's tree,
   mirroring the Phase 5 adapter boundary.
 
-Mode C profile: registration runs the **full BAF validator and replay
+Broker-RDP Handle profile: registration runs the **full BAF validator and replay
 reservation immediately** (no handle for invalid assertions); handles are
 256-bit, base64url/hex, TTL 30–120 s, target-bound, atomically consumed
-(SD-007 unchanged). Mode C is exempt from nonce binding; its freshness comes
+(SD-007 unchanged). Broker-RDP Handle is exempt from nonce binding; its freshness comes
 from registration-time reservation plus handle TTL.
 
 Amendments required: AST-015 and SD-008 language is narrowed — the prohibition
@@ -132,7 +132,7 @@ distinguish a Track 3 client from a Track 2 gateway southbound leg.
 
 | ID | Component | Track | Side | Size | Home |
 |---|---|---|---|---|---|
-| C3 | Mode C hooks: pcb/routing-token + one-time-credential PAM path | 1 | server | M | xrdp/sesman |
+| C3 | Broker-RDP Handle hooks: pcb/routing-token + one-time-credential PAM path | 1 | server | M | xrdp/sesman |
 | C5 | Nonce plumb-through + `urn:baf:ts_nonce` + `RequireNonceBinding` | 1/2 | server | S | xrdp/sesman |
 | C6 | OpenUDS BAF transport plugin | 1 | broker | M | OpenUDS tree |
 | C4 | Splice gateway (southbound RDSAAD client + splice; optional rdpgw northbound) | 2 | proxy | L | new repo |
@@ -142,7 +142,7 @@ distinguish a Track 3 client from a Track 2 gateway southbound leg.
 
 Waves, server/proxy first:
 
-- **Wave 1 (server only): C5 + C3.** Nonce plumb-through and Mode C hooks in
+- **Wave 1 (server only): C5 + C3.** Nonce plumb-through and Broker-RDP Handle hooks in
   this tree; handle service promoted to production. Stock `xfreerdp /pcb:`
   and one-time-credential logins become testable in the Phase 6 lab with zero
   client or proxy changes.
@@ -162,12 +162,12 @@ Waves, server/proxy first:
   required conformance test.
 - The "no custom client / no FreeRDP plugin" requirement is amended from a
   hard prohibition to: *XRDP core MUST NOT require a specific client; stock
-  clients MUST have a supported path (Mode C); patched/extended clients MAY
+  clients MUST have a supported path (Broker-RDP Handle); patched/extended clients MAY
   be provided as optional deployment components.*
 - The existing `baf_handle_service` code and tests are promoted from
   superseded to production status instead of being removed.
 - Two additional ingress modes must be covered by conformance tests and kept
-  fail-closed independently; runtime config gains Mode C enable flags and
+  fail-closed independently; runtime config gains Broker-RDP Handle enable flags and
   `RequireNonceBinding`.
 - New out-of-tree deliverables (C4, C6; later C1/C2/C7) need their own repos,
   CI, and release discipline; XRDP core review boundaries are unchanged.

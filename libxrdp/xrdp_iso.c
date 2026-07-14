@@ -529,7 +529,7 @@ xrdp_iso_send_cc(struct xrdp_iso *self)
  * - If both the routingToken and cookie fields are present, the server
  *   SHOULD continue with the connection.
  *
- * Mode C broker ingress is a configuration-gated exception to the
+ * Broker-RDP Handle ingress is a configuration-gated exception to the
  * "MUST be ignored" rules above: a routing token of the exact form
  * "Cookie: msts=<64 lowercase hex>" is captured as a single-use broker
  * handle for the post-TLS pre-MCS authorization hook.
@@ -577,7 +577,7 @@ xrdp_iso_capture_broker_handle(struct xrdp_iso *self,
     g_memcpy(self->broker_handle, handle, XRDP_BROKER_HANDLE_TEXT_LENGTH);
     self->broker_handle[XRDP_BROKER_HANDLE_TEXT_LENGTH] = '\0';
     LOG(LOG_LEVEL_INFO,
-        "Captured Mode C broker handle from X.224 routing token");
+        "Captured Broker-RDP Handle from X.224 routing token");
 }
 #else
 #define xrdp_iso_capture_broker_handle(self, token_line, token_length)
@@ -673,7 +673,7 @@ xrdp_iso_incoming(struct xrdp_iso *self)
                 /* The routingToken and cookie fields are both ASCII
                  * strings starting with the word 'Cookie: ' and
                  * ending with CR+LF. Both are normally ignored, but when
-                 * Mode C broker ingress is enabled a token that strictly
+                 * Broker-RDP Handle ingress is enabled a token that strictly
                  * parses as a single-use broker handle is captured for
                  * the post-TLS pre-MCS authorization hook. */
                 char token_line[256];

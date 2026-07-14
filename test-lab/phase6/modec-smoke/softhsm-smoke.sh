@@ -8,7 +8,7 @@
 # the login process. It then simulates the physical card lifecycle:
 #
 #   1. card inserted   -> token signs the broker challenge -> assertion ->
-#                         handle -> xfreerdp Mode C -> desktop session
+#                         handle -> xfreerdp Broker-RDP Handle -> desktop session
 #   2. card removed     -> the token slot disappears; signing fails closed ->
 #                         the broker issues no assertion and no handle (denied)
 #   3. card reinserted  -> the same token returns -> session again
@@ -110,7 +110,7 @@ PY
     shred -u "$WORK/key.pem" 2>/dev/null || rm -f "$WORK/key.pem"
 fi
 
-# --- configure Mode C + start daemons ------------------------------------
+# --- configure Broker-RDP Handle + start daemons ------------------------------------
 python3 - "$SESMAN_INI" "$ISSUER" "$AUDIENCE" "$TARGET" "$KID" \
         "$TRUST_PUB" "$REPLAY_SOCK" "$HANDLE_SOCK" <<'PY'
 import re, sys

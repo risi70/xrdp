@@ -85,7 +85,7 @@ enum xrdp_broker_credential_kind
 {
     /* assertion holds a raw compact JWS BAF assertion */
     XRDP_BROKER_CREDENTIAL_ASSERTION = 0,
-    /* assertion holds a Mode C single-use handle; the real assertion
+    /* assertion holds a single-use Broker-RDP Handle; the real assertion
      * stays server-side in the trusted handle service */
     XRDP_BROKER_CREDENTIAL_HANDLE = 1
 };

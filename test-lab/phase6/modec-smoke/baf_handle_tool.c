@@ -1,5 +1,5 @@
 /*
- * baf_handle_tool - Mode C lab helper.
+ * baf_handle_tool - Broker-RDP Handle lab helper.
  *
  * Stands in for the broker-side registration component (SD-009 C6) in the
  * Phase 6 lab. Two subcommands:

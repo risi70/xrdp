@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 #
-# Smart-card -> broker -> Mode C session smoke test -- Phase 6 VM only.
+# Smart-card -> broker -> Broker-RDP Handle session smoke test -- Phase 6 VM only.
 #
 # Runs ON the Ubuntu VDI VM (as root). A virtual smart card (a PIN-protected
 # p12 credential) authenticates to the reference broker by certificate
 # challenge-response; the broker validates the certificate chain to a trusted
 # CA, maps the certificate identity to the local user, mints a BAF assertion,
 # and registers it with the trusted handle service. The resulting one-time
-# handle then rides the proven Mode C path (routing token and one-time
+# handle then rides the proven Broker-RDP Handle path (routing token and one-time
 # credential) to a real desktop session for the NSS-resolved user.
 #
 # xrdp has no server-side NLA/CredSSP, so the smart card authenticates to the
@@ -81,8 +81,8 @@ if [ ! -f "$SC_DIR/ca.pem" ] || [ ! -f "$SC_DIR/$USER_NAME-card.p12" ]; then
 fi
 CARD_P12="$SC_DIR/$USER_NAME-card.p12"
 
-# --- configure Mode C in sesman.ini and xrdp.ini -------------------------
-echo "== configuring $SESMAN_INI [BrokerAuth] for Mode C =="
+# --- configure Broker-RDP Handle in sesman.ini and xrdp.ini -------------------------
+echo "== configuring $SESMAN_INI [BrokerAuth] for Broker-RDP Handle =="
 python3 - "$SESMAN_INI" "$ISSUER" "$AUDIENCE" "$TARGET" "$KID" \
         "$TRUST_PUB" "$REPLAY_SOCK" "$HANDLE_SOCK" <<'PY'
 import re, sys
@@ -110,7 +110,7 @@ text = re.sub(r"(?ms)^\[BrokerAuth\].*?(?=^\[|\Z)", "", open(ini).read())
 open(ini, "w").write((text if text.endswith("\n") else text + "\n") + "\n" + section)
 PY
 
-echo "== enabling Mode C routing-token ingress in $XRDP_INI =="
+echo "== enabling Broker-RDP Handle routing-token ingress in $XRDP_INI =="
 grep -q '^broker_auth_enabled' "$XRDP_INI" || \
     sed -i '/^\[Globals\]/a broker_auth_enabled=true\nbroker_auth_modec_ingress_enabled=true' "$XRDP_INI"
 grep -qE '^enable_dynamic_resizing' "$XRDP_INI" || \
@@ -176,4 +176,4 @@ session_started && echo "  ok: session started from smart card via one-time cred
 kill_session
 
 echo
-echo "SC SMOKE PASS: smart card -> broker -> Mode C session succeeded on this VM"
+echo "SC SMOKE PASS: smart card -> broker -> Broker-RDP Handle session succeeded on this VM"

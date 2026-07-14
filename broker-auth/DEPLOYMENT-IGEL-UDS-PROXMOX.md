@@ -1,6 +1,6 @@
 # Deployment guide: IGEL OS 12 · UDS Enterprise · Ubuntu 24.04 · Proxmox VE
 
-This guide installs the broker-authenticated XRDP solution (BAF + Mode C
+This guide installs the broker-authenticated XRDP solution (BAF + Broker-RDP Handle
 ingress) on a production-style stack:
 
 | Layer | Component | Role |
@@ -14,8 +14,8 @@ ingress) on a production-style stack:
 
 XRDP has **no server-side NLA/CredSSP**, so a smart card or password cannot
 authenticate the RDP connection the way it does on Windows. Instead the
-**broker authenticates the user** and hands the client a **single-use Mode C
-handle** that rides standard RDP to the VDI:
+**broker authenticates the user** and hands the client a **single-use
+Broker-RDP Handle** that rides standard RDP to the VDI:
 
 ```
 IGEL OS 12  ──user auth──▶  UDS Enterprise ──(SAML/OIDC)──▶  Keycloak / IdP ──▶ identity
@@ -24,10 +24,10 @@ IGEL OS 12  ──user auth──▶  UDS Enterprise ──(SAML/OIDC)──▶ 
                                     ├─ registers it with the VDI handle service ─▶ one-time handle
                                     ▼
 IGEL launches RDP to the Ubuntu VDI carrying the handle as either
-  • an X.224 routing token   "Cookie: msts=<64-hex handle>"      (Mode C channel 1)
-  • or the connection password (handle-shaped)                   (Mode C channel 2)
+  • an X.224 routing token   "Cookie: msts=<64-hex handle>"      (Broker-RDP Handle channel 1)
+  • or the connection password (handle-shaped)                   (Broker-RDP Handle channel 2)
                                     ▼
-Ubuntu VDI xrdp ── Mode C ingress ──▶ resolve handle ──▶ BAF validator
+Ubuntu VDI xrdp ── Broker-RDP Handle ingress ──▶ resolve handle ──▶ BAF validator
   ──▶ trusted replay ──▶ NSS/SSSD identity ──▶ UID0 reject ──▶ PAM ──▶ xfce session
 ```
 
@@ -36,7 +36,7 @@ server-side. The full validation and PAM chain runs inside `xrdp-sesexec` on
 the VDI — the broker never bypasses local Linux authority.
 
 **Implementation status (be honest with yourself before deploying):**
-- The VDI side (XRDP + BAF validator, replay service, handle service, Mode C
+- The VDI side (XRDP + BAF validator, replay service, handle service, Broker-RDP Handle
   routing-token and one-time-credential ingress, NSS/SSSD/PAM) is implemented
   and verified end to end.
 - Smart-card → broker authentication is implemented in the **reference
@@ -256,7 +256,7 @@ deploy OpenUDS). Then, in the UDS admin UI:
 
 4. **Service Pool** — bind the provider service + OS manager; set assignment.
 
-5. **RDP transport** — *Transports → New → RDP*. This is where the Mode C
+5. **RDP transport** — *Transports → New → RDP*. This is where the Broker-RDP Handle
    handle is injected:
    - The transport builds the `.rdp` / client parameters for the endpoint.
    - **Routing-token channel:** set the load-balance/routing cookie to
@@ -437,10 +437,10 @@ On the VDI, tail the logs while a user connects from IGEL:
 journalctl -u xrdp -u xrdp-sesman -f
 ```
 
-A successful Mode C login shows:
+A successful Broker-RDP Handle login shows:
 
 ```
-Captured Mode C broker handle from X.224 routing token       # (routing-token channel)
+Captured Broker-RDP Handle from X.224 routing token       # (routing-token channel)
 Received request from ... to create a session for user <u>   # BAF chain authorized
 Starting X server on display X11-10: Xorg :10 ...            # xorgxrdp session
 Session ... is now running                                   # xfce desktop
@@ -471,7 +471,7 @@ lifecycle tests — use it to validate a VDI image before templating.
 - **UID 0 rejection** stays on; token groups are never treated as Unix groups.
 - **`AllowSessionStart`** stays false on a VDI image until its trusted config
   is validated in place.
-- Keep the endpoint credential-field usage (Mode C channel 2) off if policy
+- Keep the endpoint credential-field usage (Broker-RDP Handle channel 2) off if policy
   forbids credentials in the RDP password field; prefer the routing-token
   channel.
 
@@ -493,7 +493,7 @@ lifecycle tests — use it to validate a VDI image before templating.
 
 ## Appendix A — Optional: in-session smart-card redirection
 
-This is **separate from and independent of** the Mode C broker login. Mode C
+This is **separate from and independent of** the Broker-RDP Handle login. Broker-RDP Handle
 uses the card to authenticate you to the broker and get the session; this
 appendix makes the **same physical card usable *inside* the desktop session**
 (sign email, PKI web auth, `ssh -I`, GnuPG) via standard RDP smart-card
@@ -585,7 +585,7 @@ availability — avoid it if you need concurrent local browser access.
 Redirecting the card into the session means the VDI host — and whoever
 controls it — can drive PIN-verified operations on the card while it is
 inserted. For high-assurance deployments consider **card-for-broker-login
-only** (the base Mode C model, no redirection), which never exposes the
+only** (the base Broker-RDP Handle model, no redirection), which never exposes the
 credential to the remote host. Enable redirection only where in-session card
 use is a hard requirement, and pair it with host hardening and short PIN-cache
 lifetimes.

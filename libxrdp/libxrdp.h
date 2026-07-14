@@ -38,7 +38,7 @@
 
 /* iso */
 
-/* Length of a Mode C broker handle in routing-token/cookie form */
+/* Length of a Broker-RDP Handle in routing-token/cookie form */
 #define XRDP_BROKER_HANDLE_TEXT_LENGTH 64
 
 struct xrdp_iso
@@ -50,8 +50,8 @@ struct xrdp_iso
     int failureCode;
     struct trans *trans;
 #if defined(ENABLE_BROKER_AUTH)
-    /* Strictly parsed Mode C handle from the X.224 routing token/cookie,
-     * empty when absent. Only captured when Mode C ingress is enabled. */
+    /* Strictly parsed Broker-RDP Handle from the X.224 routing token/cookie,
+     * empty when absent. Only captured when Broker-RDP Handle ingress is enabled. */
     char broker_handle[XRDP_BROKER_HANDLE_TEXT_LENGTH + 1];
 #endif
 };

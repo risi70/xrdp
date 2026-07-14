@@ -1,9 +1,9 @@
 /*
- * Mode C live daemon-binary integration test.
+ * Broker-RDP Handle live daemon-binary integration test.
  *
  * Unlike test_handle_service (which forks baf_handle_service_run() inside
  * the test process), this test launches the *deployed* xrdp-baf-handled
- * executable as a separate process and drives the full Mode C handle
+ * executable as a separate process and drives the full Broker-RDP Handle
  * lifecycle against it over a real UNIX socket:
  *
  *   store -> single-use resolve -> recovered bytes match -> real validator
@@ -12,7 +12,7 @@
  *
  * It proves the shipped daemon binary, the real handle client API, and the
  * real BAF JWT validator integrate end-to-end. It is the runnable-here half
- * of the Mode C smoke test; the RDP-level channels (routing token and
+ * of the Broker-RDP Handle smoke test; the RDP-level channels (routing token and
  * one-time credential through xrdp/sesman/PAM) are exercised on the Phase 6
  * VM by test-lab/phase6/modec-smoke.sh.
  */
@@ -260,9 +260,9 @@ main(void)
 
     if (failures != 0)
     {
-        fprintf(stderr, "%d Mode C live check(s) failed\n", failures);
+        fprintf(stderr, "%d Broker-RDP Handle live check(s) failed\n", failures);
         return 1;
     }
-    fprintf(stderr, "all Mode C live daemon checks passed\n");
+    fprintf(stderr, "all Broker-RDP Handle live daemon checks passed\n");
     return 0;
 }

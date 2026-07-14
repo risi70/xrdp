@@ -77,7 +77,7 @@ nonempty(const char *value)
  * When binding is required, the ingress must supply a nonce and the
  * assertion must carry a matching extension. When binding is optional, a
  * present extension must still match any available ingress nonce; a
- * missing extension or a challenge-less ingress (Mode C) is accepted.
+ * missing extension or a challenge-less ingress (Broker-RDP Handle) is accepted.
  */
 static int
 nonce_binding_valid(json_t *claims,

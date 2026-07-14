@@ -145,7 +145,7 @@ test_mode_c_gating(void)
 {
     struct baf_runtime_config config = {0};
 
-    /* Defaults: Mode C disabled and off by default. */
+    /* Defaults: Broker-RDP Handle disabled and off by default. */
     baf_runtime_config_init(&config);
     assert(config.mode_c_otc_enabled == 0);
     assert(config.require_nonce_binding == 0);
@@ -153,13 +153,13 @@ test_mode_c_gating(void)
            BAF_RUNTIME_CONFIG_DISABLED);
     baf_runtime_config_free(&config);
 
-    /* Valid RDSAAD config alone does not enable Mode C. */
+    /* Valid RDSAAD config alone does not enable Broker-RDP Handle. */
     make_valid(&config);
     config.allow_session_start = 1;
     assert(baf_runtime_config_validate_mode_c(&config) ==
            BAF_RUNTIME_CONFIG_DISABLED);
 
-    /* Mode C works without RDSAAD but needs the session-start gate. */
+    /* Broker-RDP Handle works without RDSAAD but needs the session-start gate. */
     config.mode_c_otc_enabled = 1;
     config.broker_auth_rdsaad_enabled = 0;
     assert(baf_runtime_config_validate_mode_c(&config) ==
@@ -168,14 +168,14 @@ test_mode_c_gating(void)
     assert(baf_runtime_config_validate_mode_c(&config) ==
            BAF_RUNTIME_CONFIG_INVALID);
 
-    /* Field problems still fail closed for Mode C. */
+    /* Field problems still fail closed for Broker-RDP Handle. */
     config.allow_session_start = 1;
     replace(&config.replay_socket, "");
     assert(baf_runtime_config_validate_mode_c(&config) ==
            BAF_RUNTIME_CONFIG_INVALID);
     baf_runtime_config_free(&config);
 
-    /* Copy preserves the Mode C fields. */
+    /* Copy preserves the Broker-RDP Handle fields. */
     make_valid(&config);
     config.mode_c_otc_enabled = 1;
     config.require_nonce_binding = 1;
@@ -236,7 +236,7 @@ test_sesexec_config_path(void)
     assert(config->baf.mode_c_otc_enabled == 1);
     assert(g_strcmp(config->baf.handle_socket,
                     "/run/xrdp/baf-handle.sock") == 0);
-    /* Mode C still fails closed without the session-start gate. */
+    /* Broker-RDP Handle still fails closed without the session-start gate. */
     assert(baf_runtime_config_validate_mode_c(&config->baf) ==
            BAF_RUNTIME_CONFIG_INVALID);
     assert(baf_runtime_config_validate(&config->baf) ==

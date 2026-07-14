@@ -1,6 +1,6 @@
 """Keycloak (OIDC) authentication for the reference broker.
 
-Models the "Keycloak -> broker -> Mode C" flow described in the deployment
+Models the "Keycloak -> broker -> Broker-RDP Handle" flow described in the deployment
 guide (§5.2): Keycloak is the identity provider that authenticates the user;
 this module turns a Keycloak-issued OIDC token into the identity fields the
 BAF issuer needs (username, groups, roles, auth method, assurance). The broker

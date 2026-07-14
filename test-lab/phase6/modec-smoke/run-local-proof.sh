@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
-# Mode C headless local proof (SD-009 Wave 1).
+# Broker-RDP Handle headless local proof (SD-009 Wave 1).
 #
-# Exercises the Mode C credential path end-to-end with real, separate daemon
+# Exercises the Broker-RDP Handle credential path end-to-end with real, separate daemon
 # processes and freshly-signed crypto, WITHOUT needing an RDP client, X
 # server, PAM or root:
 #
@@ -16,7 +16,7 @@
 # reused assertion (same jti behind a new handle) is rejected by the replay
 # service.
 #
-# This is the runnable-anywhere half of the Mode C smoke test. The RDP-level
+# This is the runnable-anywhere half of the Broker-RDP Handle smoke test. The RDP-level
 # channels (routing token and one-time credential through xrdp/sesman/PAM)
 # are exercised on the Phase 6 VM by modec-smoke.sh.
 #
@@ -128,4 +128,4 @@ fi
 echo "  ok: replay service rejected the reused assertion identity"
 
 echo
-echo "SMOKE PASS: Mode C headless proof succeeded (positive + 3 negatives)"
+echo "SMOKE PASS: Broker-RDP Handle headless proof succeeded (positive + 3 negatives)"

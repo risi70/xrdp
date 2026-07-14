@@ -1,6 +1,6 @@
 """Smart-card (certificate PoP) authentication for the reference broker.
 
-Models the "card -> broker -> Mode C" flow: a virtual smart card proves
+Models the "card -> broker -> Broker-RDP Handle" flow: a virtual smart card proves
 possession of an X.509 credential to the broker via challenge-response, the
 broker validates the certificate chain to a trust anchor and maps the
 certificate identity to a Linux user, and the broker then mints a BAF

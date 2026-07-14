@@ -4,7 +4,7 @@ This branch contains an experimental Broker Authentication Framework (BAF) for
 XRDP.
 
 BAF adds broker-authenticated pre-logon support while preserving the existing
-XRDP username/password PAM path. The shipped ingress is **Mode C** (SD-009):
+XRDP username/password PAM path. The shipped ingress is **Broker-RDP Handle** (SD-009):
 stock, unmodified RDP clients present a single-use server-side handle. The
 RDSAAD-style pre-logon exchange is also implemented. Both fail closed and run
 the full sesman/xrdp-sesexec chain — assertion validation, trusted replay,
@@ -48,10 +48,10 @@ session starts. See [broker-auth/MODE-C-ONE-TIME-HANDLE.md](broker-auth/MODE-C-O
 - SD-004 makes the trusted replay service mandatory for live activation.
 - SD-005 preserves standard RDP client neutrality.
 - SD-006 and SD-007 define one-time server-side handles; SD-009 promotes them
-  from superseded to the shipped **Mode C** production ingress for stock RDP
+  from superseded to the shipped **Broker-RDP Handle** production ingress for stock RDP
   clients.
 - SD-008 defines the RDSAAD-style pre-logon assertion ingress (also implemented).
-- SD-009 defines the robust ingress tracks; Mode C (one-time handle) is the
+- SD-009 defines the robust ingress tracks; Broker-RDP Handle (one-time handle) is the
   shipped MVP path (see
   [broker-auth/MODE-C-ONE-TIME-HANDLE.md](broker-auth/MODE-C-ONE-TIME-HANDLE.md)).
 
@@ -119,11 +119,11 @@ Implemented pieces include:
   XRDP-side RDSAAD ingress.
 - SD-009 Wave 1: RDSAAD nonce plumb-through with the optional
   `urn:baf:ts_nonce` extension claim and the fail-closed
-  `RequireNonceBinding` gate, and Mode C one-time-handle ingress for stock
+  `RequireNonceBinding` gate, and Broker-RDP Handle ingress for stock
   clients through both an X.224 routing-token channel and a one-time
   credential channel (see `broker-auth/MODE-C-ONE-TIME-HANDLE.md`). The
   SD-006 handle service is promoted from superseded to production for
-  Mode C.
+  Broker-RDP Handle.
 
 The current production bridge emits `S_OK` only after sesman/xrdp-sesexec
 returns full BAF preauth approval. Failure to parse, validate, reserve replay,

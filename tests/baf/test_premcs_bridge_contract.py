@@ -152,7 +152,7 @@ for required in (
     assert required in baf_core
 assert "pam_authenticate" not in baf_core
 
-# Mode C consumes one-time handles exclusively: no password fallback, no raw
+# Broker-RDP Handle consumes one-time handles exclusively: no password fallback, no raw
 # assertion retention, authfail logging for fail2ban.
 resolve = function_body(LOGIN_INFO_C, "modec_resolve_handle")
 assert "baf_handle_resolve_and_consume" in resolve
@@ -172,7 +172,7 @@ assert "baf_runtime_config_validate_mode_c" in auth_conn
 assert "baf_runtime_config_validate_mode_c" in RUNTIME_CONFIG
 assert "mode_c_otc_enabled = 0" in RUNTIME_CONFIG
 
-# Mode C routing-token ingress: strict handle capture in the ISO layer,
+# Broker-RDP Handle routing-token ingress: strict handle capture in the ISO layer,
 # fail-closed pre-MCS authorization, kind-gated dispatch through sesman.
 XRDP_ISO = (ROOT / "libxrdp" / "xrdp_iso.c").read_text(encoding="utf-8")
 capture = function_body(XRDP_ISO, "xrdp_iso_capture_broker_handle")

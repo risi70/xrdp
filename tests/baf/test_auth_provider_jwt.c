@@ -330,7 +330,7 @@ main(void)
     assert(validate_nonce(token, config, "nonce-xyz", &result) ==
            AUTH_PROVIDER_INVALID);
     free(token);
-    /* Claim present but no ingress challenge (Mode C) is accepted when
+    /* Claim present but no ingress challenge (Broker-RDP Handle) is accepted when
      * binding is optional. */
     token = make_token(private_key, private_length, JWT_ALG_RS256, headers,
                        NONCE_CLAIMS("noncemodec000001",

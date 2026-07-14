@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Smart-card -> broker -> handle headless proof (card->broker->Mode C).
+# Smart-card -> broker -> handle headless proof (card->broker->Broker-RDP Handle).
 #
 # Verifies the full smart-card broker authentication chain without an RDP
 # client, X server, PAM or root:

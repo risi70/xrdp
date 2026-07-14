@@ -308,7 +308,7 @@ xrdp_sec_rdsaad_exchange(struct xrdp_sec *self)
 #if defined(ENABLE_BROKER_AUTH)
 /*****************************************************************************/
 /**
- * Mode C pre-MCS authorization from a captured routing-token handle.
+ * Broker-RDP Handle pre-MCS authorization from a captured routing-token handle.
  *
  * No extra wire exchange takes place: the single-use handle already
  * arrived in the X.224 Connection Request and the assertion it references
@@ -2666,7 +2666,7 @@ xrdp_sec_incoming(struct xrdp_sec *self)
             if (xrdp_sec_modec_preauth(self) != 0)
             {
                 LOG(LOG_LEVEL_ERROR,
-                    "xrdp_sec_incoming: Mode C pre-logon authorization "
+                    "xrdp_sec_incoming: Broker-RDP Handle pre-logon authorization "
                     "failed closed");
                 return 1;
             }

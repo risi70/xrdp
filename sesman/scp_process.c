@@ -206,7 +206,7 @@ process_broker_login_request(struct scp_list_item *sli)
                                          correlation_id);
     if (rv == 0)
     {
-        /* Handle credentials gate on Mode C config; raw assertions gate
+        /* Handle credentials gate on Broker-RDP Handle config; raw assertions gate
          * on the RDSAAD live config. Both fail closed. */
         enum baf_runtime_config_status config_status =
             credential_kind == SCP_BROKER_CREDENTIAL_HANDLE ?

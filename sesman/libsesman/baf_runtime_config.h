@@ -51,10 +51,10 @@ enum baf_runtime_config_status
 baf_runtime_config_validate_live(const struct baf_runtime_config *config);
 
 /**
- * Validate the trusted configuration for Mode C one-time-credential login.
+ * Validate the trusted configuration for Broker-RDP Handle one-time-credential login.
  *
- * Mode C does not require RDSAAD ingress to be enabled, but requires
- * broker-auth, the Mode C gate, complete provider/replay settings and the
+ * Broker-RDP Handle does not require RDSAAD ingress to be enabled, but requires
+ * broker-auth, the Broker-RDP Handle gate, complete provider/replay settings and the
  * session-start gate. Anything else fails closed.
  */
 enum baf_runtime_config_status

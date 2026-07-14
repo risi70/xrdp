@@ -8,7 +8,7 @@
       - ssl-cert
       - python3-jwt
       - python3-cryptography
-      # RDP client + virtual display for the headless Mode C smoke test
+      # RDP client + virtual display for the headless Broker-RDP Handle smoke test
       - freerdp2-x11
       - xvfb
       # SoftHSM2 PKCS#11 token + pkcs11-tool for the smart-card lifecycle test

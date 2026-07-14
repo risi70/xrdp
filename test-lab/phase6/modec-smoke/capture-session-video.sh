@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #
-# Record a video of the client display during a Mode C session -- VM only.
+# Record a video of the client display during a Broker-RDP Handle session -- VM only.
 #
 # The "client" is xfreerdp rendering the remote desktop into a virtual X
-# display (Xvfb). This script drives a normal Mode C connection (broker
+# display (Xvfb). This script drives a normal Broker-RDP Handle connection (broker
 # assertion -> one-time handle -> routing token) and records the client's
 # Xvfb framebuffer with ffmpeg x11grab, producing an mp4 of exactly what the
 # RDP client sees: the login transition and the authenticated xfce desktop.
@@ -47,7 +47,7 @@ command -v ffmpeg Xvfb xfreerdp >/dev/null || fail "need ffmpeg, Xvfb, xfreerdp"
     -o "$TOOL" "$MODEC/baf_handle_tool.c" \
     "$ROOT/sesman/libsesman/libsesman.la" -ljwt -ljansson -lssl -lcrypto
 
-# --- daemons + a fresh Mode C handle (Mode C config already installed) ----
+# --- daemons + a fresh Broker-RDP Handle (Broker-RDP Handle config already installed) ----
 rm -f "$REPLAY_SOCK" "$HANDLE_SOCK"
 "$REPLAYD_BIN" -s "$REPLAY_SOCK" & PIDS+=($!)
 "$HANDLED_BIN" -s "$HANDLE_SOCK" & PIDS+=($!)

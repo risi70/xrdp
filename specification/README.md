@@ -25,7 +25,7 @@ Normative decisions:
 - [SD-006 — One-time Server-side Assertion Handles](decisions/SD-006-one-time-server-side-assertion-handles.md)
 - [SD-007 — Target-mismatched Handle Resolution Consumes the Handle](decisions/SD-007-target-mismatch-consumes-handle.md)
 - [SD-008 — RDS AAD Auth-style Pre-logon Assertion Ingress](decisions/SD-008-rdsaad-style-prelogon-assertion-ingress.md)
-- [SD-009 — Robust Ingress Tracks and Buildable Missing Components (Mode C — shipped)](decisions/SD-009-robust-ingress-tracks.md)
+- [SD-009 — Robust Ingress Tracks and Buildable Missing Components (Broker-RDP Handle — shipped)](decisions/SD-009-robust-ingress-tracks.md)
 
 ## Conformance
 

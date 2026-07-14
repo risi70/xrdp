@@ -4,7 +4,7 @@
 #
 # Installs a self-contained venv + the broker components + the baf-uds-connect
 # CLI that the UDS RDP transport calls to mint a BAF assertion and register a
-# one-time Mode C handle with the target VDI. Run as root on the UDS host.
+# one-time Broker-RDP Handle with the target VDI. Run as root on the UDS host.
 #
 #   sudo packaging/uds/install.sh
 #

@@ -43,7 +43,7 @@ struct auth_provider_request
     const char *expected_audience;
     const char *local_target;
     /* Challenge nonce from the ingress exchange, or NULL when the ingress
-     * has no challenge (for example handle-based Mode C resolution). */
+     * has no challenge (for example handle-based Broker-RDP Handle resolution). */
     const char *server_nonce;
     auth_provider_now_fn now;
     void *now_userdata;

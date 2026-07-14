@@ -1,6 +1,6 @@
-# Mode C - One-Time Handle Ingress
+# Broker-RDP Handle Ingress
 
-Mode C (SD-009 Track 1) lets stock, unmodified RDP clients start a
+Broker-RDP Handle (SD-009 Track 1) lets stock, unmodified RDP clients start a
 broker-authorized session without RDSAAD support and without carrying the
 assertion. The broker registers the full BAF assertion server-side with the
 trusted handle service (`xrdp-baf-handled`); registration-side validation and
@@ -41,7 +41,7 @@ For example via FreeRDP `/load-balance-info:"Cookie: msts=<handle>"` or the
 The client logs in normally with the broker-designated username and the
 handle as the password. In `authenticate_and_authorize_connection()`:
 
-1. A handle-shaped password (exactly 64 lowercase hex chars) with Mode C
+1. A handle-shaped password (exactly 64 lowercase hex chars) with Broker-RDP Handle
    enabled is routed to `mode_c_authenticate()` exclusively — it never
    reaches the PAM password stack and never falls back to password
    authentication.
@@ -60,7 +60,7 @@ sesman.ini `[BrokerAuth]` (all fail closed):
 
 ```ini
 BrokerAuthEnabled=true
-ModeCOneTimeCredential=true   ; enables both Mode C channels in sesexec
+ModeCOneTimeCredential=true   ; enables both Broker-RDP Handle channels in sesexec
 AllowSessionStart=true        ; required, as for RDSAAD live activation
 HandleSocket=                 ; empty selects the built-in default path
 ; Issuer/KeyId/TrustAnchor/ExpectedAudience/LocalTarget/ReplaySocket
@@ -74,8 +74,8 @@ broker_auth_enabled=true
 broker_auth_modec_ingress_enabled=true
 ```
 
-Mode C does not require `RDSAADEnabled`. `RequireNonceBinding` does not apply
-to Mode C (no challenge exchange); Mode C freshness comes from
+Broker-RDP Handle does not require `RDSAADEnabled`. `RequireNonceBinding` does not apply
+to Broker-RDP Handle (no challenge exchange); Broker-RDP Handle freshness comes from
 registration-time replay reservation plus the handle TTL.
 
 ## Failure behavior

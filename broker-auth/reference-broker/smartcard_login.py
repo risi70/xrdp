@@ -5,7 +5,7 @@ Authenticates a virtual smart card to the reference broker by certificate
 challenge-response (proof of possession) + trust-anchor validation, maps the
 certificate identity to a Linux user, and mints a nonce-bound BAF assertion
 for that user. The caller registers the assertion with the trusted handle
-service to obtain a one-time handle, which then rides the Mode C path.
+service to obtain a one-time handle, which then rides the Broker-RDP Handle path.
 
 Prints the compact JWS assertion on stdout. Fails closed (non-zero exit) on
 any authentication error.

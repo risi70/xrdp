@@ -165,9 +165,9 @@ AllowSessionStart=false
 ; When true, RDSAAD assertions must carry the urn:baf:ts_nonce extension
 ; matching the Server Nonce of the current exchange. Requires an ingress
 ; that can bind the nonce (Mode B gateway or an assertion-provider client).
-; Mode C handle logins have no challenge and are exempt.
+; Broker-RDP Handle logins have no challenge and are exempt.
 RequireNonceBinding=false
-; Mode C: accept a broker-registered single-use handle as a one-time
+; Broker-RDP Handle: accept a broker-registered single-use handle as a one-time
 ; credential through the standard username/password login. The handle is a
 ; reference; the assertion itself stays server-side in the handle service
 ; and still passes the full BAF validation chain. Disabled by default.

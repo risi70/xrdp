@@ -257,9 +257,9 @@ out:
 
 /******************************************************************************/
 /**
- * Check whether a supplied secret has the exact shape of a Mode C handle
+ * Check whether a supplied secret has the exact shape of a Broker-RDP Handle
  * (64 lowercase hex characters). Handle-shaped secrets never reach the PAM
- * password stack when Mode C is enabled.
+ * password stack when Broker-RDP Handle is enabled.
  */
 static int
 password_is_otc_handle(const char *password)
@@ -283,7 +283,7 @@ password_is_otc_handle(const char *password)
 
 /******************************************************************************/
 /**
- * Atomically consume a Mode C handle in the trusted handle service and
+ * Atomically consume a Broker-RDP Handle in the trusted handle service and
  * recover the server-side assertion. Fails closed on any service error.
  */
 static enum baf_handle_status
@@ -313,7 +313,7 @@ modec_resolve_handle(const char *handle,
 
 /******************************************************************************/
 /**
- * Mode C one-time-credential login.
+ * Broker-RDP Handle one-time-credential login.
  *
  * Atomically consumes the handle in the trusted handle service, then runs
  * the full BAF authorization chain on the recovered assertion. A failed
@@ -338,7 +338,7 @@ mode_c_authenticate(const char *supplied_username,
     if (handle_status != BAF_HANDLE_OK)
     {
         LOG(LOG_LEVEL_WARNING,
-            "Mode C one-time credential rejected by handle service "
+            "Broker-RDP Handle one-time credential rejected by handle service "
             "(status %d)", (int)handle_status);
         log_authfail_message(supplied_username, ip_addr);
         return E_SCP_LOGIN_NOT_AUTHENTICATED;
@@ -363,7 +363,7 @@ mode_c_authenticate(const char *supplied_username,
         else
         {
             LOG(LOG_LEVEL_INFO,
-                "Access permitted for user: %s (Mode C broker login)",
+                "Access permitted for user: %s (Broker-RDP Handle login)",
                 username);
             login_info->uid = uid;
             login_info->username = username;
@@ -409,7 +409,7 @@ authenticate_and_authorize_connection(const char *supplied_username,
             baf_runtime_config_validate_mode_c(&g_cfg->baf) ==
             BAF_RUNTIME_CONFIG_OK)
     {
-        /* Handle-shaped secrets are consumed by Mode C exclusively and
+        /* Handle-shaped secrets are consumed by Broker-RDP Handle exclusively and
          * never reach the PAM password stack or retry as a password. */
         status = mode_c_authenticate(supplied_username, password, ip_addr,
                                      login_info);
@@ -705,7 +705,7 @@ login_info_baf_preauth_user(struct trans *scp_trans,
 
     if (credential_kind == SCP_BROKER_CREDENTIAL_HANDLE)
     {
-        /* Mode C routing-token ingress: the credential is a single-use
+        /* Broker-RDP Handle routing-token ingress: the credential is a single-use
          * handle; the assertion is recovered server-side. */
         char handle[BAF_HANDLE_TEXT_LENGTH + 1];
         unsigned char *resolved = NULL;
@@ -715,7 +715,7 @@ login_info_baf_preauth_user(struct trans *scp_trans,
                 BAF_RUNTIME_CONFIG_OK)
         {
             LOG(LOG_LEVEL_WARNING,
-                "Mode C preauth rejected because trusted Mode C config "
+                "Broker-RDP Handle preauth rejected because trusted Broker-RDP Handle config "
                 "is disabled");
             login_status = E_SCP_LOGIN_NOT_AUTHORIZED;
         }
@@ -731,7 +731,7 @@ login_info_baf_preauth_user(struct trans *scp_trans,
                                      &resolved_length) != BAF_HANDLE_OK)
             {
                 LOG(LOG_LEVEL_WARNING,
-                    "Mode C preauth handle rejected by handle service");
+                    "Broker-RDP Handle preauth handle rejected by handle service");
                 log_authfail_message("<baf-mode-c>", client_address);
                 login_status = E_SCP_LOGIN_NOT_AUTHENTICATED;
             }

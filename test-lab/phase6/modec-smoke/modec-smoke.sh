@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 #
-# Mode C RDP-level smoke test (SD-009 Wave 1) -- Phase 6 VM only.
+# Broker-RDP Handle RDP-level smoke test (SD-009 Wave 1) -- Phase 6 VM only.
 #
 # Runs ON the Ubuntu VDI VM (as root) with the xrdp build from this tree
 # installed and a real local test user. It drives an actual xfreerdp client
-# against the live xrdp/sesman, exercising both Mode C ingress channels:
+# against the live xrdp/sesman, exercising both Broker-RDP Handle ingress channels:
 #
 #   Channel 1  routing token   : xfreerdp /load-balance-info:"Cookie: msts=<handle>"
 #                                (no credential fields; pre-MCS authorization)
 #   Channel 2  one-time cred    : xfreerdp /u:<user> /p:<handle>
-#                                (handle-shaped password consumed by Mode C)
+#                                (handle-shaped password consumed by Broker-RDP Handle)
 #
 # For each channel it mints a fresh assertion with the reference issuer,
 # registers it with the trusted handle service to obtain a single-use handle,
@@ -18,7 +18,7 @@
 # PAM, NSS, an X server and TLS; the headless crypto/handle/replay proof is
 # run anywhere by run-local-proof.sh.
 #
-# It is deliberately self-contained: it configures the [BrokerAuth] Mode C
+# It is deliberately self-contained: it configures the [BrokerAuth] Broker-RDP Handle
 # settings and xrdp.ini keys itself, so it can run before the C6 broker
 # integration exists. Lab use only.
 set -euo pipefail
@@ -75,9 +75,9 @@ write_keypair(Path(priv_path), Path(pub_path), 2048)
 PY
 fi
 
-# --- configure Mode C in sesman.ini and xrdp.ini -------------------------
-# Replace any existing [BrokerAuth] section with a Mode C-enabled one.
-echo "== configuring $SESMAN_INI [BrokerAuth] for Mode C =="
+# --- configure Broker-RDP Handle in sesman.ini and xrdp.ini -------------------------
+# Replace any existing [BrokerAuth] section with a Broker-RDP Handle-enabled one.
+echo "== configuring $SESMAN_INI [BrokerAuth] for Broker-RDP Handle =="
 python3 - "$SESMAN_INI" "$ISSUER" "$AUDIENCE" "$TARGET" "$KID" \
         "$TRUST_PUB" "$REPLAY_SOCK" "$HANDLE_SOCK" <<'PY'
 import re, sys
@@ -108,7 +108,7 @@ if not text.endswith("\n"):
 open(ini, "w").write(text + "\n" + section)
 PY
 
-echo "== enabling Mode C routing-token ingress in $XRDP_INI [Globals] =="
+echo "== enabling Broker-RDP Handle routing-token ingress in $XRDP_INI [Globals] =="
 grep -q '^broker_auth_enabled' "$XRDP_INI" || \
     sed -i '/^\[Globals\]/a broker_auth_enabled=true\nbroker_auth_modec_ingress_enabled=true' "$XRDP_INI"
 # Disable the dynamic-resize monitor DVC: a headless RDP client declines that
@@ -191,4 +191,4 @@ session_started && echo "  ok: session started via one-time credential" \
 kill_session
 
 echo
-echo "SMOKE PASS: Mode C RDP-level smoke test succeeded on this VM"
+echo "SMOKE PASS: Broker-RDP Handle RDP-level smoke test succeeded on this VM"

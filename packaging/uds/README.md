@@ -1,7 +1,7 @@
 # BAF UDS connector
 
 Installs the broker-side glue on a **UDS Enterprise / OpenUDS** server so its
-RDP transport can hand each session a single-use **Mode C handle**. UDS keeps
+RDP transport can hand each session a single-use **Broker-RDP Handle**. UDS keeps
 doing the user authentication (LDAP/AD, SAML/OIDC, or a certificate/smart-card
 authenticator); this connector turns an authenticated user into a BAF
 assertion, registers it with the target VDI's handle service, and returns the

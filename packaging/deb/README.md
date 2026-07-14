@@ -63,7 +63,7 @@ survive upgrades.
   `XORGXRDP_VERSION=<tag>` if you need a specific revision.
 ## Smart card: two different things
 
-- **Smart-card *login*** (card → broker → Mode C) is **always enabled** — it is
+- **Smart-card *login*** (card → broker → Broker-RDP Handle) is **always enabled** — it is
   `--enable-broker-auth` (in this package) plus the broker connector
   (`packaging/uds`). It needs nothing here.
 - **In-session smart-card *redirection*** (MS-RDPESC, using the card inside the

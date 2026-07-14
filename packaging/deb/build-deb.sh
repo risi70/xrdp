@@ -62,7 +62,7 @@ cd "$BUILD"
 # code and an upstream-facing report accompany this build:
 # the internal MS-RDPESC security review. Set WITH_SMARTCARD=0 to build
 # without it. This is independent of smart-card *login* (card -> broker ->
-# Mode C), which is always available via --enable-broker-auth.
+# Broker-RDP Handle), which is always available via --enable-broker-auth.
 if [ "${WITH_SMARTCARD:-1}" = "0" ]; then
     SC_FLAG=""
     echo "== building WITHOUT smart-card redirection =="
@@ -122,7 +122,7 @@ Replaces: xrdp
 Section: net
 Priority: optional
 Description: XRDP with the Broker Authentication Framework (BAF)
- Remote desktop server with broker-authenticated pre-logon (Mode C) support:
+ Remote desktop server with broker-authenticated pre-logon (Broker-RDP Handle) support:
  clients present a single-use handle issued by a trusted broker, which XRDP
  validates through the BAF JWT validator, trusted replay service, NSS/SSSD
  identity binding and PAM before starting a session. Preserves the classic

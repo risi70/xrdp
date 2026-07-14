@@ -1,6 +1,6 @@
-# Mode C smoke test (SD-009 Wave 1)
+# Broker-RDP Handle smoke test (SD-009 Wave 1)
 
-End-to-end verification of the Mode C one-time-handle ingress: the broker
+End-to-end verification of the Broker-RDP Handle ingress: the broker
 registers a BAF assertion server-side and the client carries only a
 single-use handle. Two parts, split by what each needs to run.
 
@@ -28,7 +28,7 @@ Checks:
 
 ```bash
 ./run-local-proof.sh
-# ... SMOKE PASS: Mode C headless proof succeeded (positive + 3 negatives)
+# ... SMOKE PASS: Broker-RDP Handle headless proof succeeded (positive + 3 negatives)
 ```
 
 This is the automated, reproducible proof of the handle-service + replay-
@@ -48,11 +48,11 @@ need root, PAM, NSS, an X server and TLS:
   the X.224 routing token, no credential fields, authorized pre-MCS.
 - **Channel 2 — one-time credential:**
   `xfreerdp /u:<user> /p:<handle>` — the handle-shaped password is consumed
-  by Mode C and never reaches the PAM password stack.
+  by Broker-RDP Handle and never reaches the PAM password stack.
 
 For each channel it mints a fresh assertion for the test user, registers it
 to obtain a handle, connects, and asserts a desktop session starts for the
-NSS-resolved user. The script configures `[BrokerAuth]` Mode C settings and
+NSS-resolved user. The script configures `[BrokerAuth]` Broker-RDP Handle settings and
 the xrdp.ini keys itself, so it works before the C6 broker integration
 exists.
 
@@ -67,14 +67,14 @@ cd test-lab/kvm/ansible
 ansible-playbook -i inventory.ini playbooks/verify.yml --tags modec-smoke
 ```
 
-## Part C — Smart-card broker authentication (card → broker → Mode C)
+## Part C — Smart-card broker authentication (card → broker → Broker-RDP Handle)
 
 Verifies a full **card → broker → session** flow. A virtual smart card — a
 PIN-protected PKCS#12 credential — authenticates the user to the reference
 broker by X.509 challenge-response (proof of possession). The broker
 validates the certificate chain to a trusted CA, maps the certificate
 identity to a Linux user, mints a BAF assertion, and registers a one-time
-handle, which then rides the proven Mode C path to a desktop session.
+handle, which then rides the proven Broker-RDP Handle path to a desktop session.
 
 xrdp has no server-side NLA/CredSSP, so the smart card authenticates to the
 **broker** (northbound), not to the RDP connection itself.
@@ -87,7 +87,7 @@ xrdp has no server-side NLA/CredSSP, so the smart card authenticates to the
   # ... SC PROOF PASS: smart-card -> broker -> handle -> validate (positive + 2 negatives)
   ```
 - **`smartcard-smoke.sh`** (VDI VM, root): a virtual smart card drives both
-  Mode C channels to a real desktop session for the NSS-resolved user.
+  Broker-RDP Handle channels to a real desktop session for the NSS-resolved user.
   ```bash
   cd test-lab/kvm/ansible
   ansible-playbook -i inventory.example.ini playbooks/verify.yml --tags smartcard-smoke
@@ -106,7 +106,7 @@ provisioned from the bafuser p12, so the private-key operation goes through
 the token. It then exercises the physical card lifecycle:
 
 1. **inserted** — the token signs the broker challenge → assertion → handle
-   → Mode C → desktop session;
+   → Broker-RDP Handle → desktop session;
 2. **removed** — the token directory is moved out of the SoftHSM2 tokendir,
    so `pkcs11-tool` signing fails closed and the broker issues no assertion
    and no handle (access denied);
@@ -127,7 +127,7 @@ Requires `softhsm2` + `opensc` (installed by the `ubuntu_vdi_xrdp_baf` role).
 | `run-local-proof.sh` | anywhere (built tree) | headless crypto/handle/replay proof |
 | `modec-smoke.sh` | Phase 6 VDI VM (root) | xfreerdp routing-token + one-time-credential |
 | `run-smartcard-proof.sh` | anywhere (built tree) | headless card → broker → handle → validate |
-| `smartcard-smoke.sh` | Phase 6 VDI VM (root) | virtual smart card → broker → Mode C session |
+| `smartcard-smoke.sh` | Phase 6 VDI VM (root) | virtual smart card → broker → Broker-RDP Handle session |
 | `make-smartcard.py` | both | generate CA + user p12 (the simulated card) |
 | `baf_handle_tool.c` | both | `store`/`check` CLI; C6 broker-registration stand-in |
 
