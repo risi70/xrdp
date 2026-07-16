@@ -35,8 +35,8 @@ struct baf_nss_record
     void *storage;
 };
 typedef enum baf_nss_status (*baf_nss_lookup_fn)(const char *username,
-                                                  void *userdata,
-                                                  struct baf_nss_record *record);
+        void *userdata,
+        struct baf_nss_record *record);
 struct baf_identity_options
 {
     int allow_uid0;
@@ -60,8 +60,8 @@ baf_identity_bind_and_authorize(const struct auth_provider_result *capability,
                                 struct auth_info **auth_info,
                                 enum scp_login_status *login_status);
 enum baf_nss_status baf_nss_lookup_system(const char *username,
-                                          void *userdata,
-                                          struct baf_nss_record *record);
+        void *userdata,
+        struct baf_nss_record *record);
 const char *baf_resolved_identity_get_username(const struct baf_resolved_identity *identity);
 uid_t baf_resolved_identity_get_uid(const struct baf_resolved_identity *identity);
 gid_t baf_resolved_identity_get_primary_gid(const struct baf_resolved_identity *identity);

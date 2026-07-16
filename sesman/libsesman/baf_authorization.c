@@ -29,8 +29,8 @@ baf_identity_bind_and_authorize(const struct auth_provider_result *capability,
     if (status == BAF_IDENTITY_SUCCESS)
     {
         *auth_info = auth_prevalidated_broker(
-                         baf_resolved_identity_get_username(*identity),
-                         client_address, &local_login_status);
+            baf_resolved_identity_get_username(*identity),
+            client_address, &local_login_status);
         if (*auth_info == NULL || local_login_status != E_SCP_LOGIN_OK)
         {
             auth_end(*auth_info);

@@ -127,10 +127,10 @@ read_json_string(const char **p, const char *end,
     {
         return RDSAAD_STATUS_INVALID;
     }
-    ++*p;
+    ++ *p;
     while (*p < end && **p != '"')
     {
-        unsigned char c = (unsigned char)**p;
+        unsigned char c = (unsigned char) **p;
         if (c < 0x20)
         {
             return RDSAAD_STATUS_INVALID;
@@ -150,7 +150,7 @@ read_json_string(const char **p, const char *end,
     {
         return RDSAAD_STATUS_INVALID;
     }
-    ++*p;
+    ++ *p;
     output[used] = '\0';
     *output_length = used;
     return RDSAAD_STATUS_OK;
@@ -169,7 +169,7 @@ parse_single_string_member(const char *json, size_t json_length,
             !is_valid_utf8(json, json_length))
     {
         return json_length > RDSAAD_MAX_JSON_BYTES ?
-               RDSAAD_STATUS_OVERSIZE : RDSAAD_STATUS_INVALID;
+        RDSAAD_STATUS_OVERSIZE : RDSAAD_STATUS_INVALID;
     }
 
     p = skip_ws(p, end);

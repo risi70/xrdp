@@ -50,10 +50,10 @@ LOGIN_INFO_H = (ROOT / "sesman" / "sesexec" / "login_info.h").read_text(
     encoding="utf-8")
 BAF_ARCH = (ROOT / "BAF-ARCHITECTURE.md").read_text(encoding="utf-8")
 RDSAAD_FOUNDATION = (
-    ROOT / "broker-auth" / "RDSAAD-INTEGRATION-FOUNDATION.md"
+    ROOT / "broker-auth" / "archive" / "RDSAAD-INTEGRATION-FOUNDATION.md"
 ).read_text(encoding="utf-8")
 RDSAAD_PREMCS_BRIDGE = (
-    ROOT / "broker-auth" / "RDSAAD-PREMCS-BRIDGE.md"
+    ROOT / "broker-auth" / "archive" / "RDSAAD-PREMCS-BRIDGE.md"
 ).read_text(encoding="utf-8")
 
 for logging_call in ("LOG(", "printf(", "fprintf(", "syslog("):
@@ -93,7 +93,7 @@ assert "AF_INET" not in HANDLE_SERVICE
 assert "SOCK_STREAM" not in HANDLE_SERVICE
 assert "SOCK_SEQPACKET" in HANDLE_SERVICE
 assert "bind(" in HANDLE_SERVICE
-assert "chmod(p,0660)" in HANDLE_SERVICE
+assert "chmod(p, 0660)" in HANDLE_SERVICE
 assert "LOG(" not in HANDLE_SERVICE
 assert "printf(" not in HANDLE_SERVICE
 assert "fprintf(" not in HANDLE_SERVICE
@@ -226,10 +226,10 @@ GATEWAY_DOCS = "\n".join(
         GATEWAY_DIR / "freeRDP-assertion-injection.md",
     )
 )
-PHASE5 = (ROOT / "broker-auth" / "PHASE5.md").read_text(encoding="utf-8")
-MODE_A = (ROOT / "broker-auth" / "MODE-A-NATIVE-RDSAAD.md").read_text(
+PHASE5 = (ROOT / "broker-auth" / "archive" / "PHASE5.md").read_text(encoding="utf-8")
+MODE_A = (ROOT / "broker-auth" / "archive" / "MODE-A-NATIVE-RDSAAD.md").read_text(
     encoding="utf-8")
-MODE_B = (ROOT / "broker-auth" / "MODE-B-GATEWAY-RDSAAD.md").read_text(
+MODE_B = (ROOT / "broker-auth" / "archive" / "MODE-B-GATEWAY-RDSAAD.md").read_text(
     encoding="utf-8")
 
 assert "sign_claims" in ISSUE_ASSERTION

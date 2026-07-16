@@ -192,25 +192,25 @@ main(void)
 
     token = make_token(private_key, private_length, JWT_ALG_RS256,
                        headers,
-        "{\"iss\":\"" ISSUER "\",\"aud\":\"" AUDIENCE "\","
-        "\"sub\":\"s\",\"preferred_username\":\"alice\","
-        "\"groups\":[],\"roles\":[],\"auth_method\":[\"pwd\"],"
-        "\"assurance_level\":\"aal\",\"broker_session_id\":\"s\","
-        "\"target\":\"" TARGET "\",\"iat\":1700000000,"
-        "\"nbf\":1700000030,\"exp\":1700000100,"
-        "\"jti\":\"skewboundary0001\","
-        "\"device_trust\":{\"status\":\"unknown\"}}");
+                       "{\"iss\":\"" ISSUER "\",\"aud\":\"" AUDIENCE "\","
+                       "\"sub\":\"s\",\"preferred_username\":\"alice\","
+                       "\"groups\":[],\"roles\":[],\"auth_method\":[\"pwd\"],"
+                       "\"assurance_level\":\"aal\",\"broker_session_id\":\"s\","
+                       "\"target\":\"" TARGET "\",\"iat\":1700000000,"
+                       "\"nbf\":1700000030,\"exp\":1700000100,"
+                       "\"jti\":\"skewboundary0001\","
+                       "\"device_trust\":{\"status\":\"unknown\"}}");
     assert(validate(token, config, &result) == AUTH_PROVIDER_SUCCESS);
     auth_provider_result_free(result);
     result = NULL;
     free(token);
 
 #define REJECT_CLAIMS(json) do { \
-    token = make_token(private_key, private_length, JWT_ALG_RS256, \
-                       headers, (json)); \
-    assert(validate(token, config, &result) == AUTH_PROVIDER_INVALID); \
-    free(token); \
-} while (0)
+        token = make_token(private_key, private_length, JWT_ALG_RS256, \
+                           headers, (json)); \
+        assert(validate(token, config, &result) == AUTH_PROVIDER_INVALID); \
+        free(token); \
+    } while (0)
 
     REJECT_CLAIMS(
         "{\"iss\":\"wrong\",\"aud\":\"" AUDIENCE "\",\"sub\":\"s\","

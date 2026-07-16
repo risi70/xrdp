@@ -138,7 +138,7 @@ baf_runtime_config_validate_mode_c(const struct baf_runtime_config *config)
     }
 
     return config->allow_session_start ?
-           BAF_RUNTIME_CONFIG_OK : BAF_RUNTIME_CONFIG_INVALID;
+    BAF_RUNTIME_CONFIG_OK : BAF_RUNTIME_CONFIG_INVALID;
 }
 
 enum baf_runtime_config_status
@@ -153,7 +153,7 @@ baf_runtime_config_validate_live(const struct baf_runtime_config *config)
     }
 
     return config->allow_session_start ?
-           BAF_RUNTIME_CONFIG_OK : BAF_RUNTIME_CONFIG_INVALID;
+    BAF_RUNTIME_CONFIG_OK : BAF_RUNTIME_CONFIG_INVALID;
 }
 
 int

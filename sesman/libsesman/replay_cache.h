@@ -27,7 +27,7 @@ struct replay_cache;
 
 struct replay_cache *replay_cache_memory_create(size_t capacity);
 struct replay_cache *replay_cache_service_create(const char *socket_path,
-                                                 int timeout_ms);
+        int timeout_ms);
 int replay_cache_is_service(const struct replay_cache *cache);
 void replay_cache_free(struct replay_cache *cache);
 enum replay_cache_status replay_cache_make_key(

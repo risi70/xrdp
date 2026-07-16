@@ -131,7 +131,7 @@ main(void)
     size_t document_length;
     size_t key_length;
     unsigned char *document_data = read_file(TEST_VECTOR_FILE,
-                                             &document_length);
+                                   &document_length);
     unsigned char *public_key = read_file(TEST_VECTOR_PUBLIC_KEY, &key_length);
     json_error_t error;
     json_t *document = json_loadb((const char *)document_data,

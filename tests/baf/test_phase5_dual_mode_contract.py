@@ -11,9 +11,9 @@ def read(path):
     return (ROOT / path).read_text(encoding="utf-8")
 
 
-PHASE5 = read("broker-auth/PHASE5.md")
-MODE_A = read("broker-auth/MODE-A-NATIVE-RDSAAD.md")
-MODE_B = read("broker-auth/MODE-B-GATEWAY-RDSAAD.md")
+PHASE5 = read("broker-auth/archive/PHASE5.md")
+MODE_A = read("broker-auth/archive/MODE-A-NATIVE-RDSAAD.md")
+MODE_B = read("broker-auth/archive/MODE-B-GATEWAY-RDSAAD.md")
 BROKER_PROTOCOL = read("broker-auth/reference-broker/protocol.md")
 GATEWAY_PROTOCOL = read("broker-auth/gateway/protocol.md")
 UDS_MAPPING = read("broker-auth/reference-broker/uds-adapter/mapping.md")

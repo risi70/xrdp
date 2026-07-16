@@ -282,8 +282,8 @@ xrdp_iso_process_rdp_neg_req(struct xrdp_iso *self, struct stream *s)
     in_uint32_le(s, self->requestedProtocol); /* requestedProtocols */
 
     if ((self->requestedProtocol & ~(PROTOCOL_SSL | PROTOCOL_HYBRID |
-                                      PROTOCOL_RDSTLS | PROTOCOL_HYBRID_EX |
-                                      PROTOCOL_RDSAAD)) != 0)
+                                     PROTOCOL_RDSTLS | PROTOCOL_HYBRID_EX |
+                                     PROTOCOL_RDSAAD)) != 0)
     {
         LOG(LOG_LEVEL_ERROR,
             "Unknown requested protocol flag [MS-RDPBCGR] RDP_NEG_REQ, "

@@ -960,7 +960,8 @@ scp_send_broker_login_request_v1(struct trans *trans,
 {
     struct libipm_fsb assertion_desc = {(void *)assertion, assertion_length};
     struct libipm_fsb correlation_desc = {(void *)correlation_id,
-                                          SCP_BAF_CORRELATION_ID_BYTES};
+        SCP_BAF_CORRELATION_ID_BYTES
+    };
     int rv = libipm_msg_out_simple_send(trans, E_SCP_BROKER_LOGIN_REQUEST_V1,
                                         "qquBssB", profile_version,
                                         credential_kind,
@@ -986,7 +987,8 @@ scp_get_broker_login_request_v1(struct trans *trans,
     uint32_t wire_length;
     struct libipm_fsb assertion_desc = {assertion, *assertion_length};
     struct libipm_fsb correlation_desc = {correlation_id,
-                                          SCP_BAF_CORRELATION_ID_BYTES};
+               SCP_BAF_CORRELATION_ID_BYTES
+    };
     int rv;
     libipm_set_flags(trans, LIBIPM_E_MSG_IN_ERASE_AFTER_USE);
     rv = libipm_msg_in_parse(trans, "qqu", &version, &kind, &wire_length);

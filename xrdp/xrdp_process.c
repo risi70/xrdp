@@ -201,7 +201,7 @@ xrdp_process_delete(struct xrdp_process *self)
     g_delete_wait_obj(self->self_term_event);
     libxrdp_exit(self->session);
     xrdp_wm_delete(self->wm);
-    #if defined(ENABLE_BROKER_AUTH)
+#if defined(ENABLE_BROKER_AUTH)
     trans_delete(self->baf_preauth_sesman_trans);
 #endif
     trans_delete(self->server_trans);

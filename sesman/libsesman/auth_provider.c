@@ -87,8 +87,8 @@ auth_provider_result_free(struct auth_provider_result *result)
 }
 
 #define STRING_ACCESSOR(function_name, member_name) \
-const char *function_name(const struct auth_prevalidated_identity *identity) \
-{ return identity == NULL ? NULL : identity->member_name; }
+    const char *function_name(const struct auth_prevalidated_identity *identity) \
+    { return identity == NULL ? NULL : identity->member_name; }
 
 STRING_ACCESSOR(auth_prevalidated_identity_get_issuer, issuer)
 STRING_ACCESSOR(auth_prevalidated_identity_get_subject, subject)
@@ -100,17 +100,21 @@ STRING_ACCESSOR(auth_prevalidated_identity_get_device_trust_status, device_trust
 
 const unsigned char *
 auth_prevalidated_identity_get_jti_digest(const struct auth_prevalidated_identity *identity)
-{ return identity == NULL ? NULL : identity->jti_digest; }
+{
+    return identity == NULL ? NULL : identity->jti_digest;
+}
 
 int64_t
 auth_prevalidated_identity_get_expiry(const struct auth_prevalidated_identity *identity)
-{ return identity == NULL ? 0 : identity->expiry; }
+{
+    return identity == NULL ? 0 : identity->expiry;
+}
 
 #define ARRAY_ACCESSORS(count_function, item_function, values_member, count_member) \
-size_t count_function(const struct auth_prevalidated_identity *identity) \
-{ return identity == NULL ? 0 : identity->count_member; } \
-const char *item_function(const struct auth_prevalidated_identity *identity, size_t index) \
-{ return identity == NULL || index >= identity->count_member ? NULL : identity->values_member[index]; }
+    size_t count_function(const struct auth_prevalidated_identity *identity) \
+    { return identity == NULL ? 0 : identity->count_member; } \
+    const char *item_function(const struct auth_prevalidated_identity *identity, size_t index) \
+    { return identity == NULL || index >= identity->count_member ? NULL : identity->values_member[index]; }
 
 ARRAY_ACCESSORS(auth_prevalidated_identity_get_group_count, auth_prevalidated_identity_get_group, groups, group_count)
 ARRAY_ACCESSORS(auth_prevalidated_identity_get_role_count, auth_prevalidated_identity_get_role, roles, role_count)

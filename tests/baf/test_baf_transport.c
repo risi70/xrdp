@@ -80,8 +80,13 @@ int main(void)
     struct baf_transport transport;
     int64_t now;
     const char *valid;
-    static const struct { const char *name; enum baf_transport_status status; }
-    negative[] = {
+    static const struct
+    {
+        const char *name;
+        enum baf_transport_status status;
+    }
+    negative[] =
+    {
         {"wrong-audience", BAF_TRANSPORT_REJECTED},
         {"wrong-target", BAF_TRANSPORT_REJECTED},
         {"expired", BAF_TRANSPORT_REJECTED},

@@ -78,8 +78,8 @@ validate_rdsaad_token(const char *token, struct auth_provider_config *config,
 
     make_auth_request(token, request, sizeof(request), &request_length);
     assert(rdsaad_parse_authentication_request(request, request_length,
-                                               assertion, sizeof(assertion),
-                                               &assertion_length) ==
+            assertion, sizeof(assertion),
+            &assertion_length) ==
            RDSAAD_STATUS_OK);
     assert(assertion_length == strlen(token));
     assert(strcmp(assertion, token) == 0);
@@ -137,36 +137,36 @@ main(void)
     assert(rdsaad_encode_server_nonce("bad\"nonce", output, sizeof(output),
                                       &written) == RDSAAD_STATUS_INVALID);
     assert(rdsaad_encode_authentication_result(RDSAAD_HRESULT_E_ACCESSDENIED,
-                                               output, sizeof(output),
-                                               &written) == RDSAAD_STATUS_OK);
+            output, sizeof(output),
+            &written) == RDSAAD_STATUS_OK);
     assert(strcmp(output, "{\"authentication_result\":\"2147942405\"}") == 0);
 
     assert(rdsaad_parse_authentication_request("{}", 2, assertion,
-                                               sizeof(assertion),
-                                               &assertion_length) ==
+            sizeof(assertion),
+            &assertion_length) ==
            RDSAAD_STATUS_MISSING_FIELD);
     assert(rdsaad_parse_authentication_request("{bad", 4, assertion,
-                                               sizeof(assertion),
-                                               &assertion_length) ==
+            sizeof(assertion),
+            &assertion_length) ==
            RDSAAD_STATUS_INVALID);
     assert(rdsaad_parse_authentication_request(duplicate_request,
-                                               strlen(duplicate_request),
-                                               assertion, sizeof(assertion),
-                                               &assertion_length) ==
+            strlen(duplicate_request),
+            assertion, sizeof(assertion),
+            &assertion_length) ==
            RDSAAD_STATUS_DUPLICATE_FIELD);
     assert(rdsaad_parse_authentication_request(escaped_request,
-                                               strlen(escaped_request),
-                                               assertion, sizeof(assertion),
-                                               &assertion_length) ==
+            strlen(escaped_request),
+            assertion, sizeof(assertion),
+            &assertion_length) ==
            RDSAAD_STATUS_INVALID);
 
     oversized_json = malloc(RDSAAD_MAX_JSON_BYTES + 2);
     assert(oversized_json != NULL);
     memset(oversized_json, ' ', RDSAAD_MAX_JSON_BYTES + 1);
     assert(rdsaad_parse_authentication_request(oversized_json,
-                                               RDSAAD_MAX_JSON_BYTES + 1,
-                                               assertion, sizeof(assertion),
-                                               &assertion_length) ==
+            RDSAAD_MAX_JSON_BYTES + 1,
+            assertion, sizeof(assertion),
+            &assertion_length) ==
            RDSAAD_STATUS_OVERSIZE);
     free(oversized_json);
 
@@ -179,8 +179,8 @@ main(void)
     make_auth_request(oversized_assertion, oversized_request,
                       RDSAAD_MAX_ASSERTION_BYTES + 64, &written);
     assert(rdsaad_parse_authentication_request(oversized_request, written,
-                                               assertion, sizeof(assertion),
-                                               &assertion_length) ==
+            assertion, sizeof(assertion),
+            &assertion_length) ==
            RDSAAD_STATUS_OVERSIZE);
     free(oversized_request);
     free(oversized_assertion);

@@ -153,11 +153,11 @@ replay_cache_make_key(const char *issuer, const char *jti,
         return REPLAY_CACHE_ERROR;
     }
     ok = EVP_DigestInit_ex(ctx, EVP_sha256(), NULL) == 1 &&
-         EVP_DigestUpdate(ctx, issuer, strlen(issuer)) == 1 &&
-         EVP_DigestUpdate(ctx, &separator, 1) == 1 &&
-         EVP_DigestUpdate(ctx, jti, strlen(jti)) == 1 &&
-         EVP_DigestFinal_ex(ctx, key, &length) == 1 &&
-         length == REPLAY_CACHE_KEY_SIZE;
+    EVP_DigestUpdate(ctx, issuer, strlen(issuer)) == 1 &&
+    EVP_DigestUpdate(ctx, &separator, 1) == 1 &&
+    EVP_DigestUpdate(ctx, jti, strlen(jti)) == 1 &&
+    EVP_DigestFinal_ex(ctx, key, &length) == 1 &&
+    length == REPLAY_CACHE_KEY_SIZE;
     EVP_MD_CTX_free(ctx);
     return ok ? REPLAY_CACHE_OK : REPLAY_CACHE_ERROR;
 }
@@ -171,8 +171,8 @@ replay_cache_reserve(struct replay_cache *cache,
     if (cache != NULL && cache->backend == REPLAY_BACKEND_SERVICE)
     {
         return replay_cache_service_request(cache->socket_path,
-                   cache->timeout_ms, BAF_REPLAY_OP_RESERVE, key,
-                   expires_at, NULL);
+                                            cache->timeout_ms, BAF_REPLAY_OP_RESERVE, key,
+                                            expires_at, NULL);
     }
     if (cache == NULL)
     {
@@ -227,7 +227,7 @@ set_state(struct replay_cache *cache,
             return REPLAY_CACHE_ERROR;
         }
         return replay_cache_service_request(cache->socket_path,
-                   cache->timeout_ms, operation, key, 0, NULL);
+                                            cache->timeout_ms, operation, key, 0, NULL);
     }
     if (cache == NULL)
     {
@@ -274,7 +274,7 @@ replay_cache_get_state(struct replay_cache *cache,
     if (cache != NULL && cache->backend == REPLAY_BACKEND_SERVICE)
     {
         return replay_cache_service_request(cache->socket_path,
-                   cache->timeout_ms, BAF_REPLAY_OP_STATUS, key, 0, state);
+                                            cache->timeout_ms, BAF_REPLAY_OP_STATUS, key, 0, state);
     }
     if (cache == NULL)
     {

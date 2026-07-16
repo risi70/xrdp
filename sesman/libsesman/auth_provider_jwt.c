@@ -186,13 +186,13 @@ baf_validator_config_create(const struct baf_validator_options *options,
         return AUTH_PROVIDER_CONFIG_ERROR;
     }
     max_size = options->max_assertion_bytes == 0 ?
-               BAF_DEFAULT_MAX_ASSERTION_BYTES :
-               options->max_assertion_bytes;
+    BAF_DEFAULT_MAX_ASSERTION_BYTES :
+    options->max_assertion_bytes;
     lifetime = options->max_lifetime_seconds == 0 ?
-               BAF_DEFAULT_MAX_LIFETIME_SECONDS :
-               options->max_lifetime_seconds;
+    BAF_DEFAULT_MAX_LIFETIME_SECONDS :
+    options->max_lifetime_seconds;
     skew = options->clock_skew_seconds < 0 ?
-           BAF_DEFAULT_CLOCK_SKEW_SECONDS : options->clock_skew_seconds;
+    BAF_DEFAULT_CLOCK_SKEW_SECONDS : options->clock_skew_seconds;
     if (!nonempty(options->issuer) || strchr(options->issuer, ':') == NULL ||
             !nonempty(options->expected_audience) ||
             !nonempty(options->local_target) ||
@@ -220,7 +220,7 @@ baf_validator_config_create(const struct baf_validator_options *options,
     config->required_assurance = copy_string(options->required_assurance);
     config->required_role = copy_string(options->required_role);
     config->allowed_device_status =
-        copy_string(options->allowed_device_status);
+    copy_string(options->allowed_device_status);
     config->max_assertion_bytes = max_size;
     config->max_lifetime = lifetime;
     config->clock_skew = skew;
@@ -500,7 +500,8 @@ key_is_strong_rsa(const struct auth_provider_config *config)
 static int
 schema_valid(json_t *claims)
 {
-    static const char *allowed[] = {
+    static const char *allowed[] =
+    {
         "iss", "aud", "sub", "preferred_username", "groups", "roles",
         "auth_method", "assurance_level", "broker_session_id", "target",
         "iat", "nbf", "exp", "jti", "device_trust", "extensions"
@@ -511,7 +512,8 @@ schema_valid(json_t *claims)
     json_t *device = json_object_get(claims, "device_trust");
     json_t *extensions = json_object_get(claims, "extensions");
     json_t *status;
-    static const char *device_allowed[] = {
+    static const char *device_allowed[] =
+    {
         "status", "device_id", "provider", "evaluated_at", "evidence"
     };
     json_object_foreach(claims, key, value)
@@ -615,7 +617,7 @@ schema_valid(json_t *claims)
 
 static enum auth_provider_status
 provider_validate(const struct auth_provider_request *request,
-             struct auth_provider_result **output)
+                  struct auth_provider_result **output)
 {
     const struct auth_provider_config *config;
     json_t *header = NULL;
@@ -684,7 +686,7 @@ provider_validate(const struct auth_provider_request *request,
     nbf = json_integer_value(json_object_get(claims, "nbf"));
     exp = json_integer_value(json_object_get(claims, "exp"));
     now = request->now == NULL ? (int64_t)time(NULL) :
-          request->now(request->now_userdata);
+    request->now(request->now_userdata);
     if (now > INT64_MAX - config->clock_skew ||
             now < INT64_MIN + config->clock_skew ||
             exp > INT64_MAX - config->clock_skew ||
@@ -746,8 +748,8 @@ provider_validate(const struct auth_provider_request *request,
     result->identity.preferred_username = copy_string(username);
     result->identity.broker_session_id = copy_string(session_id);
     result->identity.client_address =
-        copy_string(request->client_address == NULL ? "" :
-                    request->client_address);
+    copy_string(request->client_address == NULL ? "" :
+                request->client_address);
     result->identity.assurance_level = copy_string(assurance);
     result->identity.device_trust_status = copy_string(device_status);
     if (!copy_string_array(json_object_get(claims, "groups"),

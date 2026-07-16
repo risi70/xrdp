@@ -253,9 +253,9 @@ xrdp_sec_rdsaad_exchange(struct xrdp_sec *self)
     json = s->data + 4;
     json_length = (size_t)(s->end - json);
     parse_status = rdsaad_parse_authentication_request(json, json_length,
-                                                       assertion,
-                                                       sizeof(assertion),
-                                                       &assertion_length);
+                   assertion,
+                   sizeof(assertion),
+                   &assertion_length);
     if (parse_status != RDSAAD_STATUS_OK)
     {
         result = RDSAAD_HRESULT_SEC_E_INVALID_TOKEN;

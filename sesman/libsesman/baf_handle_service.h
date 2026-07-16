@@ -10,8 +10,9 @@
 #define BAF_HANDLE_DEFAULT_CAPACITY 1024
 #define BAF_HANDLE_DEFAULT_MAX_TTL 120
 enum baf_handle_status { BAF_HANDLE_OK, BAF_HANDLE_NOT_FOUND, BAF_HANDLE_EXPIRED,
- BAF_HANDLE_CONSUMED, BAF_HANDLE_TARGET_MISMATCH, BAF_HANDLE_BAD_REQUEST,
- BAF_HANDLE_CAPACITY, BAF_HANDLE_UNAVAILABLE, BAF_HANDLE_ERROR };
+                         BAF_HANDLE_CONSUMED, BAF_HANDLE_TARGET_MISMATCH, BAF_HANDLE_BAD_REQUEST,
+                         BAF_HANDLE_CAPACITY, BAF_HANDLE_UNAVAILABLE, BAF_HANDLE_ERROR
+                       };
 enum baf_handle_status baf_handle_store(const char *, int, const unsigned char *, size_t, int64_t, const char *, char [BAF_HANDLE_TEXT_LENGTH + 1]);
 enum baf_handle_status baf_handle_resolve_and_consume(const char *, int, const char *, const char *, unsigned char **, size_t *);
 enum baf_handle_status baf_handle_ping(const char *, int);

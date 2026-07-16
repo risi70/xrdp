@@ -37,33 +37,150 @@
 char g_display_str[256] = "10.0";
 
 /* Send-side lives in smartcard.c (not linked): stub it. */
-int scard_send_establish_context(void *u, int s) { (void)u; (void)s; return 0; }
-int scard_send_release_context(void *u, char *c, int b) { (void)u; (void)c; (void)b; return 0; }
-int scard_send_is_valid_context(void *u, char *c, int b) { (void)u; (void)c; (void)b; return 0; }
+int scard_send_establish_context(void *u, int s)
+{
+    (void)u;
+    (void)s;
+    return 0;
+}
+int scard_send_release_context(void *u, char *c, int b)
+{
+    (void)u;
+    (void)c;
+    (void)b;
+    return 0;
+}
+int scard_send_is_valid_context(void *u, char *c, int b)
+{
+    (void)u;
+    (void)c;
+    (void)b;
+    return 0;
+}
 int scard_send_list_readers(void *u, char *c, int b, char *g, int n, int w)
-{ (void)u; (void)c; (void)b; (void)g; (void)n; (void)w; return 0; }
+{
+    (void)u;
+    (void)c;
+    (void)b;
+    (void)g;
+    (void)n;
+    (void)w;
+    return 0;
+}
 int scard_send_get_status_change(void *u, char *c, int b, int w, tui32 t, tui32 nr, READER_STATE *r)
-{ (void)u; (void)c; (void)b; (void)w; (void)t; (void)nr; (void)r; return 0; }
+{
+    (void)u;
+    (void)c;
+    (void)b;
+    (void)w;
+    (void)t;
+    (void)nr;
+    (void)r;
+    return 0;
+}
 int scard_send_connect(void *u, char *c, int b, int w, READER_STATE *r)
-{ (void)u; (void)c; (void)b; (void)w; (void)r; return 0; }
+{
+    (void)u;
+    (void)c;
+    (void)b;
+    (void)w;
+    (void)r;
+    return 0;
+}
 int scard_send_reconnect(void *u, char *c, int b, char *d, int db, READER_STATE *r)
-{ (void)u; (void)c; (void)b; (void)d; (void)db; (void)r; return 0; }
+{
+    (void)u;
+    (void)c;
+    (void)b;
+    (void)d;
+    (void)db;
+    (void)r;
+    return 0;
+}
 int scard_send_begin_transaction(void *u, char *c, int b, char *d, int db)
-{ (void)u; (void)c; (void)b; (void)d; (void)db; return 0; }
+{
+    (void)u;
+    (void)c;
+    (void)b;
+    (void)d;
+    (void)db;
+    return 0;
+}
 int scard_send_end_transaction(void *u, char *c, int b, char *d, int db, tui32 x)
-{ (void)u; (void)c; (void)b; (void)d; (void)db; (void)x; return 0; }
+{
+    (void)u;
+    (void)c;
+    (void)b;
+    (void)d;
+    (void)db;
+    (void)x;
+    return 0;
+}
 int scard_send_status(void *u, int w, char *c, int b, char *d, int db, int rl, int al)
-{ (void)u; (void)w; (void)c; (void)b; (void)d; (void)db; (void)rl; (void)al; return 0; }
+{
+    (void)u;
+    (void)w;
+    (void)c;
+    (void)b;
+    (void)d;
+    (void)db;
+    (void)rl;
+    (void)al;
+    return 0;
+}
 int scard_send_disconnect(void *u, char *c, int b, char *d, int db, int x)
-{ (void)u; (void)c; (void)b; (void)d; (void)db; (void)x; return 0; }
+{
+    (void)u;
+    (void)c;
+    (void)b;
+    (void)d;
+    (void)db;
+    (void)x;
+    return 0;
+}
 int scard_send_transmit(void *u, char *c, int b, char *d, int db, char *sd, int sb,
                         int rb, struct xrdp_scard_io_request *si, struct xrdp_scard_io_request *ri)
-{ (void)u; (void)c; (void)b; (void)d; (void)db; (void)sd; (void)sb; (void)rb; (void)si; (void)ri; return 0; }
+{
+    (void)u;
+    (void)c;
+    (void)b;
+    (void)d;
+    (void)db;
+    (void)sd;
+    (void)sb;
+    (void)rb;
+    (void)si;
+    (void)ri;
+    return 0;
+}
 int scard_send_control(void *u, char *c, int b, char *d, int db, char *sd, int sb, int rb, int cc)
-{ (void)u; (void)c; (void)b; (void)d; (void)db; (void)sd; (void)sb; (void)rb; (void)cc; return 0; }
-int scard_send_cancel(void *u, char *c, int b) { (void)u; (void)c; (void)b; return 0; }
+{
+    (void)u;
+    (void)c;
+    (void)b;
+    (void)d;
+    (void)db;
+    (void)sd;
+    (void)sb;
+    (void)rb;
+    (void)cc;
+    return 0;
+}
+int scard_send_cancel(void *u, char *c, int b)
+{
+    (void)u;
+    (void)c;
+    (void)b;
+    return 0;
+}
 int scard_send_get_attrib(void *u, char *card, int b, READER_STATE *r)
-{ (void)u; (void)card; (void)b; (void)r; return 0; }
+{
+    (void)u;
+    (void)card;
+    (void)b;
+    (void)r;
+    return 0;
+}
 
 #include "smartcard_pcsc.c"
 
@@ -73,7 +190,8 @@ int
 LLVMFuzzerInitialize(int *argc, char ***argv)
 {
     struct log_config *lc;
-    (void)argc; (void)argv;
+    (void)argc;
+    (void)argv;
     lc = log_config_init_for_console(LOG_LEVEL_NEVER, NULL);
     if (lc != NULL)
     {
@@ -90,7 +208,8 @@ LLVMFuzzerInitialize(int *argc, char ***argv)
 static int
 fake_trans_send(struct trans *self, const char *data, int len)
 {
-    (void)self; (void)data;
+    (void)self;
+    (void)data;
     return len;
 }
 

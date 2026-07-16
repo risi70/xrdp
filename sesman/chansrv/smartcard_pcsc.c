@@ -95,8 +95,8 @@ extern char g_display_str[]; /* in chansrv.c */
     do                                                                       \
     {                                                                        \
         if ((int)(_n) < 0 ||                                                 \
-            !s_check_rem_and_log((_s), (_n),                                 \
-                                 "[MS-RDPESC] truncated smart-card response"))\
+                !s_check_rem_and_log((_s), (_n),                                 \
+                                     "[MS-RDPESC] truncated smart-card response"))\
         {                                                                    \
             return 1;                                                        \
         }                                                                    \

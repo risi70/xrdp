@@ -35,6 +35,9 @@ struct auth_prevalidated_identity
     unsigned char jti_digest[32];
     int64_t expiry;
 };
-struct auth_provider_result { struct auth_prevalidated_identity identity; };
+struct auth_provider_result
+{
+    struct auth_prevalidated_identity identity;
+};
 
 #endif /* AUTH_PROVIDER_PRIVATE_H */

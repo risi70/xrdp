@@ -141,7 +141,7 @@ validate_resolved_handle_assertion(const char *path)
     size_t document_length;
     size_t key_length;
     unsigned char *document_data = read_file(TEST_VECTOR_FILE,
-                                             &document_length);
+                                   &document_length);
     unsigned char *public_key = read_file(TEST_VECTOR_PUBLIC_KEY, &key_length);
     json_error_t error;
     json_t *document = json_loadb((const char *)document_data,
@@ -168,12 +168,12 @@ validate_resolved_handle_assertion(const char *path)
     CHECK(baf_handle_store(path, 1000, (const unsigned char *)valid,
                            strlen(valid), time(NULL) + 60,
                            json_string_value(json_object_get(document,
-                                                             "target")),
+                                   "target")),
                            handle) == BAF_HANDLE_OK,
           "stored RS256 vector assertion behind server-side handle");
     CHECK(baf_handle_resolve_and_consume(path, 1000, handle,
                                          json_string_value(json_object_get(
-                                             document, "target")),
+                                                 document, "target")),
                                          &resolved, &resolved_length) ==
           BAF_HANDLE_OK,
           "resolved RS256 vector assertion from handle service");
@@ -212,8 +212,8 @@ validate_resolved_handle_assertion(const char *path)
     resolved_length = 0;
 
     transport_status = baf_transport_validate(
-        &transport, 1, auth_provider_jwt_get(), config,
-        options.expected_audience, NULL, fixed_now, &now, &result);
+                           &transport, 1, auth_provider_jwt_get(), config,
+                           options.expected_audience, NULL, fixed_now, &now, &result);
     CHECK(transport_status ==
           BAF_TRANSPORT_VALIDATED_IDENTITY_BINDING_REQUIRED,
           "resolved handle assertion validates but is not login authorization");

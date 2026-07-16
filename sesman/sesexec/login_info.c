@@ -138,7 +138,7 @@ baf_authorize_assertion(const unsigned char *assertion,
     *auth_info_out = NULL;
 
     replay_cache = replay_cache_service_create(g_cfg->baf.replay_socket,
-                                               1000);
+                   1000);
     if (replay_cache == NULL || !replay_cache_is_service(replay_cache))
     {
         LOG(LOG_LEVEL_WARNING,
@@ -297,8 +297,8 @@ modec_resolve_handle(const char *handle,
     enum baf_handle_status handle_status;
 
     handle_status = baf_handle_resolve_and_consume(socket_path, 1000,
-                    handle, g_cfg->baf.local_target,
-                    assertion, assertion_length);
+        handle, g_cfg->baf.local_target,
+        assertion, assertion_length);
     if (handle_status == BAF_HANDLE_OK &&
             (*assertion == NULL || *assertion_length == 0 ||
              *assertion_length > BAF_HANDLE_MAX_ASSERTION))
@@ -416,106 +416,106 @@ authenticate_and_authorize_connection(const char *supplied_username,
     }
     else
 #endif
-    if (g_getuser_info_by_name(supplied_username,
-                               &uid, NULL, NULL, NULL, NULL) != 0)
-    {
-        /* we can't get a UID for the user */
-        LOG(LOG_LEVEL_ERROR, "Can't get UID for user %s",
-            supplied_username);
-        log_authfail_message(supplied_username, ip_addr);
-        status = E_SCP_LOGIN_NOT_AUTHENTICATED;
-
-        /* Call the auth stack anyway. On some systems (e.g. linux-pam),
-         * a fixed delay is built in to the stack for an unsuccessful
-         * login, and this delay may exceed FAILED_LOGIN_CONSTANT_TIME */
-        auth_end(auth_userpass(supplied_username, password, ip_addr, NULL));
-    }
-    else if (g_getuser_info_by_uid(uid,
-                                   &username,
-                                   NULL, NULL, NULL, NULL) != 0)
-    {
-        LOG(LOG_LEVEL_ERROR, "Can't reverse lookup UID %d", uid);
-        status = E_SCP_LOGIN_NOT_AUTHENTICATED;
-        auth_end(auth_userpass(supplied_username, password, ip_addr, NULL));
-    }
-    else
-    {
-        if (g_strcmp(username, supplied_username) != 0)
+        if (g_getuser_info_by_name(supplied_username,
+                                   &uid, NULL, NULL, NULL, NULL) != 0)
         {
-            /*
-             * If using a federated naming service (e.g. AD), the username
-             * supplied may not match that name mapped to by the UID. We
-             * will generate a warning in this instance so the user can see
-             * what is being used
-             */
-            LOG(LOG_LEVEL_WARNING,
-                "Using username %s for the session (from UID %d)",
-                username, uid);
+            /* we can't get a UID for the user */
+            LOG(LOG_LEVEL_ERROR, "Can't get UID for user %s",
+                supplied_username);
+            log_authfail_message(supplied_username, ip_addr);
+            status = E_SCP_LOGIN_NOT_AUTHENTICATED;
+
+            /* Call the auth stack anyway. On some systems (e.g. linux-pam),
+             * a fixed delay is built in to the stack for an unsuccessful
+             * login, and this delay may exceed FAILED_LOGIN_CONSTANT_TIME */
+            auth_end(auth_userpass(supplied_username, password, ip_addr, NULL));
         }
-
-        auth_info = auth_userpass(username, password, ip_addr, &status);
-
-        /* Sanity check on result of call */
-        if ((auth_info != NULL && status != E_SCP_LOGIN_OK) ||
-                (auth_info == NULL && status == E_SCP_LOGIN_OK))
+        else if (g_getuser_info_by_uid(uid,
+                                       &username,
+                                       NULL, NULL, NULL, NULL) != 0)
         {
-            LOG(LOG_LEVEL_ERROR, "Bugcheck; inconsistent auth result. "
-                "info = %p, status = %d", (void *)auth_info, (int)status);
-            status = E_SCP_LOGIN_GENERAL_ERROR;
-            auth_end(auth_info);
-            auth_info = NULL;
+            LOG(LOG_LEVEL_ERROR, "Can't reverse lookup UID %d", uid);
+            status = E_SCP_LOGIN_NOT_AUTHENTICATED;
+            auth_end(auth_userpass(supplied_username, password, ip_addr, NULL));
         }
-
-        /* Group access allowed? */
-        if (status == E_SCP_LOGIN_OK &&
-                !access_login_allowed(&g_cfg->sec, username))
+        else
         {
-            LOG(LOG_LEVEL_INFO, "Username okay but group problem for "
-                "user: %s", username);
-            status = E_SCP_LOGIN_NOT_AUTHORIZED;
-            auth_end(auth_info);
-            auth_info = NULL;
-        }
-
-        switch (status)
-        {
-            case E_SCP_LOGIN_OK:
+            if (g_strcmp(username, supplied_username) != 0)
             {
-                char *dup_username = g_strdup(username);
-                char *dup_ip_addr = g_strdup(ip_addr);
-
-                if (dup_username == NULL || dup_ip_addr == NULL)
-                {
-                    LOG(LOG_LEVEL_ERROR, "%s : Memory allocation failed",
-                        __func__);
-                    g_free(dup_username);
-                    g_free(dup_ip_addr);
-                    status = E_SCP_LOGIN_NO_MEMORY;
-                    auth_end(auth_info);
-                    auth_info = NULL;
-                }
-                else
-                {
-                    LOG(LOG_LEVEL_INFO, "Access permitted for user: %s",
-                        username);
-                    login_info->uid = uid;
-                    login_info->username = dup_username;
-                    login_info->ip_addr = dup_ip_addr;
-                    login_info->auth_info = auth_info;
-                }
+                /*
+                 * If using a federated naming service (e.g. AD), the username
+                 * supplied may not match that name mapped to by the UID. We
+                 * will generate a warning in this instance so the user can see
+                 * what is being used
+                 */
+                LOG(LOG_LEVEL_WARNING,
+                    "Using username %s for the session (from UID %d)",
+                    username, uid);
             }
-            break;
 
-            case E_SCP_LOGIN_NOT_AUTHENTICATED:
-                log_authfail_message(username, ip_addr);
+            auth_info = auth_userpass(username, password, ip_addr, &status);
+
+            /* Sanity check on result of call */
+            if ((auth_info != NULL && status != E_SCP_LOGIN_OK) ||
+                    (auth_info == NULL && status == E_SCP_LOGIN_OK))
+            {
+                LOG(LOG_LEVEL_ERROR, "Bugcheck; inconsistent auth result. "
+                    "info = %p, status = %d", (void *)auth_info, (int)status);
+                status = E_SCP_LOGIN_GENERAL_ERROR;
+                auth_end(auth_info);
+                auth_info = NULL;
+            }
+
+            /* Group access allowed? */
+            if (status == E_SCP_LOGIN_OK &&
+                    !access_login_allowed(&g_cfg->sec, username))
+            {
+                LOG(LOG_LEVEL_INFO, "Username okay but group problem for "
+                    "user: %s", username);
+                status = E_SCP_LOGIN_NOT_AUTHORIZED;
+                auth_end(auth_info);
+                auth_info = NULL;
+            }
+
+            switch (status)
+            {
+                case E_SCP_LOGIN_OK:
+                {
+                    char *dup_username = g_strdup(username);
+                    char *dup_ip_addr = g_strdup(ip_addr);
+
+                    if (dup_username == NULL || dup_ip_addr == NULL)
+                    {
+                        LOG(LOG_LEVEL_ERROR, "%s : Memory allocation failed",
+                            __func__);
+                        g_free(dup_username);
+                        g_free(dup_ip_addr);
+                        status = E_SCP_LOGIN_NO_MEMORY;
+                        auth_end(auth_info);
+                        auth_info = NULL;
+                    }
+                    else
+                    {
+                        LOG(LOG_LEVEL_INFO, "Access permitted for user: %s",
+                            username);
+                        login_info->uid = uid;
+                        login_info->username = dup_username;
+                        login_info->ip_addr = dup_ip_addr;
+                        login_info->auth_info = auth_info;
+                    }
+                }
                 break;
 
-            default:
-                break;
+                case E_SCP_LOGIN_NOT_AUTHENTICATED:
+                    log_authfail_message(username, ip_addr);
+                    break;
+
+                default:
+                    break;
+            }
+
+            g_free(username);
         }
-
-        g_free(username);
-    }
 
     if (status != E_SCP_LOGIN_OK)
     {
@@ -789,7 +789,7 @@ login_info_baf_preauth_user(struct trans *scp_trans,
 
     (void)scp_send_login_response(scp_trans, login_status,
                                   login_status == E_SCP_LOGIN_OK ? 0 : 1,
-                                  result == NULL ? (uid_t)-1 : result->uid);
+                                  result == NULL ? (uid_t) -1 : result->uid);
     auth_end(auth_info);
     g_free(username);
     return result;

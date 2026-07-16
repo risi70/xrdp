@@ -99,7 +99,7 @@ map_status(enum auth_provider_status status)
     switch (status)
     {
         case AUTH_PROVIDER_SUCCESS:
-            return BAF_TRANSPORT_VALIDATED_IDENTITY_BINDING_REQUIRED;
+                    return BAF_TRANSPORT_VALIDATED_IDENTITY_BINDING_REQUIRED;
         case AUTH_PROVIDER_UNSUPPORTED:
             return BAF_TRANSPORT_UNSUPPORTED;
         case AUTH_PROVIDER_REPLAY:

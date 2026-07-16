@@ -104,10 +104,17 @@ do_store(int argc, char **argv)
     {
         switch (opt)
         {
-            case 's': socket_path = optarg; break;
-            case 't': target = optarg; break;
-            case 'l': ttl = atol(optarg); break;
-            default: return 2;
+            case 's':
+                socket_path = optarg;
+                break;
+            case 't':
+                target = optarg;
+                break;
+            case 'l':
+                ttl = atol(optarg);
+                break;
+            default:
+                return 2;
         }
     }
     if (socket_path == NULL || target == NULL || ttl <= 0)
@@ -165,16 +172,35 @@ do_check(int argc, char **argv)
     {
         switch (opt)
         {
-            case 's': socket_path = optarg; break;
-            case 'H': handle = optarg; break;
-            case 't': target = optarg; break;
-            case 'k': trust_pem_path = optarg; break;
-            case 'i': issuer = optarg; break;
-            case 'a': audience = optarg; break;
-            case 'K': kid = optarg; break;
-            case 'n': nonce = optarg; break;
-            case 'r': replay_socket = optarg; break;
-            default: return 2;
+            case 's':
+                socket_path = optarg;
+                break;
+            case 'H':
+                handle = optarg;
+                break;
+            case 't':
+                target = optarg;
+                break;
+            case 'k':
+                trust_pem_path = optarg;
+                break;
+            case 'i':
+                issuer = optarg;
+                break;
+            case 'a':
+                audience = optarg;
+                break;
+            case 'K':
+                kid = optarg;
+                break;
+            case 'n':
+                nonce = optarg;
+                break;
+            case 'r':
+                replay_socket = optarg;
+                break;
+            default:
+                return 2;
         }
     }
     if (socket_path == NULL || handle == NULL || target == NULL ||

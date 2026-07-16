@@ -60,8 +60,8 @@ test_concurrent_same_key(const char *path)
         {
             struct replay_cache *cache = replay_cache_service_create(path, 1000);
             enum replay_cache_status status = replay_cache_reserve(
-                    cache, key, (int64_t)time(NULL) + 60,
-                    (int64_t)time(NULL));
+                                                  cache, key, (int64_t)time(NULL) + 60,
+                                                  (int64_t)time(NULL));
             replay_cache_free(cache);
             _exit(status == REPLAY_CACHE_OK ? 0 :
                   status == REPLAY_CACHE_EXISTS ? 10 : 20);
@@ -193,8 +193,8 @@ main(void)
     unavailable = replay_cache_service_create(path, 100);
     make_key(key, 0x71);
     CHECK(replay_cache_reserve(unavailable, key,
-                              (int64_t)time(NULL) + 60,
-                              (int64_t)time(NULL)) == REPLAY_CACHE_UNAVAILABLE,
+                               (int64_t)time(NULL) + 60,
+                               (int64_t)time(NULL)) == REPLAY_CACHE_UNAVAILABLE,
           "unavailable service fails closed");
     replay_cache_free(unavailable);
     return failures == 0 ? 0 : 1;

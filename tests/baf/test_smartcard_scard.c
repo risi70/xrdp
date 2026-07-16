@@ -39,39 +39,154 @@ char g_display_str[256] = "10.0";
 /* ------------------------------------------------------------------ */
 /* Stubs for the send side (smartcard.c is not linked into this test). */
 /* ------------------------------------------------------------------ */
-int scard_send_establish_context(void *u, int scope) { (void)u; (void)scope; return 0; }
-int scard_send_release_context(void *u, char *c, int cb) { (void)u; (void)c; (void)cb; return 0; }
-int scard_send_is_valid_context(void *u, char *c, int cb) { (void)u; (void)c; (void)cb; return 0; }
+int scard_send_establish_context(void *u, int scope)
+{
+    (void)u;
+    (void)scope;
+    return 0;
+}
+int scard_send_release_context(void *u, char *c, int cb)
+{
+    (void)u;
+    (void)c;
+    (void)cb;
+    return 0;
+}
+int scard_send_is_valid_context(void *u, char *c, int cb)
+{
+    (void)u;
+    (void)c;
+    (void)cb;
+    return 0;
+}
 int scard_send_list_readers(void *u, char *c, int cb, char *g, int n, int w)
-{ (void)u; (void)c; (void)cb; (void)g; (void)n; (void)w; return 0; }
+{
+    (void)u;
+    (void)c;
+    (void)cb;
+    (void)g;
+    (void)n;
+    (void)w;
+    return 0;
+}
 int scard_send_get_status_change(void *u, char *c, int cb, int w, tui32 t,
                                  tui32 nr, READER_STATE *rsa)
-{ (void)u; (void)c; (void)cb; (void)w; (void)t; (void)nr; (void)rsa; return 0; }
+{
+    (void)u;
+    (void)c;
+    (void)cb;
+    (void)w;
+    (void)t;
+    (void)nr;
+    (void)rsa;
+    return 0;
+}
 int scard_send_connect(void *u, char *c, int cb, int w, READER_STATE *rs)
-{ (void)u; (void)c; (void)cb; (void)w; (void)rs; return 0; }
+{
+    (void)u;
+    (void)c;
+    (void)cb;
+    (void)w;
+    (void)rs;
+    return 0;
+}
 int scard_send_reconnect(void *u, char *c, int cb, char *cd, int cdb, READER_STATE *rs)
-{ (void)u; (void)c; (void)cb; (void)cd; (void)cdb; (void)rs; return 0; }
+{
+    (void)u;
+    (void)c;
+    (void)cb;
+    (void)cd;
+    (void)cdb;
+    (void)rs;
+    return 0;
+}
 int scard_send_begin_transaction(void *u, char *c, int cb, char *cd, int cdb)
-{ (void)u; (void)c; (void)cb; (void)cd; (void)cdb; return 0; }
+{
+    (void)u;
+    (void)c;
+    (void)cb;
+    (void)cd;
+    (void)cdb;
+    return 0;
+}
 int scard_send_end_transaction(void *u, char *c, int cb, char *cd, int cdb, tui32 d)
-{ (void)u; (void)c; (void)cb; (void)cd; (void)cdb; (void)d; return 0; }
+{
+    (void)u;
+    (void)c;
+    (void)cb;
+    (void)cd;
+    (void)cdb;
+    (void)d;
+    return 0;
+}
 int scard_send_status(void *u, int w, char *c, int cb, char *cd, int cdb, int rl, int al)
-{ (void)u; (void)w; (void)c; (void)cb; (void)cd; (void)cdb; (void)rl; (void)al; return 0; }
+{
+    (void)u;
+    (void)w;
+    (void)c;
+    (void)cb;
+    (void)cd;
+    (void)cdb;
+    (void)rl;
+    (void)al;
+    return 0;
+}
 int scard_send_disconnect(void *u, char *c, int cb, char *cd, int cdb, int d)
-{ (void)u; (void)c; (void)cb; (void)cd; (void)cdb; (void)d; return 0; }
+{
+    (void)u;
+    (void)c;
+    (void)cb;
+    (void)cd;
+    (void)cdb;
+    (void)d;
+    return 0;
+}
 int scard_send_transmit(void *u, char *c, int cb, char *cd, int cdb,
                         char *sd, int sb, int rb,
                         struct xrdp_scard_io_request *si,
                         struct xrdp_scard_io_request *ri)
-{ (void)u; (void)c; (void)cb; (void)cd; (void)cdb; (void)sd; (void)sb; (void)rb;
-  (void)si; (void)ri; return 0; }
+{
+    (void)u;
+    (void)c;
+    (void)cb;
+    (void)cd;
+    (void)cdb;
+    (void)sd;
+    (void)sb;
+    (void)rb;
+    (void)si;
+    (void)ri;
+    return 0;
+}
 int scard_send_control(void *u, char *c, int cb, char *cd, int cdb,
                        char *sd, int sb, int rb, int cc)
-{ (void)u; (void)c; (void)cb; (void)cd; (void)cdb; (void)sd; (void)sb; (void)rb;
-  (void)cc; return 0; }
-int scard_send_cancel(void *u, char *c, int cb) { (void)u; (void)c; (void)cb; return 0; }
+{
+    (void)u;
+    (void)c;
+    (void)cb;
+    (void)cd;
+    (void)cdb;
+    (void)sd;
+    (void)sb;
+    (void)rb;
+    (void)cc;
+    return 0;
+}
+int scard_send_cancel(void *u, char *c, int cb)
+{
+    (void)u;
+    (void)c;
+    (void)cb;
+    return 0;
+}
 int scard_send_get_attrib(void *u, char *card, int cb, READER_STATE *rs)
-{ (void)u; (void)card; (void)cb; (void)rs; return 0; }
+{
+    (void)u;
+    (void)card;
+    (void)cb;
+    (void)rs;
+    return 0;
+}
 
 /* Pull in the unit under test (static parsers + helpers). The real trans layer
  * from libcommon is used (trans_get_out_s -> init_stream on a real heap buffer,
@@ -82,7 +197,8 @@ int scard_send_get_attrib(void *u, char *card, int cb, READER_STATE *rs)
 static int
 fake_trans_send(struct trans *self, const char *data, int len)
 {
-    (void)self; (void)data;
+    (void)self;
+    (void)data;
     return len;
 }
 
@@ -100,15 +216,38 @@ static struct trans *g_con;   /* real trans, discard sender (set in main) */
     } while (0)
 
 /* Byte-buffer builder for hand-encoded [MS-RDPESC] responses. */
-struct bb { unsigned char d[131072]; int n; };
-static void bb_reset(struct bb *b) { b->n = 0; }
-static void bb_u8(struct bb *b, unsigned v) { b->d[b->n++] = (unsigned char)v; }
+struct bb
+{
+    unsigned char d[131072];
+    int n;
+};
+static void bb_reset(struct bb *b)
+{
+    b->n = 0;
+}
+static void bb_u8(struct bb *b, unsigned v)
+{
+    b->d[b->n++] = (unsigned char)v;
+}
 static void bb_u32(struct bb *b, tui32 v)
-{ bb_u8(b, v & 0xff); bb_u8(b, (v >> 8) & 0xff);
-  bb_u8(b, (v >> 16) & 0xff); bb_u8(b, (v >> 24) & 0xff); }
-static void bb_zeros(struct bb *b, int n) { while (n-- > 0) { bb_u8(b, 0); } }
+{
+    bb_u8(b, v & 0xff);
+    bb_u8(b, (v >> 8) & 0xff);
+    bb_u8(b, (v >> 16) & 0xff);
+    bb_u8(b, (v >> 24) & 0xff);
+}
+static void bb_zeros(struct bb *b, int n)
+{
+    while (n-- > 0)
+    {
+        bb_u8(b, 0);
+    }
+}
 static void bb_bytes(struct bb *b, const void *p, int n)
-{ memcpy(b->d + b->n, p, n); b->n += n; }
+{
+    memcpy(b->d + b->n, p, n);
+    b->n += n;
+}
 
 static void in_from_bb(struct stream *s, struct bb *b)
 {
@@ -131,7 +270,10 @@ new_client(int *id_out)
         g_uds_clients = list_create();
     }
     list_add_item(g_uds_clients, (tintptr) c);
-    if (c != NULL && id_out != NULL) { *id_out = c->uds_client_id; }
+    if (c != NULL && id_out != NULL)
+    {
+        *id_out = c->uds_client_id;
+    }
     return c;
 }
 
@@ -229,21 +371,28 @@ static void test_security(void)
 
     /* F3: truncated EstablishContext header (10 of 32 bytes). */
     new_client(&id);
-    bb_reset(&b); bb_zeros(&b, 10);
+    bb_reset(&b);
+    bb_zeros(&b, 10);
     in_from_bb(&in, &b);
     CHECK(scard_function_establish_context_return((void *)(tintptr)id, &in, b.n, 0) == 1,
           "F3: truncated establish_context header fails closed");
 
     /* F7: negative context_bytes (0xFFFFFFFF) must not stack-smash context[16]. */
     new_client(&id);
-    bb_reset(&b); bb_zeros(&b, 28); bb_u32(&b, 0xFFFFFFFF); bb_zeros(&b, 16);
+    bb_reset(&b);
+    bb_zeros(&b, 28);
+    bb_u32(&b, 0xFFFFFFFF);
+    bb_zeros(&b, 16);
     in_from_bb(&in, &b);
     CHECK(scard_function_establish_context_return((void *)(tintptr)id, &in, b.n, 0) == 1,
           "F7: negative context_bytes rejected");
 
     /* F7: oversized context_bytes (64 > 16). */
     new_client(&id);
-    bb_reset(&b); bb_zeros(&b, 28); bb_u32(&b, 64); bb_zeros(&b, 64);
+    bb_reset(&b);
+    bb_zeros(&b, 28);
+    bb_u32(&b, 64);
+    bb_zeros(&b, 64);
     in_from_bb(&in, &b);
     CHECK(scard_function_establish_context_return((void *)(tintptr)id, &in, b.n, 0) == 1,
           "F7: oversized context_bytes rejected");
@@ -253,9 +402,13 @@ static void test_security(void)
     {
         struct pcsc_transmit *pt = (struct pcsc_transmit *)
                                    g_malloc(sizeof(struct pcsc_transmit), 1);
-        new_client(&id); pt->uds_client_id = id; pt->cbRecvLength = 4;
+        new_client(&id);
+        pt->uds_client_id = id;
+        pt->cbRecvLength = 4;
         bb_reset(&b);
-        bb_zeros(&b, 20); bb_u32(&b, 0); bb_zeros(&b, 4);
+        bb_zeros(&b, 20);
+        bb_u32(&b, 0);
+        bb_zeros(&b, 4);
         bb_u32(&b, 1);          /* pbRecvBuffer present */
         bb_u32(&b, 0x40000000); /* cbRecvLength = 1 GiB */
         /* no payload follows */
@@ -269,9 +422,13 @@ static void test_security(void)
     {
         struct pcsc_transmit *pt = (struct pcsc_transmit *)
                                    g_malloc(sizeof(struct pcsc_transmit), 1);
-        new_client(&id); pt->uds_client_id = id; pt->cbRecvLength = 0;
+        new_client(&id);
+        pt->uds_client_id = id;
+        pt->cbRecvLength = 0;
         bb_reset(&b);
-        bb_zeros(&b, 20); bb_u32(&b, 0); bb_zeros(&b, 4);
+        bb_zeros(&b, 20);
+        bb_u32(&b, 0);
+        bb_zeros(&b, 4);
         bb_u32(&b, 1);          /* pbRecvBuffer present */
         bb_u32(&b, 70000);      /* cbRecvLength > 66560 */
         bb_zeros(&b, 70000);    /* bytes actually present */
@@ -284,10 +441,15 @@ static void test_security(void)
     {
         struct pcsc_transmit *pt = (struct pcsc_transmit *)
                                    g_malloc(sizeof(struct pcsc_transmit), 1);
-        new_client(&id); pt->uds_client_id = id; pt->cbRecvLength = 0;
+        new_client(&id);
+        pt->uds_client_id = id;
+        pt->cbRecvLength = 0;
         bb_reset(&b);
-        bb_zeros(&b, 20); bb_u32(&b, 1); /* pioRecvPci present */
-        bb_zeros(&b, 8); bb_u32(&b, 0); bb_u32(&b, 0);
+        bb_zeros(&b, 20);
+        bb_u32(&b, 1); /* pioRecvPci present */
+        bb_zeros(&b, 8);
+        bb_u32(&b, 0);
+        bb_u32(&b, 0);
         bb_u32(&b, 0x7fffffff);          /* extra_bytes */
         in_from_bb(&in, &b);
         CHECK(scard_function_transmit_return((void *)pt, &in, b.n, 0) == 1,
@@ -300,7 +462,8 @@ static void test_security(void)
         char ctxbuf[] = "ctx";
         c->connect_context = uds_client_add_context(c, ctxbuf, 3);
         bb_reset(&b);
-        bb_zeros(&b, 36); bb_u32(&b, 0x0002); /* dwActiveProtocol */
+        bb_zeros(&b, 36);
+        bb_u32(&b, 0x0002); /* dwActiveProtocol */
         bb_u32(&b, 64);                        /* card_bytes */
         bb_zeros(&b, 64);
         in_from_bb(&in, &b);
@@ -314,7 +477,8 @@ static void test_security(void)
         char ctxbuf[] = "ctx";
         c->connect_context = uds_client_add_context(c, ctxbuf, 3);
         bb_reset(&b);
-        bb_zeros(&b, 36); bb_u32(&b, 0x0002);
+        bb_zeros(&b, 36);
+        bb_u32(&b, 0x0002);
         bb_u32(&b, 0xFFFFFFFF);
         in_from_bb(&in, &b);
         CHECK(scard_function_connect_return((void *)(tintptr)id, &in, b.n, 0) == 1,
@@ -323,28 +487,36 @@ static void test_security(void)
 
     /* F5: get_status_change cReaders unbounded (INT_MAX). */
     new_client(&id);
-    bb_reset(&b); bb_zeros(&b, 28); bb_u32(&b, 0x7fffffff);
+    bb_reset(&b);
+    bb_zeros(&b, 28);
+    bb_u32(&b, 0x7fffffff);
     in_from_bb(&in, &b);
     CHECK(scard_function_get_status_change_return((void *)(tintptr)id, &in, b.n, 0) == 1,
           "F5: get_status_change unbounded cReaders rejected");
 
     /* F5: cReaders plausible but stream too short for the records. */
     new_client(&id);
-    bb_reset(&b); bb_zeros(&b, 28); bb_u32(&b, 10); bb_zeros(&b, 20);
+    bb_reset(&b);
+    bb_zeros(&b, 28);
+    bb_u32(&b, 10);
+    bb_zeros(&b, 20);
     in_from_bb(&in, &b);
     CHECK(scard_function_get_status_change_return((void *)(tintptr)id, &in, b.n, 0) == 1,
           "F5: get_status_change short reader array fails closed");
 
     /* F3: control truncated header. */
     new_client(&id);
-    bb_reset(&b); bb_zeros(&b, 8);
+    bb_reset(&b);
+    bb_zeros(&b, 8);
     in_from_bb(&in, &b);
     CHECK(scard_function_control_return((void *)(tintptr)id, &in, b.n, 0) == 1,
           "F3: control truncated header fails closed");
 
     /* F1/F2: control cbRecvLength huge, short stream. */
     new_client(&id);
-    bb_reset(&b); bb_zeros(&b, 28); bb_u32(&b, 0x40000000);
+    bb_reset(&b);
+    bb_zeros(&b, 28);
+    bb_u32(&b, 0x40000000);
     in_from_bb(&in, &b);
     CHECK(scard_function_control_return((void *)(tintptr)id, &in, b.n, 0) == 1,
           "F1/F2: control oversized cbRecvLength fails closed");
@@ -354,9 +526,12 @@ static void test_security(void)
     {
         struct pcsc_status *ps = (struct pcsc_status *)
                                  g_malloc(sizeof(struct pcsc_status), 1);
-        new_client(&id); ps->uds_client_id = id; ps->cchReaderLen = 0;
+        new_client(&id);
+        ps->uds_client_id = id;
+        ps->cchReaderLen = 0;
         bb_reset(&b);
-        bb_zeros(&b, 16); bb_zeros(&b, 4);
+        bb_zeros(&b, 16);
+        bb_zeros(&b, 4);
         bb_u32(&b, 0);           /* dwReaderLen = 0 */
         bb_zeros(&b, 4);
         bb_u32(&b, 0);           /* dwState */
@@ -373,9 +548,12 @@ static void test_security(void)
     {
         struct pcsc_status *ps = (struct pcsc_status *)
                                  g_malloc(sizeof(struct pcsc_status), 1);
-        new_client(&id); ps->uds_client_id = id; ps->cchReaderLen = 0;
+        new_client(&id);
+        ps->uds_client_id = id;
+        ps->cchReaderLen = 0;
         bb_reset(&b);
-        bb_zeros(&b, 16); bb_zeros(&b, 4);
+        bb_zeros(&b, 16);
+        bb_zeros(&b, 4);
         bb_u32(&b, 0);           /* dwReaderLen = 0 */
         bb_zeros(&b, 4);
         bb_u32(&b, 0x80000005);  /* dwState, high bit set */
@@ -391,8 +569,11 @@ static void test_security(void)
     {
         struct pcsc_list_readers *pl = (struct pcsc_list_readers *)
                                        g_malloc(sizeof(struct pcsc_list_readers), 1);
-        new_client(&id); pl->uds_client_id = id; pl->cchReaders = 64;
-        bb_reset(&b); bb_zeros(&b, 8);
+        new_client(&id);
+        pl->uds_client_id = id;
+        pl->cchReaders = 64;
+        bb_reset(&b);
+        bb_zeros(&b, 8);
         in_from_bb(&in, &b);
         CHECK(scard_function_list_readers_return((void *)pl, &in, b.n, 0) == 1,
               "F3/F4: list_readers truncated header fails closed");
@@ -406,42 +587,58 @@ static void test_security(void)
         struct pcsc_list_readers *pl;
 
         new_client(&id);
-        in.data = empty; in.p = empty; in.end = empty; in.size = 0; in.next_packet = NULL;
+        in.data = empty;
+        in.p = empty;
+        in.end = empty;
+        in.size = 0;
+        in.next_packet = NULL;
         CHECK(scard_function_establish_context_return((void *)(tintptr)id, &in, 0, 0) == 1,
               "F3: empty stream establish_context fails closed");
 
         new_client(&id);
-        in.p = in.end = in.data = empty; in.size = 0;
+        in.p = in.end = in.data = empty;
+        in.size = 0;
         CHECK(scard_function_control_return((void *)(tintptr)id, &in, 0, 0) == 1,
               "F3: empty stream control fails closed");
 
         new_client(&id);
-        in.p = in.end = in.data = empty; in.size = 0;
+        in.p = in.end = in.data = empty;
+        in.size = 0;
         CHECK(scard_function_get_status_change_return((void *)(tintptr)id, &in, 0, 0) == 1,
               "F3: empty stream get_status_change fails closed");
 
         pt = (struct pcsc_transmit *)g_malloc(sizeof(struct pcsc_transmit), 1);
-        new_client(&id); pt->uds_client_id = id; pt->cbRecvLength = 0;
-        in.p = in.end = in.data = empty; in.size = 0;
+        new_client(&id);
+        pt->uds_client_id = id;
+        pt->cbRecvLength = 0;
+        in.p = in.end = in.data = empty;
+        in.size = 0;
         CHECK(scard_function_transmit_return((void *)pt, &in, 0, 0) == 1,
               "F3: empty stream transmit fails closed");
 
         ps = (struct pcsc_status *)g_malloc(sizeof(struct pcsc_status), 1);
-        new_client(&id); ps->uds_client_id = id; ps->cchReaderLen = 0;
-        in.p = in.end = in.data = empty; in.size = 0;
+        new_client(&id);
+        ps->uds_client_id = id;
+        ps->cchReaderLen = 0;
+        in.p = in.end = in.data = empty;
+        in.size = 0;
         CHECK(scard_function_status_return((void *)ps, &in, 0, 0) == 1,
               "F3: empty stream status fails closed");
 
         pl = (struct pcsc_list_readers *)g_malloc(sizeof(struct pcsc_list_readers), 1);
-        new_client(&id); pl->uds_client_id = id; pl->cchReaders = 1;
-        in.p = in.end = in.data = empty; in.size = 0;
+        new_client(&id);
+        pl->uds_client_id = id;
+        pl->cchReaders = 1;
+        in.p = in.end = in.data = empty;
+        in.size = 0;
         CHECK(scard_function_list_readers_return((void *)pl, &in, 0, 0) == 1,
               "F3: empty stream list_readers fails closed");
     }
 
     /* status != 0 (card error) short-circuits parsing safely for all. */
     new_client(&id);
-    bb_reset(&b); bb_zeros(&b, 0);
+    bb_reset(&b);
+    bb_zeros(&b, 0);
     in_from_bb(&in, &b);
     CHECK(scard_function_get_status_change_return((void *)(tintptr)id, &in, 0, 0x80100002) == 0,
           "error status get_status_change returns cleanly without parsing");
@@ -463,14 +660,16 @@ test_request_parsers(void)
     /* ESTABLISH_CONTEXT (0x01): body is dwScope (4 bytes). con->callback_data
      * is set to the client by create_uds_client(). */
     new_client(&id);
-    bb_reset(&b); bb_u32(&b, 0x02);      /* dwScope */
+    bb_reset(&b);
+    bb_u32(&b, 0x02);      /* dwScope */
     in_from_bb(&in, &b);
     CHECK(scard_process_msg(g_con, &in, 0x01) == 0,
           "process ESTABLISH_CONTEXT ok");
 
     /* Unknown command must fail closed (rv=1), not crash. */
     new_client(&id);
-    bb_reset(&b); bb_zeros(&b, 4);
+    bb_reset(&b);
+    bb_zeros(&b, 4);
     in_from_bb(&in, &b);
     CHECK(scard_process_msg(g_con, &in, 0x9999) == 1,
           "process unknown command fails closed");
@@ -479,11 +678,13 @@ test_request_parsers(void)
      * exercise the request parsers with short input; we assert only that the
      * call completes without a sanitizer abort. */
     new_client(&id);
-    bb_reset(&b); bb_zeros(&b, 3);
+    bb_reset(&b);
+    bb_zeros(&b, 3);
     in_from_bb(&in, &b);
     (void) scard_process_msg(g_con, &in, 0x09);   /* TRANSMIT, short */
     new_client(&id);
-    bb_reset(&b); bb_zeros(&b, 2);
+    bb_reset(&b);
+    bb_zeros(&b, 2);
     in_from_bb(&in, &b);
     (void) scard_process_msg(g_con, &in, 0x04);   /* CONNECT, short */
     new_client(&id);
@@ -496,8 +697,10 @@ test_request_parsers(void)
 static void
 put_u32le(unsigned char *p, unsigned int v)
 {
-    p[0] = (unsigned char) v; p[1] = (unsigned char)(v >> 8);
-    p[2] = (unsigned char)(v >> 16); p[3] = (unsigned char)(v >> 24);
+    p[0] = (unsigned char) v;
+    p[1] = (unsigned char)(v >> 8);
+    p[2] = (unsigned char)(v >> 16);
+    p[3] = (unsigned char)(v >> 24);
 }
 
 /* ================================================================== */
@@ -519,7 +722,11 @@ test_socket_handoff(void)
     printf("[transport: PC/SC UNIX socket handoff]\n");
 
     home = mkdtemp(tmpl);
-    if (home == NULL) { CHECK(0, "mkdtemp"); return; }
+    if (home == NULL)
+    {
+        CHECK(0, "mkdtemp");
+        return;
+    }
     setenv("HOME", home, 1);
 
     /* init creates $HOME/.pcsc<display>/ (0700) and listens on pcscd.comm */
@@ -583,7 +790,10 @@ connect_client(void)
     struct sockaddr_un sa;
     const char *ipc_path = g_pcsclite_ipc_file;
     int cs = socket(AF_UNIX, SOCK_STREAM, 0);
-    if (cs < 0) { return -1; }
+    if (cs < 0)
+    {
+        return -1;
+    }
     memset(&sa, 0, sizeof(sa));
     sa.sun_family = AF_UNIX;
     g_snprintf(sa.sun_path, sizeof(sa.sun_path), "%s", ipc_path);
@@ -604,8 +814,14 @@ send_msg(int fd, unsigned int command, const unsigned char *body,
     unsigned char hdr[8];
     put_u32le(hdr + 0, blen);
     put_u32le(hdr + 4, command);
-    if (write(fd, hdr, 8) != 8) { return -1; }
-    if (blen > 0 && write(fd, body, blen) != (ssize_t) blen) { return -1; }
+    if (write(fd, hdr, 8) != 8)
+    {
+        return -1;
+    }
+    if (blen > 0 && write(fd, body, blen) != (ssize_t) blen)
+    {
+        return -1;
+    }
     return 0;
 }
 
@@ -619,7 +835,10 @@ xwrite(int fd, const void *buf, size_t n)   /* write, result intentionally used 
 static void
 pump(int n)   /* run the real chansrv PC/SC event loop n times */
 {
-    while (n-- > 0) { (void) scard_pcsc_check_wait_objs(); }
+    while (n-- > 0)
+    {
+        (void) scard_pcsc_check_wait_objs();
+    }
 }
 
 static int
@@ -640,7 +859,11 @@ test_socket_transport(void)
     printf("[transport: socket framing / dispatch / lifecycle]\n");
 
     home = mkdtemp(tmpl);
-    if (home == NULL) { CHECK(0, "mkdtemp"); return; }
+    if (home == NULL)
+    {
+        CHECK(0, "mkdtemp");
+        return;
+    }
     setenv("HOME", home, 1);
     CHECK(scard_pcsc_init() == 0, "listener up");
 
@@ -689,8 +912,12 @@ test_socket_transport(void)
     /* two pipelined messages in one write are both processed */
     {
         unsigned char two[24];
-        put_u32le(two + 0, 4); put_u32le(two + 4, 0x01); put_u32le(two + 8, 0);
-        put_u32le(two + 12, 4); put_u32le(two + 16, 0x01); put_u32le(two + 20, 0);
+        put_u32le(two + 0, 4);
+        put_u32le(two + 4, 0x01);
+        put_u32le(two + 8, 0);
+        put_u32le(two + 12, 4);
+        put_u32le(two + 16, 0x01);
+        put_u32le(two + 20, 0);
         xwrite(c1, two, sizeof(two));
         pump(4);
         CHECK(client_count() == 1, "pipelined messages processed, client alive");
@@ -716,7 +943,11 @@ main(void)
 {
     printf("== MS-RDPESC smart-card response parser tests ==\n");
     g_con = trans_create(TRANS_MODE_UNIX, 8192, 8192);
-    if (g_con == NULL) { printf("  FAIL: trans_create\n"); return 2; }
+    if (g_con == NULL)
+    {
+        printf("  FAIL: trans_create\n");
+        return 2;
+    }
     g_con->trans_send = fake_trans_send;
     g_con->status = TRANS_STATUS_UP;
 

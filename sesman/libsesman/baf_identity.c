@@ -67,8 +67,8 @@ static void release_record(struct baf_nss_record *record)
     memset(record, 0, sizeof(*record));
 }
 enum baf_nss_status baf_nss_lookup_system(const char *username,
-                                          void *userdata,
-                                          struct baf_nss_record *record)
+        void *userdata,
+        struct baf_nss_record *record)
 {
     long configured = sysconf(_SC_GETPW_R_SIZE_MAX);
     size_t buffer_size = configured > 0 ? (size_t)configured : 16384U;
@@ -163,7 +163,7 @@ baf_identity_bind(const struct auth_provider_result *capability,
     }
     username = auth_prevalidated_identity_get_preferred_username(claims);
     maximum = options == NULL || options->max_username_bytes == 0 ?
-              BAF_IDENTITY_MAX_USERNAME_BYTES : options->max_username_bytes;
+    BAF_IDENTITY_MAX_USERNAME_BYTES : options->max_username_bytes;
     if (!baf_identity_username_is_safe(username, maximum))
     {
         return BAF_IDENTITY_INVALID_USERNAME;
@@ -178,15 +178,15 @@ baf_identity_bind(const struct auth_provider_result *capability,
     {
         release_record(&record);
         return nss_status == BAF_NSS_NOT_FOUND ? BAF_IDENTITY_NOT_FOUND :
-               nss_status == BAF_NSS_AMBIGUOUS ? BAF_IDENTITY_AMBIGUOUS :
-               BAF_IDENTITY_NSS_UNAVAILABLE;
+        nss_status == BAF_NSS_AMBIGUOUS ? BAF_IDENTITY_AMBIGUOUS :
+        BAF_IDENTITY_NSS_UNAVAILABLE;
     }
     if (!baf_identity_username_is_safe(record.canonical_username, maximum))
     {
         release_record(&record);
         return BAF_IDENTITY_AMBIGUOUS;
     }
-    if (record.uid == (uid_t)-1 || record.primary_gid == (gid_t)-1)
+    if (record.uid == (uid_t) -1 || record.primary_gid == (gid_t) -1)
     {
         release_record(&record);
         return BAF_IDENTITY_AMBIGUOUS;
@@ -219,15 +219,25 @@ baf_identity_bind(const struct auth_provider_result *capability,
     return BAF_IDENTITY_SUCCESS;
 }
 const char *baf_resolved_identity_get_username(const struct baf_resolved_identity *i)
-{ return i == NULL ? NULL : i->canonical_username; }
+{
+    return i == NULL ? NULL : i->canonical_username;
+}
 uid_t baf_resolved_identity_get_uid(const struct baf_resolved_identity *i)
-{ return i == NULL ? (uid_t)-1 : i->uid; }
+{
+    return i == NULL ? (uid_t) -1 : i->uid;
+}
 gid_t baf_resolved_identity_get_primary_gid(const struct baf_resolved_identity *i)
-{ return i == NULL ? (gid_t)-1 : i->primary_gid; }
+{
+    return i == NULL ? (gid_t) -1 : i->primary_gid;
+}
 const char *baf_resolved_identity_get_home(const struct baf_resolved_identity *i)
-{ return i == NULL ? NULL : i->home_directory; }
+{
+    return i == NULL ? NULL : i->home_directory;
+}
 const char *baf_resolved_identity_get_shell(const struct baf_resolved_identity *i)
-{ return i == NULL ? NULL : i->shell; }
+{
+    return i == NULL ? NULL : i->shell;
+}
 void baf_resolved_identity_free(struct baf_resolved_identity *identity)
 {
     if (identity != NULL)
@@ -239,4 +249,6 @@ void baf_resolved_identity_free(struct baf_resolved_identity *identity)
     }
 }
 enum baf_nss_status baf_resolved_identity_get_nss_status(const struct baf_resolved_identity *i)
-{ return i == NULL ? BAF_NSS_UNAVAILABLE : i->nss_status; }
+{
+    return i == NULL ? BAF_NSS_UNAVAILABLE : i->nss_status;
+}

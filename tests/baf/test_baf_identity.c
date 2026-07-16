@@ -28,7 +28,9 @@ static unsigned char *read_file(const char *path, size_t *length)
     return data;
 }
 static int64_t fixed_now(void *userdata)
-{ return *(const int64_t *)userdata; }
+{
+    return *(const int64_t *)userdata;
+}
 static const char *find_token(json_t *vectors, const char *wanted)
 {
     size_t index;

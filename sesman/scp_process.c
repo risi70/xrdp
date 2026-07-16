@@ -879,7 +879,7 @@ scp_process(struct scp_list_item *sli)
             rv = process_sys_login_request(sli);
             break;
 
-        #if defined(ENABLE_BROKER_AUTH)
+#if defined(ENABLE_BROKER_AUTH)
         case E_SCP_BROKER_LOGIN_REQUEST_V1:
             rv = process_broker_login_request(sli);
             break;

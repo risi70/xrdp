@@ -42,7 +42,8 @@ status_from_string(const char *value, enum auth_provider_status *status)
     {
         const char *name;
         enum auth_provider_status status;
-    } statuses[] = {
+    } statuses[] =
+    {
         {"success", AUTH_PROVIDER_SUCCESS},
         {"unsupported", AUTH_PROVIDER_UNSUPPORTED},
         {"invalid", AUTH_PROVIDER_INVALID},
@@ -71,7 +72,8 @@ status_from_string(const char *value, enum auth_provider_status *status)
 int
 main(void)
 {
-    static const char *required_names[] = {
+    static const char *required_names[] =
+    {
         "valid-rs256", "expired", "not-yet-valid", "lifetime-too-long",
         "wrong-issuer", "wrong-audience", "wrong-target",
         "missing-mandatory-claim", "duplicate-json-member", "alg-none",

@@ -210,8 +210,8 @@ xrdp_process_main_loop(struct xrdp_process *self);
 #if defined(ENABLE_BROKER_AUTH)
 int
 xrdp_process_rdsaad_preauth(struct xrdp_process *self,
-                              const struct xrdp_rdsaad_preauth_request *request,
-                              struct xrdp_rdsaad_preauth_response *response);
+                            const struct xrdp_rdsaad_preauth_request *request,
+                            struct xrdp_rdsaad_preauth_response *response);
 #endif
 
 /* xrdp_listen.c */

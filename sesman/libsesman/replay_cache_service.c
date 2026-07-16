@@ -77,8 +77,8 @@ map_result(uint32_t result)
     switch (result)
     {
         case BAF_REPLAY_RESULT_OK_RESERVED:
-        case BAF_REPLAY_RESULT_OK:
-            return REPLAY_CACHE_OK;
+                case BAF_REPLAY_RESULT_OK:
+                        return REPLAY_CACHE_OK;
         case BAF_REPLAY_RESULT_REPLAY:
             return REPLAY_CACHE_EXISTS;
         case BAF_REPLAY_RESULT_NOT_FOUND:
