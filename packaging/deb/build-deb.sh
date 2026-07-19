@@ -72,6 +72,7 @@ printf 'Building xrdp-baf %s for %s from %s\n' \
         --with-systemdsystemunitdir=/lib/systemd/system \
         --enable-pam \
         --enable-broker-auth \
+        --enable-smartcard \
         --disable-rfxcodec
     make -j"${JOBS:-$(nproc)}"
     make -C tests/baf check
