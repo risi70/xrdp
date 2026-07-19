@@ -27,7 +27,7 @@ was the third robust-ingress *track* after **Mode A** (native RDSAAD client) and
 | C / Python symbols | `modec_*` — e.g. `modec_resolve_handle`, `modec_preauth`, `modec_sec` |
 | `sesman.ini` `[BrokerAuth]` | `ModeCOneTimeCredential` |
 | `xrdp.ini` `[Globals]` | `broker_auth_modec_ingress_enabled` |
-| tests / lab | `test_modec_live.c`, `test-lab/phase6/modec-smoke/` |
+| tests / lab | `test_modec_live.c`, `test-lab/broker-rdp-handle/` |
 
 They all denote the Broker-RDP Handle mechanism described here. The codename was
 deliberately left in the identifiers and config keys so existing build and

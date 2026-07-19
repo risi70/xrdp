@@ -14,7 +14,7 @@
  * real BAF JWT validator integrate end-to-end. It is the runnable-here half
  * of the Broker-RDP Handle smoke test; the RDP-level channels (routing token and
  * one-time credential through xrdp/sesman/PAM) are exercised on the Phase 6
- * VM by test-lab/phase6/modec-smoke.sh.
+ * VM by test-lab/broker-rdp-handle/rdp-smoke.sh.
  */
 
 #include "auth_provider.h"
