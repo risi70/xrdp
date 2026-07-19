@@ -170,6 +170,7 @@ CONTROL
 )
 install -m 0755 "$HERE/postinst" "$STAGE/DEBIAN/postinst"
 install -m 0755 "$HERE/postrm" "$STAGE/DEBIAN/postrm"
+find "$STAGE" -type d -exec chmod 0755 {} +
 
 PACKAGE="$OUT/xrdp-baf_${PACKAGE_VERSION}_${ARCH}.deb"
 dpkg-deb --root-owner-group --build "$STAGE" "$PACKAGE"
