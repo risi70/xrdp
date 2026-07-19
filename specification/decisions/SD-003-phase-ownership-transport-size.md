@@ -18,7 +18,7 @@ ceiling as a transport guarantee would be unsafe.
 
 The completed implementation is reclassified as **Phase 4a — Linux Identity
 Binding and PAM Preconditions**. Phase 4a consumes a validated capability,
-binds `preferred_username` through NSS/SSSD-compatible APIs, rejects UID 0 by
+binds `preferred_username` through system NSS APIs, rejects UID 0 by
 default, establishes the prevalidated PAM account handle, and preserves classic
 password/PAM behavior. Phase 4a does not authorize or start a live broker
 session.
@@ -26,7 +26,7 @@ session.
 **Phase 4b — Live Broker-Auth Session Activation** is the next implementation
 phase. It owns production state-machine wiring and may authorize session startup
 only after assertion validation and replay reservation, capability creation,
-NSS/SSSD identity binding, UID 0 rejection, PAM account approval, and the
+system NSS identity binding, UID 0 rejection, PAM account approval, and the
 required PAM credential/session lifecycle. Broker auth remains disabled at
 build time and runtime by default.
 

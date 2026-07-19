@@ -1,0 +1,23 @@
+[Unit]
+Description=XRDP BAF trusted replay service
+Documentation=file:/usr/share/doc/xrdp-baf/DEPLOYMENT-KEYCLOAK-BAF-XRDP.md
+Before=xrdp-sesman.service
+
+[Service]
+Type=simple
+User=root
+Group=xrdp
+RuntimeDirectory=xrdp
+RuntimeDirectoryMode=0750
+RuntimeDirectoryPreserve=yes
+UMask=0007
+ExecStart=/usr/sbin/xrdp-baf-replayd -s /run/xrdp/baf-replay.sock
+Restart=on-failure
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+RestrictAddressFamilies=AF_UNIX
+
+[Install]
+WantedBy=multi-user.target

@@ -81,7 +81,7 @@ ssl_protocols=TLSv1.2, TLSv1.3
 #tls_ciphers=HIGH
 
 ; concats the domain name to the user if set for authentication with the separator
-; for example when the server is multi homed with SSSd
+; for example when the configured naming service accepts qualified names
 #domain_user_separator=@
 
 ; The following options will override the keyboard layout settings.

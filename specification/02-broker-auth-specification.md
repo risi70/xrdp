@@ -15,9 +15,9 @@
 | AST-006 | `target` MUST match the local target identity using exact, case-sensitive comparison. |
 | AST-007 | Validators MUST NOT follow token-provided `jku`, `x5u`, or embedded `jwk` values. |
 | AST-008 | Assertion lifetime MUST NOT exceed configured `max_lifetime`, default 300 seconds. |
-| AST-009 | The validator MUST NOT perform NSS, SSSD, PAM, LDAP, FreeIPA, Active Directory, local passwd, local group, or equivalent identity lookup. |
+| AST-009 | The validator MUST NOT perform system NSS, PAM, or external directory identity lookup. |
 | AST-010 | A validated broker capability MUST NOT be treated as session authorization. |
-| AST-011 | Linux identity binding through NSS/SSSD MUST succeed before PAM account/session processing or session creation. |
+| AST-011 | Linux identity binding through system NSS MUST succeed before PAM account/session processing or session creation. |
 | AST-012 | Once reserved, an assertion MUST remain unusable until replay expiry, including after later-stage failure or a `released` state marker. |
 
 ## 2. JOSE header
@@ -133,11 +133,12 @@ JSON/parser bound, and any downstream internal transport bound if the assertion
 is handed to SCP/EICP machinery. The MVP MUST NOT truncate assertions and MUST
 reject oversize assertions before validation where possible.
 
-The MVP does not fragment assertions, does not overload username/password
-fields, and does not use generic out-of-band assertion handles. SD-008
-RDSAAD-style pre-logon `rdp_assertion` is the selected production MVP ingress.
-SD-006 one-time server-side handles are superseded for production ingress and
-may remain only experimental/fallback/test code. Fragmentation, reassembly,
+The MVP does not fragment assertions, does not place assertions in
+username/password fields, and does not use generic out-of-band bearer handles.
+SD-006 one-time server-side handles remain permitted for Broker-RDP Handle and
+never contain the assertion. SD-008 defines an optional RDSAAD-style
+`rdp_assertion` envelope, while proposed SD-009 defines additional tracks.
+Production ingress selection remains unresolved. Fragmentation, reassembly,
 generic bearer handles, and larger internal messages require a future protocol
 decision.
 
@@ -145,7 +146,7 @@ decision.
 |---|---|
 | AST-013 | A transport MUST enforce its effective assertion bound before forwarding to the validator. |
 | AST-014 | The in-band effective maximum MUST be the minimum of validator, transport, and framed payload limits. |
-| AST-015 | Oversize assertions MUST fail closed; MVP implementations MUST NOT fragment, overload username/password fields, or use generic out-of-band handles. SD-008 RDSAAD-style pre-logon `rdp_assertion` is the selected MVP ingress; SD-006 handles are superseded for production ingress. |
+| AST-015 | Oversize assertions MUST fail closed; MVP implementations MUST NOT fragment, place assertions in username/password fields, or use generic out-of-band bearer handles. SD-006 one-time server-side handles remain permitted references; ingress selection between SD-008 and proposed SD-009 is unresolved. |
 
 ## 5. Validation order
 
@@ -179,8 +180,8 @@ Validators MUST:
 Default `clock_skew` is 30 seconds and MUST NOT exceed 120 seconds. Clock
 synchronization through systemd-timesyncd, chrony, or equivalent is required.
 
-The validator MUST NOT perform NSS, SSSD, PAM, LDAP, FreeIPA, Active
-Directory, local `passwd`/`group`, or equivalent identity resolution. A
+The validator MUST NOT perform system NSS, PAM, or external directory identity
+resolution. A
 validated broker capability MUST NOT be treated as login authorization or
 start a session. It proves only that the assertion is authentic, fresh,
 targeted to this XRDP endpoint, compatible with assertion-level policy, and
@@ -244,6 +245,15 @@ mandatory claims require a new profile version and media type. Future
 algorithm support is configuration-gated, never inferred from the token.
 Phase 2 accepts only an exact RS256 configuration.
 
-## SD-008 RDSAAD-style ingress
+## Broker and ingress boundaries
 
-SD-008 selects RDS AAD Auth-style pre-logon assertion ingress as the preferred MVP path. The client Authentication Request PDU carries `rdp_assertion`, a compact JWT/JWS BAF assertion, which feeds the existing BAF validator and trusted replay path. SD-006/SD-007 handles are superseded for production MVP ingress and may remain only experimental/fallback/test code. Live session activation still requires the full validation, replay, identity, UID, and PAM chain.
+Keycloak is the primary user-facing IdP. The broker validates Keycloak/OIDC and
+issues a distinct target-bound BAF assertion. A Keycloak token is not a BAF
+assertion and XRDP never validates it.
+
+SD-008 defines an optional MS-RDPBCGR-compatible pre-logon assertion envelope.
+It does not provide Microsoft identity integration, and stock AAD/Entra clients
+are not expected to emit BAF assertions. Broker-RDP Handle remains included
+under SD-006/SD-007 and proposed SD-009. Production selection between SD-008 and
+proposed SD-009 is unresolved. Every ingress still feeds the full validation,
+replay, system NSS identity, UID, and PAM chain.

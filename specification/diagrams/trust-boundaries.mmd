@@ -5,7 +5,6 @@ flowchart TB
   subgraph Issuer["TB-2 Broker and identity control plane"]
     B[Broker issuer]
     K[Keycloak]
-    D[LDAP / AD / FreeIPA]
   end
   subgraph Front["TB-3 Unprivileged XRDP"]
     X[xrdp]
@@ -19,7 +18,7 @@ flowchart TB
     R[(Replay state)]
   end
   subgraph Identity["TB-6 Local identity/policy"]
-    N[NSS/SSSD]
+    N[System NSS]
     P[PAM]
   end
   subgraph Session["TB-7 User session"]
@@ -27,8 +26,8 @@ flowchart TB
   end
   C --> X --> S --> E
   B --> C
-  B --> K --> D
+  B -->|OIDC| K
   E --> V --> R
-  E --> N --> D
+  E --> N
   E --> P --> N
   E --> L

@@ -14,8 +14,8 @@ local targets, or session-start policy.
 
 ## Required Fields
 
-The trusted `[BrokerAuth]` section is default-disabled. When broker auth and
-RDSAAD are both enabled for future preauth use, validation requires:
+The trusted `[BrokerAuth]` section is default-disabled. When a BAF ingress is
+enabled for live preauth use, validation requires:
 
 - `Provider=jwt`
 - `TrustAnchor`
@@ -25,18 +25,17 @@ RDSAAD are both enabled for future preauth use, validation requires:
 - `ReplayBackend=service`
 - `ReplaySocket`
 - `RejectUid0=true`
-- `AllowSessionStart=false`
+- `AllowSessionStart` (defaults to `false`; live activation requires explicit `true`)
 
 Missing or unsafe values fail closed. Process-local replay is not accepted for
 live/preauth authorization because replay protection must be service-backed.
 
 ## Session Start Gate
 
-`AllowSessionStart` defaults to false and validation rejects true for this phase.
-This preserves the current fail-closed RDSAAD behavior while giving sesexec a
-trusted configuration object for the next bridge step.
+`AllowSessionStart` defaults to false. Live activation requires an explicit true
+value in trusted local configuration and still succeeds only after every BAF,
+replay, system NSS, UID, and PAM prerequisite passes.
 
-The pre-MCS RDSAAD bridge is still incomplete. `S_OK` must not be emitted until
-the future libxrdp-to-xrdp preauth owner, SCP/EICP dispatch, BAF validation,
-trusted replay, NSS/SSSD identity binding, UID 0 rejection, and PAM
-preconditions are all proven for the current connection.
+`S_OK` must not be emitted until the libxrdp-to-xrdp preauth owner, SCP/EICP
+dispatch, BAF validation, trusted replay, system NSS identity binding, UID 0
+rejection, and PAM preconditions are all proven for the current connection.

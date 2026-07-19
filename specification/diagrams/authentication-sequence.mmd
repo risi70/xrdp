@@ -6,12 +6,12 @@ sequenceDiagram
   participant S as sesman
   participant E as sesexec
   participant V as Validator/replay
-  participant N as NSS/SSSD
+  participant N as system NSS
   participant P as PAM
   B->>K: Authenticate user (OIDC)
   K-->>B: Identity + auth context
-  B-->>C: Signed target-bound BAF assertion
-  C->>X: RDP TLS + assertion
+  B-->>C: Distinct target-bound BAF assertion
+  C->>X: RDP TLS + enabled BAF ingress
   X->>S: SCP broker login
   S->>E: EICP broker login
   E->>V: Validate and reserve JTI

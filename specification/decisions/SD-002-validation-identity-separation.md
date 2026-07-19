@@ -7,8 +7,8 @@
 
 The BAF assertion validator is responsible only for cryptographic validation,
 claim validation, target binding, assertion-level policy prechecks, and atomic
-replay reservation. It MUST NOT perform NSS, SSSD, PAM, LDAP, FreeIPA, Active
-Directory, local `passwd`/`group`, or equivalent Linux identity lookups.
+replay reservation. It MUST NOT perform system NSS, PAM, or external directory
+identity lookups.
 
 After successful validation, the validator returns a validated broker
 capability containing canonical assertion metadata. This capability proves
@@ -18,12 +18,12 @@ and MUST NOT, by itself, authorize or start a Linux session.
 
 Linux identity binding is a separate mandatory stage. Before PAM account or
 session processing and before session creation, the implementation MUST
-resolve and canonicalize the asserted preferred username through NSS/SSSD and
+resolve and canonicalize the asserted preferred username through system NSS and
 reject unknown, disabled, ambiguous, unauthorized, or policy-denied
 identities. Only this later path may produce a resolved Linux login identity.
 
 Phase 2 implements assertion validation and replay protection only. Phase 4a
-implements NSS/SSSD identity binding and PAM preconditions. Phase 4b owns live
+implements system NSS identity binding and PAM preconditions. Phase 4b owns live
 session activation after those prerequisites pass.
 
 Once validation reserves an assertion, it is single-use until replay expiry.
@@ -37,5 +37,10 @@ the assertion reusable. Transient-failure retry is outside the MVP.
 |---|---|
 | SD2-001 | The assertion validator MUST NOT perform local or directory identity lookup. |
 | SD2-002 | A validated broker capability MUST NOT be treated as session authorization. |
-| SD2-003 | Linux identity binding through NSS/SSSD is mandatory before PAM account/session processing or session creation. |
+| SD2-003 | Linux identity binding through system NSS is mandatory before PAM account/session processing or session creation. |
 | SD2-004 | A reserved assertion MUST remain unusable until expiry after later-stage failure; a `released` marker MUST NOT permit retry. |
+
+The NSS data source is host policy, not BAF policy. LDAP provisioning or
+synchronization, SSSD configuration or availability, Active Directory,
+Kerberos, domain join, and Microsoft Entra are outside this decision and are
+not BAF prerequisites.

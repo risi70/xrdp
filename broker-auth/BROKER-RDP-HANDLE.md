@@ -8,9 +8,13 @@ SD-006/SD-007 handle semantics are unchanged (256-bit single-use handles,
 30–120 s TTL, target-bound, atomic consume). The client carries only the
 64-character lowercase-hex handle.
 
+This implementation remains included while production ingress selection
+between SD-008 and proposed SD-009 is unresolved. Its presence does not itself
+accept proposed SD-009 as the final architecture.
+
 Two delivery channels feed the same authorization chain
 (`baf_authorize_assertion`: trusted replay service → JWT validation →
-NSS/SSSD identity binding → UID 0 rejection → PAM account preconditions →
+system NSS identity binding → UID 0 rejection → PAM account preconditions →
 group access policy):
 
 ## Naming: "Mode C" in the code and config
@@ -18,9 +22,9 @@ group access policy):
 "Broker-RDP Handle" is the descriptive name for this ingress. In the **source
 and configuration it is still called "Mode C"** — its internal codename from
 [SD-009](../specification/decisions/SD-009-robust-ingress-tracks.md), where it
-was the third robust-ingress *track* after **Mode A** (native RDSAAD client) and
-**Mode B** (broker-gateway RDSAAD), both now superseded and archived under
-[`archive/`](archive/). When reading the tree you will see the old codename in:
+was the third robust-ingress *track* after **Mode A** (BAF-aware RDSAAD client)
+and **Mode B** (broker-gateway RDSAAD). These names do not resolve the open
+SD-008/SD-009 selection. When reading the tree you will see the old codename in:
 
 | Where | Identifier |
 |---|---|

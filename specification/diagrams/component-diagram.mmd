@@ -1,16 +1,14 @@
 flowchart LR
   C[User / RDP client] -->|RDP over TLS| X[xrdp]
   B[Generic desktop broker] -->|OIDC| K[Keycloak]
-  K --> D[(LDAP / FreeIPA / AD)]
-  B -->|BAF assertion| C
+  K -->|validated identity context| B
+  B -->|distinct BAF assertion| C
   X -->|SCP opaque assertion| S[xrdp-sesman]
   S -->|EICP opaque assertion| E[xrdp-sesexec]
   E --> V[JWT/JWS provider]
   V --> J[Configured JWKS / PEM trust]
   V --> R[(Replay cache)]
   E --> N[NSS]
-  N --> SS[SSSD]
-  SS --> D
   E --> P[PAM account/session]
-  P --> SS
+  P --> N
   E --> L[Existing XRDP session startup]

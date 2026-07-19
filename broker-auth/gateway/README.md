@@ -1,11 +1,20 @@
 # BAF Gateway Skeleton
 
-The gateway skeleton documents Mode B: Broker Gateway RDSAAD Mode.
+The gateway skeleton documents the optional Mode B broker-gateway RDSAAD role.
 
 The gateway is outside XRDP core. It receives a broker-authorized session,
 obtains or creates a BAF assertion, and performs RDSAAD toward XRDP as a
 southbound RDP client. This keeps endpoint clients unchanged and avoids
 username/password assertion overloading.
+
+RDSAAD is only an MS-RDPBCGR-compatible BAF assertion envelope in this role; it
+does not provide Microsoft identity integration or stock AAD/Entra-client
+compatibility. Broker-RDP Handle remains included, and this gateway does not
+resolve SD-008 versus proposed SD-009.
+
+Keycloak is the primary user-facing IdP. The broker validates Keycloak/OIDC and
+issues the distinct BAF assertion consumed by the gateway; XRDP never validates
+the Keycloak token.
 
 This phase provides documentation, configuration shape, and conformance tests.
 It does not implement a production RDP proxy.

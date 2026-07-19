@@ -5,6 +5,11 @@ before `xrdp_wm` / `xrdp_mm` exist. Direct use of `xrdp_mm` at this point is
 unsafe because the module/session state and client MCS parameters needed for
 session creation have not been negotiated yet.
 
+This bridge is an optional MS-RDPBCGR-compatible BAF assertion envelope. It
+does not validate Microsoft identities or make stock AAD/Entra clients capable
+of carrying BAF assertions. Broker-RDP Handle remains included, and this bridge
+does not resolve SD-008 versus proposed SD-009.
+
 The selected bridge uses the existing `xrdp_session` owner callback. `libxrdp`
 parses a bounded `rdp_assertion`, calls the trusted xrdp owner, clears the raw
 assertion, and sends Authentication Result. `libxrdp` does not call sesman,

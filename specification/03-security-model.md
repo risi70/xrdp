@@ -12,10 +12,10 @@
 | SEC-006 | Security-relevant decisions produce correlated, tamper-resistant audit records. |
 
 Assets are signing keys, trust configuration, assertions, replay state, Linux
-UIDs and group membership, PAM policy, broker/Keycloak sessions, XRDP session
+UIDs and group membership, PAM policy, broker and Keycloak sessions, XRDP session
 handles, audit records, and desktop data.
 
-Actors are users, administrators, broker operators, IdP/LDAP operators, VDI
+Actors are users, administrators, broker operators, IdP operators, VDI
 hosts, attackers controlling a client/network/account, and compromised
 services.
 
@@ -55,18 +55,18 @@ manufacture a validated capability. `sesexec` validates the original token.
 Local transports use filesystem permissions and peer credentials. Privilege
 separation, systemd hardening, and least privilege remain mandatory.
 
-### 3.4 LDAP/SSSD compromise
+### 3.4 NSS identity-source compromise
 
-Compromised identity mapping can redirect names to privileged UIDs. Reverse UID
-lookup, prohibited UID/name policy, SSSD TLS/SASL, directory ACLs, cache
-protection, and PAM policy reduce risk. BAF never trusts assertion groups as
-Linux groups.
+A compromised host identity source can redirect names to privileged UIDs.
+Reverse UID lookup, prohibited UID/name policy, host identity-source controls,
+and PAM policy reduce risk. BAF never trusts assertion groups as Linux groups.
 
 ### 3.5 Keycloak compromise
 
-Keycloak compromise affects a broker only if the broker relies on it and then
-issues a BAF assertion. XRDP trusts the configured BAF issuer, not arbitrary
-Keycloak access tokens. Broker-side OIDC must validate issuer, client,
+Keycloak is the primary user-facing IdP. Its compromise affects XRDP only after
+the broker accepts the resulting OIDC context and issues a distinct BAF
+assertion. XRDP trusts the configured BAF issuer, not Keycloak access tokens.
+Broker-side OIDC must validate issuer, client,
 redirect URI, nonce, state, PKCE, and authentication context.
 
 ## 4. Privilege and policy controls
@@ -82,8 +82,8 @@ redirect URI, nonce, state, PKCE, and authentication context.
 
 ## 5. Cryptographic and secret management
 
-Private issuer keys reside outside XRDP, preferably in HSM/KMS or Keycloak/
-broker credential storage. VDI hosts hold only public anchors. Local trust files
+Private BAF issuer keys reside outside XRDP, preferably in HSM/KMS or broker
+credential storage. VDI hosts hold only public anchors. Local trust files
 are root-owned mode 0644 or stricter; configuration is root-owned and not
 writable by the XRDP service account. Remote JWKS uses HTTPS with normal PKIX
 validation and optional CA/SPKI pinning.
@@ -124,8 +124,8 @@ signature work occur after cheap framing/size checks.
    sessions, rotate keys and client credentials.
 3. **VDI compromise:** isolate host, revoke host credentials, rotate local
    trust/configuration, invalidate replay store, rebuild from image.
-4. **LDAP/SSSD compromise:** block broker login, restore directory integrity,
-   invalidate SSSD caches, review UID mappings and sessions.
+4. **NSS identity-source compromise:** block broker login, restore the host
+   identity source, and review UID mappings and sessions.
 5. **Replay-store corruption:** fail closed, replace store, retain forensic
    copy, and alert; never silently fall back to no replay protection.
 6. **Clock incident:** stop broker acceptance when skew exceeds policy.
@@ -136,3 +136,9 @@ No release is acceptable until malformed JOSE fuzzing, algorithm-confusion,
 unknown-key SSRF, replay races, target mismatch, privileged-user mapping,
 PAM-account denial, token redaction, and cache-failure tests pass. Threat-model
 changes require security review and an update to the traceability matrix.
+
+LDAP provisioning or synchronization, SSSD configuration or availability,
+Active Directory, Kerberos, domain join, and Microsoft Entra are outside this
+threat model and are not BAF security acceptance dependencies. A deployment may
+use a Linux directory synchronized with Keycloak, but its lifecycle remains a
+deployment concern outside BAF.

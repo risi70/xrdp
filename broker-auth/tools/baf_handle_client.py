@@ -99,5 +99,5 @@ def store(socket_path, assertion: bytes, target: str, ttl_seconds: int = 90,
 
 if __name__ == "__main__":
     import sys
-    sock = sys.argv[1] if len(sys.argv) > 1 else "/run/xrdp-baf/handle.sock"
+    sock = sys.argv[1] if len(sys.argv) > 1 else "/run/xrdp/baf-handle.sock"
     print("ping:", ping(sock))

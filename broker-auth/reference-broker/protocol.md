@@ -57,9 +57,11 @@ containing:
 - broker session ID;
 - RDSAAD Authentication Request body with `rdp_assertion`.
 
-The launch descriptor is compatible with a standard RDP/RDSAAD-capable client
-flow. It does not require username/password assertion overloading, a custom IGEL
-client, a FreeRDP plugin, a dynamic virtual channel, or an endpoint helper.
+The launch descriptor describes the optional RDSAAD flow for a BAF-aware client
+or gateway. Stock AAD/Entra clients emit a different assertion profile and are
+not compatible with BAF merely because they support RDSAAD. The architecture
+does not require username/password assertion overloading, a custom IGEL client,
+a FreeRDP plugin, a dynamic virtual channel, or an endpoint helper.
 
 ### `revoke_session(broker_session_id)`
 
@@ -75,7 +77,7 @@ sesexec remains responsible for live session authorization:
 RDSAAD rdp_assertion
 -> BAF JWT validation
 -> trusted replay service
--> NSS/SSSD identity binding
+-> system NSS identity binding
 -> UID 0 rejection
 -> PAM account/session preconditions
 -> session-ready login_info
@@ -85,13 +87,23 @@ Validator success alone is not a session authorization result.
 
 ## Mode A and Mode B
 
-Mode A native RDSAAD client mode and Mode B broker gateway RDSAAD mode use the
-same broker-neutral assertion contract. In Mode A the endpoint client carries
-`rdp_assertion` to XRDP. In Mode B a broker gateway receives the broker session
-and assertion, then performs RDSAAD toward XRDP.
+A BAF-aware RDSAAD client and a broker gateway can use the same broker-neutral
+assertion contract. The endpoint client may carry `rdp_assertion` to XRDP, or a
+gateway may receive the broker session and assertion and then perform RDSAAD
+toward XRDP. These optional roles do not resolve SD-008 versus proposed SD-009.
 
 The reference broker stays UDS-neutral. UDS-specific mapping belongs only in the
 `uds-adapter/` reference adapter.
+
+Keycloak is the primary user-facing IdP. A production broker validates
+Keycloak/OIDC and issues the distinct BAF assertion described by this protocol;
+XRDP never receives or validates the Keycloak token.
+
+The reference `KeycloakBrokerAdapter` validates issuer, audience, authorized
+party, access-token type, algorithm, time and bounded identity claims before
+invoking the existing broker user/target policy. It binds issuer and subject,
+requires a client-scoped desktop role, and applies a per-user target allowlist.
+A valid Keycloak token alone does not authorize a desktop target.
 
 This contract is not SCP/EICP.
 No username/password assertion transport is allowed.

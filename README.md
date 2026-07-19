@@ -15,6 +15,12 @@ Start with [BAF-ARCHITECTURE.md](BAF-ARCHITECTURE.md) and the normative
 [Broker-RDP Handle](broker-auth/BROKER-RDP-HANDLE.md) ingress, with
 broker-neutral tooling under
 [broker-auth/reference-broker/](broker-auth/reference-broker/).
+Keycloak is the primary user-facing IdP: the broker validates Keycloak/OIDC and
+issues a separate broker-neutral BAF assertion. XRDP validates BAF assertions,
+not Keycloak tokens. RDSAAD is an optional MS-RDPBCGR-compatible assertion
+envelope and does not imply Microsoft identity integration or compatibility
+with stock Entra clients. Selection between the SD-008 and proposed SD-009
+ingress designs remains unresolved; Broker-RDP Handle remains included.
 
 
 ## Overview

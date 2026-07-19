@@ -61,7 +61,7 @@ struct login_info
  *
  * The username in the returned structure may differ from the passed-in
  * username if multiple names map to the same UID. This can happen with
- * federated naming services (e.g. AD, LDAP)
+ * aliased naming services
  */
 struct login_info *
 login_info_sys_login_user(struct trans *scp_trans,

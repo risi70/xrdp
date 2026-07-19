@@ -51,7 +51,7 @@ External precedent surveyed (2026-07):
 
 BAF pursues three ingress tracks, in server-first priority order, each backed
 by named buildable components. All tracks feed the unchanged Phase 4
-authorization chain (BAF JWT validator → trusted replay → NSS/SSSD identity
+authorization chain (BAF JWT validator → trusted replay → system NSS identity
 binding → UID 0 rejection → PAM preconditions → `AllowSessionStart` gate).
 XRDP core stays broker-neutral.
 
@@ -179,9 +179,10 @@ Waves, server/proxy first:
 - No reusable or multi-use handles (unchanged).
 - No Entra/Keycloak/UDS-specific behavior in XRDP core (unchanged; C6 lives
   in the OpenUDS tree, the gateway is broker-neutral).
-- No replacement of the RDSAAD validator-facing contract; all tracks feed the
-  same validation model.
-- Server-side CredSSP/NLA with Kerberos is explicitly rejected for the MVP:
-  XRDP has no server-side CredSSP, the implementation cost is very high, and
-  it binds deployments to AD/KDC infrastructure without helping the
-  IGEL/OpenUDS target environment.
+- No Microsoft identity integration or assumption that stock AAD/Entra clients
+  can carry BAF assertions.
+- No replacement of the optional RDSAAD validator-facing envelope; all tracks
+  feed the same validation model.
+- LDAP provisioning or synchronization, SSSD configuration or availability,
+  Active Directory, Kerberos, domain join, and Microsoft Entra are outside the
+  BAF ingress decision and are not prerequisites.

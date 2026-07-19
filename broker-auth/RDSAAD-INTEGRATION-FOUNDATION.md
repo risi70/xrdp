@@ -1,6 +1,10 @@
-# RDSAAD production integration foundation
+# Optional RDSAAD integration foundation
 
-This note records the safe production insertion points for RDS AAD Auth-style BAF ingress in the current XRDP tree.
+This note records the safe insertion points for the optional RDS AAD Auth-style
+BAF assertion envelope in the current XRDP tree. It implements the relevant
+MS-RDPBCGR wire shape, not Microsoft identity integration. Stock AAD/Entra
+clients do not emit BAF assertions. Broker-RDP Handle remains included and the
+SD-008/proposed-SD-009 production ingress choice is unresolved.
 
 ## 1. Negotiation point
 
@@ -46,7 +50,7 @@ The production handoff is:
 
 `rdp_assertion` -> libxrdp owner callback -> xrdp SCP broker preauth request ->
 sesman dispatch -> EICP broker preauth request -> xrdp-sesexec BAF transport ->
-JWT validator -> trusted replay service -> validated capability -> NSS/SSSD
+JWT validator -> trusted replay service -> validated capability -> system NSS
 identity binding -> UID 0 rejection -> PAM broker preconditions ->
 session-ready `login_info`.
 
@@ -64,7 +68,7 @@ marks successful connections as `E_SLI_LOGIN_BAF`.
 
 `xrdp-sesexec` owns live validation and authorization. It loads trusted
 [BrokerAuth] configuration from local sesman config, requires service-backed
-replay, binds identity through NSS/SSSD-compatible APIs, rejects UID 0 by
+replay, binds identity through system NSS APIs, rejects UID 0 by
 default, runs broker PAM account/session preconditions without
 `pam_authenticate()`, and creates `login_info` for the resolved Linux username.
 

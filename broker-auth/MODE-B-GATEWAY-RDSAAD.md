@@ -9,7 +9,7 @@ IGEL standard RDP client
 -> gateway performs RDSAAD/BAF toward XRDP
 -> XRDP BAF validator
 -> trusted replay service
--> NSS/SSSD
+-> system NSS
 -> PAM
 -> Ubuntu session
 ```
@@ -30,7 +30,7 @@ RDSAAD `rdp_assertion` ingress as Mode A.
   authentication and authorization.
 - The gateway must not trust endpoint-provided Linux identity.
 - XRDP sesexec remains the authority for BAF validation, trusted replay,
-  NSS/SSSD identity binding, UID 0 rejection, and PAM account/session
+  system NSS identity binding, UID 0 rejection, and PAM account/session
   preconditions.
 - Raw assertions are credential-grade material and must not be logged.
 
@@ -43,6 +43,10 @@ The gateway receives:
 - broker session ID;
 - BAF assertion or broker authorization token from which the gateway can obtain
   a BAF assertion.
+
+Keycloak is the primary user-facing IdP. The broker validates Keycloak/OIDC and
+issues the distinct BAF assertion used here; neither the gateway nor XRDP treats
+a Keycloak token as a BAF assertion.
 
 The broker-neutral reference interface is documented in
 `broker-auth/reference-broker/protocol.md`.
@@ -118,3 +122,7 @@ are supporting or alternative mechanisms. They are not the primary BAF
 assertion ingress. RDSAAD remains the XRDP-side ingress for Mode B.
 
 The gateway must not log raw assertions. The gateway must not use username/password assertion overloading. The gateway must not require a custom IGEL client.
+
+This optional role does not provide Microsoft identity integration or stock
+AAD/Entra-client compatibility and does not resolve SD-008 versus proposed
+SD-009.

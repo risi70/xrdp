@@ -25,7 +25,7 @@ Normative decisions:
 - [SD-006 — One-time Server-side Assertion Handles](decisions/SD-006-one-time-server-side-assertion-handles.md)
 - [SD-007 — Target-mismatched Handle Resolution Consumes the Handle](decisions/SD-007-target-mismatch-consumes-handle.md)
 - [SD-008 — RDS AAD Auth-style Pre-logon Assertion Ingress](decisions/SD-008-rdsaad-style-prelogon-assertion-ingress.md)
-- [SD-009 — Robust Ingress Tracks and Buildable Missing Components (Broker-RDP Handle — shipped)](decisions/SD-009-robust-ingress-tracks.md)
+- [SD-009 — Robust Ingress Tracks and Buildable Missing Components (proposed)](decisions/SD-009-robust-ingress-tracks.md)
 
 ## Conformance
 
@@ -45,7 +45,7 @@ is neither necessary nor sufficient for core BAF conformance.
 - XRDP transports the original assertion; sesexec validates it locally.
 - Phase 2 uses compact JWS with exact RS256; PS256/ES256 are future extensions.
 - Assertion validation performs no local or directory identity lookup.
-- NSS/SSSD remains the mandatory authority mapping names to Linux UIDs before
+- System NSS remains the mandatory authority mapping names to Linux UIDs before
   PAM account/session processing and session creation.
 - A validated broker capability alone never authorizes or launches a session.
 - PAM authentication may be skipped only after both local assertion validation
@@ -61,9 +61,16 @@ is neither necessary nor sufficient for core BAF conformance.
   transport has a nominal 8 KiB message ceiling and MUST subtract framing
   overhead; the effective maximum is the minimum of validator, transport, and
   available payload limits.
-- SD-008 selects RDS AAD Auth-style pre-logon assertion ingress as the preferred MVP ingress. The assertion enters through RDP protocol `rdp_assertion` material, not username/password fields, routing-token handles, custom plugins, or dynamic virtual channels. SD-006/SD-007 one-time handles are superseded for production MVP ingress and may remain only experimental/fallback/test code. The MVP still has no fragmentation and no generic out-of-band bearer handles.
+- SD-008 defines an optional MS-RDPBCGR-compatible RDSAAD assertion envelope;
+  proposed SD-009 defines additional ingress tracks. Production selection is
+  unresolved, and Broker-RDP Handle remains included. Stock AAD/Entra clients
+  are not assumed capable of carrying BAF assertions.
 - Classic password/PAM login remains default and wire-compatible.
-- Keycloak is a possible broker IdP, not an XRDP dependency.
+- Keycloak is the primary user-facing IdP. The broker validates Keycloak/OIDC
+  and issues a distinct broker-neutral BAF assertion; XRDP never validates the
+  Keycloak token.
+- LDAP provisioning/synchronization, SSSD, Active Directory, Kerberos, domain
+  join, and Microsoft Entra are outside BAF conformance and lab requirements.
 - No UDS Enterprise concept appears in the XRDP extension contract.
 
 ## Normative references
@@ -76,4 +83,4 @@ is neither necessary nor sufficient for core BAF conformance.
 - [RFC 8725 — JWT Best Current Practices](https://www.rfc-editor.org/rfc/rfc8725)
 - [RFC 8785 — JSON Canonicalization Scheme](https://www.rfc-editor.org/rfc/rfc8785)
 - OpenID Connect Core 1.0
-- Linux-PAM, SSSD, systemd, OpenSSL, and current upstream XRDP documentation
+- Linux-PAM, system NSS, systemd, OpenSSL, and current upstream XRDP documentation

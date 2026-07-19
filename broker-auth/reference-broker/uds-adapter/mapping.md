@@ -18,5 +18,5 @@ Rules:
 - no UDS code in XRDP core;
 - no Keycloak-specific code in XRDP core;
 - no UDS groups become Unix groups;
-- XRDP resolves Linux identity through NSS/SSSD;
+- XRDP resolves Linux identity through system NSS;
 - UID/GID claims from broker-side data are not trusted by XRDP.

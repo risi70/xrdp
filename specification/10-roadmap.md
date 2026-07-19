@@ -15,7 +15,7 @@ only after its governing interface specification is frozen.
 | Objectives | Freeze BAF 1.0 architecture, claims, threats, protocol, configuration, and tests. |
 | Deliverables | Documents 01–10, rendered diagrams, decision records, traceability. |
 | Dependencies | Current XRDP architecture and Ubuntu support baseline. |
-| Acceptance | Security/upstream/identity/broker teams approve with no unresolved architectural decision. |
+| Acceptance | Security/upstream/identity/broker teams approve the baseline and explicitly track unresolved ingress selection. |
 | Complexity | M |
 | Risks | Over-specification; mismatch with upstream maintainers. |
 | Tests | Schema/examples and documentation CI. |
@@ -37,7 +37,7 @@ IT-006, sanitizers. Parallel: Python vectors and CI setup.
 
 Objectives: select/integrate mature JOSE library, strict BAF assertion
 validation, trust-anchor/JWKS loading, clock, and atomic replay abstraction.
-This phase performs no NSS/SSSD mapping, PAM account/session processing, or
+This phase performs no system NSS mapping, PAM account/session processing, or
 session startup. Phase 2 is RS256-only; PS256 and ES256 are future extensions.
 
 Deliverables: generic JWT provider returning a validated broker capability,
@@ -64,7 +64,7 @@ EICP implementations with shared vectors.
 
 **Status: implemented / completed.**
 
-Objectives: consume a validated capability, perform mandatory NSS/SSSD identity
+Objectives: consume a validated capability, perform mandatory system NSS identity
 binding, reject prohibited or UID 0 identities by default, create the
 prevalidated PAM account handle, preserve consume-once replay semantics, and
 leave classic password/PAM behavior unchanged.
@@ -78,7 +78,7 @@ offline cache, and PAM distribution variance.
 
 ### Phase 4b — Live Broker-Auth Session Activation
 
-**Status: next implementation phase.**
+**Status: implemented; production ingress selection remains unresolved.**
 
 Objectives: connect the broker SCP/EICP state machine to validation, replay,
 Phase 4a identity/PAM prerequisites, and the existing session lifecycle under
@@ -91,11 +91,12 @@ Cluster-wide and persistent replay storage remain deferred.
 
 Deliverables: completed live broker-login path, exact effective transport-bound
 checks, dynamic PAM denial/session-failure tests, negative protocol tests, and
-classic-mode regression coverage. SD-008 RDSAAD-style pre-logon assertion
-ingress is the selected MVP ingress. No fragmentation, username/password
-assertion overloading, custom endpoint plugins, or generic out-of-band bearer
-handles are in scope. SD-006/SD-007 one-time handles are superseded for
-production ingress and remain experimental/fallback only.
+classic-mode regression coverage. SD-008 provides an optional
+MS-RDPBCGR-compatible RDSAAD assertion envelope; proposed SD-009 provides
+additional tracks, including Broker-RDP Handle. Production selection remains
+unresolved. No fragmentation, username/password assertion overloading, custom
+endpoint plugin requirement, or generic out-of-band bearer handles are in
+scope.
 Dependencies: Phase 3 and Phase 4a. Acceptance: UT-010–012,
 IT-002–003, IT-006, and ST-001 pass; UID 0 is denied; PAM denial is final;
 session cleanup occurs exactly once. Complexity L. Risks: handover races,
@@ -105,9 +106,10 @@ transport framing capacity, and PAM lifecycle variance.
 
 **Status: reference broker and UDS simulator implemented.**
 
-Objectives: broker-neutral reference issuer/API, UDS Enterprise reference
-broker integration, generic broker interoperability, static vectors,
-administrator documentation, and compatibility testing.
+Objectives: broker-neutral reference issuer/API, Keycloak/OIDC validation at
+the broker boundary, generic broker interoperability, static vectors,
+administrator documentation, and compatibility testing. UDS remains an
+optional isolated adapter example.
 
 Deliverables: broker-neutral reference interface, isolated UDS simulator adapter,
 conformance tests, IGEL/RDP flow documentation, and deployment notes. Container
@@ -174,38 +176,41 @@ architecture objection requiring specification revision.
 
 BAF 1.0 is done only when two independent teams can implement issuer and XRDP
 validator from these documents; all requirements trace to tests; classic PAM,
-LDAP/FreeIPA/AD through SSSD, and optional Keycloak scenarios pass; operational
-rotation/revocation/recovery is demonstrated; and upstream-facing changes are
-minimal, generic, reviewed, and documented.
+Keycloak-to-broker OIDC validation, distinct BAF issuance, system NSS identity
+binding, and PAM authorization pass; operational rotation/revocation/recovery
+is demonstrated; and upstream-facing changes are minimal, generic, reviewed,
+and documented. LDAP provisioning or synchronization, SSSD configuration or
+availability, Active Directory, Kerberos, domain join, and Microsoft Entra are
+not completion gates.
 
-## SD-008 RDSAAD-style ingress
+## Ingress implementation status
 
-Phase 4b now implements SD-008 RDSAAD-style pre-logon assertion ingress through the pre-MCS bridge. Coverage includes `PROTOCOL_RDSAAD`, Server Nonce, Authentication Request `rdp_assertion`, Authentication Result HRESULT mapping, validator/replay handoff, NSS/SSSD identity binding, UID 0 rejection, PAM broker preconditions, session-ready `login_info`, and session-bound transport adoption by `xrdp_mm`. Phase 5 now adds a broker-neutral reference broker and isolated UDS simulator adapter under broker-auth/reference-broker. Remaining work is production UDS API integration and external wire-level client automation.
+Phase 4b implements the optional SD-008 RDSAAD-style pre-logon assertion
+envelope through the pre-MCS bridge. Coverage includes `PROTOCOL_RDSAAD`, Server
+Nonce, Authentication Request `rdp_assertion`, Authentication Result HRESULT
+mapping, validator/replay handoff, system NSS identity binding, UID 0 rejection,
+PAM broker preconditions, session-ready `login_info`, and session-bound
+transport adoption by `xrdp_mm`. Broker-RDP Handle also remains included.
+Implementation does not resolve the SD-008/proposed-SD-009 production choice.
 
 ## Phase 5 dual-mode interoperability update
 
-Phase 5 now validates two broker-auth interoperability modes. Mode A is native
-RDSAAD client mode, where IGEL / RD Core / a compatible RDP client sends the
-RDSAAD Authentication Request with `rdp_assertion` directly to XRDP. Mode B is
-broker gateway RDSAAD mode, where a broker-controlled gateway performs the
-RDSAAD/BAF exchange toward XRDP when the endpoint client cannot inject a custom
-`rdp_assertion`.
+Phase 5 can validate two optional RDSAAD roles. A BAF-aware client can send the
+Authentication Request with `rdp_assertion` directly to XRDP, or a
+broker-controlled gateway can perform the RDSAAD/BAF exchange toward XRDP.
+Stock AAD/Entra clients do not emit BAF assertions and are not compatible by
+virtue of RDSAAD support alone.
 
-RDSAAD remains the common XRDP-side ingress for both modes. XRDP core remains
-broker-neutral; UDS is a reference broker, not a core dependency. Mode B is the
-preferred fallback when RD Core / IGEL cannot inject a custom `rdp_assertion`.
-CredSSP/NLA, smartcard redirection, WebAuthn redirection, and LoadBalanceInfo are
-supporting or alternative mechanisms, not primary BAF assertion ingress.
+XRDP core remains broker-neutral. Keycloak is the primary user-facing IdP; the
+broker validates OIDC and issues a distinct BAF assertion. Optional RDSAAD roles
+do not select SD-008 over Broker-RDP Handle or proposed SD-009.
 
 ## Phase 6 - KVM Integration Lab
 
-Phase 6 introduces a KVM/libvirt-only integration lab in `test-lab/`. The lab
-provisions an OpenUDS-compatible broker VM and an Ubuntu 24.04 XRDP/BAF VDI VM
-with cloud-init and Ansible. It deliberately avoids a container variant and keeps
-OpenUDS-specific behavior outside XRDP core.
+Phase 6 introduces a KVM/libvirt integration lab in `test-lab/`. The lab
+provisions a Keycloak-facing broker control plane and an Ubuntu 24.04 XRDP/BAF
+VDI VM while keeping broker-specific behavior outside XRDP core.
 
-The first supported mode is an OpenUDS-compatible reference mode with documented
-replacement points for a real OpenUDS deployment. Full RDSAAD wire-level client
-injection is skipped with an explicit reason when stock `xfreerdp` cannot inject
-custom `rdp_assertion`; broker assertion and XRDP-side BAF validation remain
-testable at deterministic boundaries.
+The lab proves broker-side Keycloak/OIDC validation, distinct BAF issuance,
+system NSS lookup, and PAM authorization. Optional UDS adapter and RDSAAD
+wire-level tests may be added without becoming release prerequisites.

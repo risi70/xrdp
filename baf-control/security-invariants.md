@@ -13,11 +13,15 @@ These invariants apply to all BAF implementation work.
 
 ## Protocol ingress
 
-- The selected MVP ingress is RDSAAD-style pre-logon assertion exchange.
+- Selection between SD-008 RDSAAD-style ingress and the proposed SD-009 tracks is unresolved.
+- RDSAAD is only an optional MS-RDPBCGR-compatible pre-logon assertion envelope.
+- RDSAAD support must not imply Microsoft identity integration or compatibility with stock Entra clients carrying BAF assertions.
+- Broker-RDP Handle remains an included ingress candidate under SD-006, SD-007, and proposed SD-009.
 - The endpoint must remain a standard RDP client.
 - Do not require a custom IGEL client, endpoint helper, FreeRDP plugin, or dynamic virtual channel.
 - Do not use username or password fields to carry assertions.
-- Do not introduce UDS-specific, Keycloak-specific, or hard-coded Entra-specific logic in generic BAF core.
+- Keycloak is the primary user-facing IdP, but the broker must validate Keycloak/OIDC and issue a distinct broker-neutral BAF assertion.
+- XRDP core must not validate Keycloak tokens or contain UDS-specific, Keycloak-specific, or Microsoft identity logic.
 
 ## Replay
 
@@ -28,10 +32,11 @@ These invariants apply to all BAF implementation work.
 
 ## Identity
 
-- Linux identity must be resolved through NSS/SSSD-compatible APIs.
+- Linux identity must be resolved through system NSS and authorized through PAM.
 - Token UID/GID/home/shell/groups must not be trusted.
 - UID 0 must be rejected by default.
 - Unknown, unsafe, ambiguous, or unauthorized identities must fail closed.
+- LDAP provisioning or synchronization, SSSD configuration or availability, Active Directory, Kerberos, domain join, and Microsoft Entra are out of scope and are not authentication prerequisites.
 
 ## PAM
 

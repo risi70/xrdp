@@ -10,10 +10,14 @@ Agents working on this branch MUST treat the BAF specifications, architecture do
 - Broker-auth must remain build-gated and disabled by default.
 - Do not use username/password fields to carry broker assertions.
 - Do not require a custom IGEL RDP client, IGEL helper, FreeRDP plugin, or dynamic virtual channel for the MVP.
-- Do not add UDS-specific, Keycloak-specific, or Entra-specific assumptions to the generic BAF core.
+- Keycloak is the primary user-facing IdP. The broker validates Keycloak/OIDC and issues a distinct broker-neutral BAF assertion.
+- XRDP core validates only BAF assertions. Do not add UDS-specific, Keycloak-specific, or Microsoft identity assumptions to the generic BAF core.
+- RDSAAD is only an optional MS-RDPBCGR-compatible pre-logon assertion envelope. It does not provide Microsoft identity integration or stock Entra-client compatibility.
+- Keep Broker-RDP Handle included. Do not select between SD-008 and proposed SD-009 until that ingress decision is resolved.
 - Do not log raw assertions, raw tokens, or credential-grade assertion material.
 - Do not trust UID, GID, home directory, shell, or Unix groups from token claims.
-- Linux identity must be resolved through NSS/SSSD-compatible lookup before session startup.
+- Linux identity must be resolved through system NSS before session startup and authorized through PAM.
+- LDAP provisioning or synchronization, SSSD configuration or availability, Active Directory, Kerberos, domain join, and Microsoft Entra are out of scope and must not be release or lab prerequisites.
 - UID 0 must be rejected by default.
 - Broker-auth must not call `pam_authenticate()`.
 - Broker-auth must enforce PAM account and required session/credential lifecycle before live session startup.
@@ -24,7 +28,7 @@ Agents working on this branch MUST treat the BAF specifications, architecture do
 ## Preferred implementation approach
 
 - Keep changes small and upstream-friendly.
-- Reuse existing XRDP, PAM, NSS/SSSD, OpenSSL, libjwt, Jansson, and libipm structures where possible.
+- Reuse existing XRDP, PAM, NSS, OpenSSL, libjwt, Jansson, and libipm structures where possible.
 - Add explicit data structures for new states instead of overloading existing username/password or SYS/UDS login fields.
 - Add tests with every change.
 - Keep documentation and implementation aligned.

@@ -2,20 +2,27 @@
 
 ## Implemented
 
-Phase 5 validates two interoperability modes:
+Phase 5 contains broker-neutral assertion tooling and two optional RDSAAD
+interoperability roles:
 
-- Mode A: native RDSAAD client;
+- Mode A: BAF-aware RDSAAD client;
 - Mode B: broker gateway RDSAAD.
 
-RDSAAD remains the common XRDP-side ingress for both modes. XRDP core remains
-broker-neutral. UDS is a reference broker, not a core dependency. Mode B is the
-preferred fallback when RD Core / IGEL cannot inject a custom `rdp_assertion`.
+RDSAAD is an optional MS-RDPBCGR-compatible envelope for both roles. It does not
+provide Microsoft identity integration or compatibility with stock AAD/Entra
+clients. XRDP core remains broker-neutral. Broker-RDP Handle remains included,
+and production selection between SD-008 and proposed SD-009 is unresolved.
 
 CredSSP/NLA, smartcard redirection, WebAuthn redirection, and LoadBalanceInfo
 are supporting or alternative mechanisms, not the primary BAF assertion ingress.
 
 Phase 5 adds a broker-neutral reference broker under
 `broker-auth/reference-broker/`.
+
+The reference broker includes a Keycloak OIDC verifier and policy adapter. It
+validates a Keycloak token at the broker boundary, maps it to a configured
+broker user, requires desktop authorization, and only then issues the distinct
+BAF assertion.
 
 The reference broker implements:
 
@@ -27,8 +34,9 @@ The reference broker implements:
 
 It issues BAF-compatible RS256 JWT/JWS assertions using the existing reference
 issuer and assertion schema. Assertions are short-lived, target-bound,
-audience-bound, contain `jti` for replay enforcement, and are carried in the
-RDSAAD Authentication Request `rdp_assertion` field.
+audience-bound, and contain `jti` for replay enforcement. An enabled ingress
+transports or resolves them; optional RDSAAD uses the Authentication Request
+`rdp_assertion` field.
 
 The UDS reference integration is a simulator adapter in
 `broker-auth/reference-broker/uds-adapter/`. It maps UDS-like
@@ -79,21 +87,25 @@ No username/password assertion overloading, custom IGEL client, FreeRDP plugin,
 dynamic virtual channel, raw assertion logging, token UID/GID trust, or token
 group-to-Unix-group trust is introduced.
 
+Keycloak is the primary user-facing IdP. The production broker validates
+Keycloak/OIDC and issues a distinct BAF assertion. XRDP validates only BAF and
+resolves the Linux identity through system NSS before PAM. LDAP provisioning or
+synchronization, SSSD configuration or availability, Active Directory,
+Kerberos, domain join, and Microsoft Entra are not Phase 5 prerequisites.
+
 ## Deferred
 
-- Production UDS API adapter implementation.
+- Production Authorization Code + PKCE front end and protected token delivery.
 - JWKS rotation service for the reference broker.
 - Full external wire-level RDSAAD client automation.
-- Mode A proof with actual IGEL / RD Core client behavior.
+- Optional Mode A proof with a BAF-aware client.
 - Mode B production gateway implementation.
 - Cluster-wide replay policy.
 - Production packaging and operational hardening.
 
 ## Phase 6 Handoff
 
-Phase 5 broker-neutral artifacts are now consumed by the Phase 6 KVM lab under
-`test-lab/`. Phase 6 uses OpenUDS as the broker target through an isolated
-OpenUDS-compatible reference mode and keeps XRDP core broker-neutral. The lab
-validates host-side `xfreerdp` reachability, broker assertion boundaries, trusted
-replay/NSS/PAM expectations, and explicit skip behavior when stock `xfreerdp`
-cannot inject arbitrary `rdp_assertion`.
+Phase 5 broker-neutral artifacts can be consumed by a KVM lab while keeping
+XRDP core broker-neutral. The lab must validate the Keycloak-to-broker OIDC
+boundary, distinct BAF issuance, trusted replay, system NSS, and PAM. Optional
+UDS adapters and RDSAAD wire clients are not lab or release prerequisites.

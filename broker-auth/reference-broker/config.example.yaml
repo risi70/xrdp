@@ -1,6 +1,21 @@
 # Minimal Phase 5 reference broker issuer config.
 # The parser supports simple key: value lines and comma-separated lists.
 
+# Primary user-facing IdP. These illustrate the settings an embedding broker
+# passes to the reference adapter; XRDP core never consumes them.
+keycloak_base_url: https://keycloak.example.test
+keycloak_realm: vdi
+keycloak_client_id: baf-broker
+keycloak_expected_audience: baf-broker
+keycloak_allowed_algorithms: RS256
+keycloak_required_client_role: desktop-user
+keycloak_expected_token_type: Bearer
+keycloak_allowed_targets: ubuntu-vdi-01
+keycloak_max_token_bytes: 16384
+keycloak_max_token_lifetime_seconds: 900
+keycloak_timeout_seconds: 10
+
+# Distinct BAF issuer configuration trusted by XRDP.
 private_key: tests/baf/data/test-private.pem
 kid: test-key
 issuer: https://broker.example.test

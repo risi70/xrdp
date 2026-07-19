@@ -11,11 +11,22 @@
 | PRO-005 | Secret-bearing input/output buffers MUST be erased after use. |
 | PRO-006 | Status codes MUST be stable, coarse across trust boundaries, and versioned. |
 | PRO-007 | Effective assertion size MUST be the minimum of validator, transport, and framed libipm payload limits. |
-| PRO-008 | MVP ingress MUST use SD-008 RDSAAD-style pre-logon `rdp_assertion` by preference. It MUST reject oversize assertions, MUST NOT fragment, MUST NOT overload username/password fields, and MUST NOT use generic out-of-band assertion handles. SD-006 handles are superseded for production MVP ingress. |
+| PRO-008 | Every enabled ingress MUST reject oversize assertions, MUST NOT fragment, MUST NOT place assertions in username/password fields, and MUST NOT use generic out-of-band bearer handles. SD-006 one-time handles remain permitted references. Selection between SD-008 and proposed SD-009 is unresolved. |
 
 ## 2. RDSAAD-style RDP ingress
 
-SD-008 selects RDS AAD Auth-style pre-logon ingress. `PROTOCOL_RDSAAD` (`0x00000010`) is negotiated with `RDP_NEG_REQ.requestedProtocols` and `RDP_NEG_RSP.selectedProtocol`. After TLS, the server sends a Server Nonce PDU containing `{"ts_nonce":"<nonce>"}`. The client sends an Authentication Request PDU containing `{"rdp_assertion":"<compact-jws>"}`. The `rdp_assertion` value is parsed as bounded UTF-8 JSON and passed unchanged to the existing BAF transport/JWT validator and trusted replay path. The server sends an Authentication Result PDU containing `{"authentication_result":"<HRESULT>"}`. `S_OK` means authentication and authorization succeeded and MUST NOT be sent until live activation is complete.
+SD-008 defines an optional MS-RDPBCGR-compatible pre-logon assertion envelope.
+`PROTOCOL_RDSAAD` (`0x00000010`) is negotiated with
+`RDP_NEG_REQ.requestedProtocols` and `RDP_NEG_RSP.selectedProtocol`. After TLS,
+the server sends a Server Nonce PDU containing `{"ts_nonce":"<nonce>"}`. A
+BAF-aware client or gateway sends an Authentication Request PDU containing
+`{"rdp_assertion":"<compact-jws>"}`. The value is parsed as bounded UTF-8
+JSON and passed unchanged to the BAF transport/JWT validator and trusted replay
+path. The server sends an Authentication Result PDU containing
+`{"authentication_result":"<HRESULT>"}`. `S_OK` means authentication and
+authorization succeeded and MUST NOT be sent until live activation is complete.
+This envelope provides neither Microsoft identity integration nor stock
+AAD/Entra-client compatibility.
 
 ## 3. Internal SCP additions
 
@@ -44,7 +55,7 @@ and receivers MUST derive and enforce the lower exact assertion boundary.
 Response `SCP_LOGIN_RESPONSE` may be reused with the additional stable broker
 status mapping, preserving existing session creation. Assertion validation
 returns only a validated broker capability internally. Only after separate
-NSS/SSSD identity binding and required local authorization/PAM processing may
+system NSS identity binding and required local authorization/PAM processing may
 a successful broker-login response return the canonical UID as current system
 login does.
 
@@ -84,7 +95,7 @@ sequenceDiagram
   X->>S: SCP_BROKER_LOGIN_REQUEST_V1
   S->>E: EICP_BROKER_LOGIN_REQUEST_V1 + SCP FD
   E->>E: validate assertion + reserve replay
-  E->>E: bind identity through NSS/SSSD
+  E->>E: bind identity through system NSS
   E->>E: PAM account checks
   E-->>X: Phase 4b authorized SCP_LOGIN_RESPONSE via handed-over FD
 ```
@@ -184,9 +195,9 @@ Protected header:
 {"alg":"RS256","kid":"2026-rotation-a","typ":"baf+jwt"}
 ```
 
-Claims conform exactly to Document 02. Keycloak tokens are not BAF assertions
-unless a configured issuer intentionally emits the BAF profile. The reference
-broker validates Keycloak/OIDC and produces a separate target-bound BAF token.
+Claims conform exactly to Document 02. Keycloak tokens are not BAF assertions.
+The broker validates Keycloak/OIDC and produces a separate target-bound BAF
+assertion. XRDP receives and validates only the latter.
 
 ## 9. Limits and transport security
 
@@ -205,41 +216,39 @@ correlation ID, transferred descriptor metadata, and any other framing. An
 assertion exactly at the derived permitted boundary is accepted for transport;
 one byte over is rejected before allocation/validation where possible.
 
-The MVP defines no fragmentation and no generic out-of-band assertion handles.
-SD-008 RDSAAD-style pre-logon `rdp_assertion` is the selected production MVP
-ingress. SD-006 one-time server-side handles and SD-007 target-mismatch consume
-semantics are superseded for production ingress and may remain only
-experimental/fallback/test code. The MVP MUST NOT raise libipm message bounds
-as an implicit substitute. Fragmentation, routing-token bearer handles,
-username/password assertion overloading, and larger messages are deferred to a
-separate versioned protocol/security decision.
+The MVP defines no fragmentation and no generic out-of-band bearer handles.
+SD-006 one-time server-side handles and SD-007 target-mismatch consume semantics
+remain included for Broker-RDP Handle. SD-008 defines the optional RDSAAD-style
+`rdp_assertion` envelope; proposed SD-009 defines additional ingress tracks.
+Production ingress selection is unresolved. The MVP MUST NOT raise libipm
+message bounds as an implicit substitute. Fragmentation, reusable bearer
+handles, username/password assertion overloading, and larger messages are
+deferred to a separate versioned protocol/security decision.
 
 RDP TLS is required. Local sockets use existing XRDP permissions and peer
 credentials. Assertion fields cannot be copied into environment variables,
 module parameters passed to desktop processes, or command lines. Protocol
 fuzzing and maximum-length tests are release gates.
 
-## SD-008 RDSAAD-style ingress
+## Optional SD-008 RDSAAD-style envelope
 
-Phase 4b uses [SD-008](decisions/SD-008-rdsaad-style-prelogon-assertion-ingress.md): RDS AAD Auth-style pre-logon assertion ingress. The Authentication Request PDU `rdp_assertion` feeds the BAF validator, trusted replay path, NSS/SSSD identity binding, UID 0 rejection, and PAM broker preconditions through the pre-MCS sesman/sesexec bridge.
+When enabled, [SD-008](decisions/SD-008-rdsaad-style-prelogon-assertion-ingress.md)
+wraps a BAF assertion in an RDS AAD Auth-style Authentication Request PDU. The
+`rdp_assertion` feeds the BAF validator, trusted replay path, system NSS identity
+binding, UID 0 rejection, and PAM broker preconditions through the pre-MCS
+sesman/sesexec bridge. This does not select SD-008 over proposed SD-009.
 
 
-### RDSAAD production integration foundation
+### RDSAAD integration foundation
 
 XRDP negotiates `PROTOCOL_RDSAAD` only when broker-auth RDSAAD mode is explicitly enabled and runtime BAF configuration is complete. The trusted sesman/xrdp-sesexec runtime config is loaded from local `sesman.ini`; client-adjacent `xrdp_client_info` values do not authorize sesexec validation. The safe exchange hook is post-TLS and pre-MCS. Authentication Result `S_OK` is emitted only after sesman/xrdp-sesexec returns full BAF preauth approval and session-ready login state is bound to the current xrdp process.
 
-## Phase 5 dual-mode broker interoperability
+## Optional RDSAAD interoperability roles
 
-The BAF protocol model supports two deployment modes. Mode A uses a native
-RDSAAD-capable client to send the Authentication Request with `rdp_assertion` to
-XRDP. Mode B uses a broker gateway that receives broker authorization and then
-performs RDSAAD/BAF toward XRDP as the southbound RDP client.
+The optional envelope can be used by a BAF-aware RDSAAD client or by a broker
+gateway that performs RDSAAD/BAF toward XRDP as the southbound RDP client.
 
-Both modes use RDSAAD as the common XRDP-side ingress. XRDP core remains
-broker-neutral and does not include UDS-specific, Keycloak-specific, or
-Entra-specific protocol behavior. UDS is a reference broker adapter, not a core
-protocol dependency. Mode B is the preferred fallback when RD Core / IGEL cannot
-inject a custom `rdp_assertion`.
-
-CredSSP/NLA, smartcard redirection, WebAuthn redirection, and LoadBalanceInfo are
-supporting or alternative mechanisms, not primary BAF assertion ingress.
+XRDP core remains broker-neutral and does not include UDS-specific,
+Keycloak-specific, or Microsoft identity protocol behavior. Stock AAD/Entra
+clients emit a different assertion profile and are not BAF clients. Keycloak is
+the primary user-facing IdP, but its OIDC tokens terminate at the broker.

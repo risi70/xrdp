@@ -190,6 +190,9 @@ REFERENCE_BROKER = (REFERENCE_BROKER_DIR / "reference_broker.py").read_text(
 UDS_ADAPTER = (
     REFERENCE_BROKER_DIR / "uds-adapter" / "uds_adapter.py"
 ).read_text(encoding="utf-8")
+KEYCLOAK_ADAPTER = (
+    REFERENCE_BROKER_DIR / "keycloak_auth.py"
+).read_text(encoding="utf-8")
 REFERENCE_BROKER_TEST = (
     ROOT / "tests" / "baf" / "test_reference_broker_contract.py"
 ).read_text(encoding="utf-8")
@@ -207,7 +210,12 @@ for core_path in ("libxrdp", "xrdp", "sesman", "libipm"):
     for source in (ROOT / core_path).rglob("*.[ch]"):
         text = source.read_text(encoding="utf-8")
         assert "uds_adapter" not in text
+        assert "keycloak_auth" not in text
         assert "reference_broker" not in text
+assert 'audience=self.audience' in KEYCLOAK_ADAPTER
+assert '"verify_aud": True' in KEYCLOAK_ADAPTER
+assert "KeycloakBrokerAdapter" in KEYCLOAK_ADAPTER
+assert "password_login" not in KEYCLOAK_ADAPTER
 assert "custom IGEL" not in REFERENCE_BROKER
 assert "FreeRDP plugin" not in REFERENCE_BROKER
 assert "dynamic virtual channel" not in REFERENCE_BROKER
@@ -240,9 +248,9 @@ assert "print(" not in ISSUE_ASSERTION
 assert "sys.stdout.write(token)" in ISSUE_ASSERTION
 assert "rdp_assertion" in MODE_A
 assert "rdp_assertion" in MODE_B
-assert "Mode A: native RDSAAD client" in PHASE5
+assert "Mode A: BAF-aware RDSAAD client" in PHASE5
 assert "Mode B: broker gateway RDSAAD" in PHASE5
-assert "RDSAAD remains the common XRDP-side ingress" in PHASE5
+assert "optional MS-RDPBCGR-compatible envelope" in PHASE5
 assert "CredSSP/NLA" in PHASE5
 assert "LoadBalanceInfo" in PHASE5
 assert "must not log raw assertions" in MODE_B

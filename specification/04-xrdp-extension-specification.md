@@ -20,7 +20,7 @@ syntax.
 | EXT-008 | Client-visible failures MUST not disclose whether a username exists. |
 | EXT-009 | Assertion validation MUST NOT perform Linux or directory identity lookup. |
 | EXT-010 | A validated broker capability alone MUST NOT authorize or start a session. |
-| EXT-011 | Mandatory NSS/SSSD binding MUST produce a resolved Linux identity before PAM account/session processing or session creation. |
+| EXT-011 | Mandatory system NSS binding MUST produce a resolved Linux identity before PAM account/session processing or session creation. |
 | EXT-012 | Later-stage failure MUST leave the assertion unusable until replay expiry; `released` is an audit marker only. |
 | EXT-013 | Phase 4a output MUST remain internal and MUST NOT authorize or start a live session. |
 | EXT-014 | Phase 4b MUST require validation, replay reservation, NSS identity binding, default UID 0 rejection, and PAM account approval before session authorization. |
@@ -37,7 +37,7 @@ syntax.
 | `sesman/libsesman/replay_cache.[ch]` | Replay backend abstraction; memory is test-only for live activation. |
 | `sesman/libsesman/replay_cache_service.[ch]` | Fail-closed client for the trusted host-local replay service. |
 | `xrdp-baf-replayd` | Persistent local replay authority with bounded atomic reserve/consume state. |
-| `sesman/sesexec/identity_binding.[ch]` or equivalent | Phase 4a binding of a validated capability to a canonical Linux identity through NSS/SSSD. |
+| `sesman/sesexec/identity_binding.[ch]` or equivalent | Phase 4a binding of a validated capability to a canonical Linux identity through system NSS. |
 | `broker-auth/` | Schema, reference issuer, vectors, conformance tools; not linked into XRDP. |
 
 The current skeleton name `auth_provider_broker` SHOULD become
@@ -80,8 +80,7 @@ fields needed by sesman: issuer, subject, preferred username, broker session
 ID, JTI digest, expiry, and client address. Accessors expose immutable values.
 Only the validator can construct a successful capability. The capability owns
 no PAM or session resources and is securely freed after login state is built.
-It performs no NSS, SSSD, PAM, LDAP, FreeIPA, Active Directory, local
-passwd/group, or equivalent identity lookup.
+It performs no system NSS, PAM, or external directory identity lookup.
 
 Providers return structured status, never partial success. Future providers may
 validate a different signed assertion format but must meet the same identity,
@@ -96,7 +95,7 @@ prerequisites. A capability alone never authorizes a session.
 ## 4.1 Phase 4a and Phase 4b activation boundary
 
 Phase 4a consumes a validated broker capability, resolves and canonicalizes the
-Linux identity through NSS/SSSD-compatible APIs, rejects UID 0 by default, and
+Linux identity through system NSS APIs, rejects UID 0 by default, and
 obtains PAM account approval through the explicit prevalidated entry. Its output
 is an internal identity-bound, PAM-precondition-approved result. Phase 4a MUST
 NOT send a successful broker login response or activate a live session.
@@ -107,7 +106,7 @@ session may be authorized only when all of the following are present:
 1. a structurally and cryptographically valid broker assertion;
 2. an atomic replay reservation;
 3. a validator-created broker capability;
-4. an NSS/SSSD-resolved canonical Linux identity;
+4. a system-NSS-resolved canonical Linux identity;
 5. default rejection of UID 0 and all applicable local policy checks;
 6. PAM account approval; and
 7. the existing PAM credential, session, environment, and cleanup lifecycle.
@@ -115,10 +114,11 @@ session may be authorized only when all of the following are present:
 No individual or partial-stage success is session authorization. Phase 4b also
 requires the replay reservation from the SD-004 trusted replay service;
 worker-local memory replay state cannot authorize live activation. SD-008
-selects RDS AAD Auth-style pre-logon `rdp_assertion` ingress as the preferred
-MVP path. The MVP has no fragmentation, no username/password assertion
-overloading, and no generic out-of-band bearer handles; SD-006 handles are
-superseded for production ingress.
+defines an optional MS-RDPBCGR-compatible `rdp_assertion` envelope and proposed
+SD-009 defines additional tracks. Production ingress selection is unresolved,
+and Broker-RDP Handle remains included. The MVP has no fragmentation, no
+username/password assertion overloading, and no generic out-of-band bearer
+handles.
 
 ## 5. Authentication state machine
 
@@ -169,8 +169,12 @@ owns production wiring and the transition into step 8.
 
 1. `xrdp_mm` selects `classic`, `broker`, or `auto` based only on server
    configuration and selected login profile.
-2. Broker mode prefers SD-008 RDSAAD-style pre-logon ingress. After `PROTOCOL_RDSAAD` selection and TLS, XRDP receives an Authentication Request PDU carrying `rdp_assertion`.
-3. The extracted assertion is handed to the existing BAF validation path; any internal forwarding must preserve opaque bytes and must not use username/password fields.
+2. An enabled ingress transports or resolves the BAF assertion. With optional
+   SD-008 RDSAAD-style ingress, XRDP receives an Authentication Request PDU
+   carrying `rdp_assertion` after `PROTOCOL_RDSAAD` selection and TLS.
+3. The assertion is handed to the existing BAF validation path; any internal
+   forwarding must preserve opaque bytes and must not use username/password
+   fields.
 4. sesexec validates and reserves replay state.
 5. The Phase 4a identity-binding path maps `preferred_username` through NSS and
    reverse UID lookup, producing a resolved Linux identity or denying login.
@@ -235,25 +239,33 @@ Replacing libjwt in a future release is permitted only when the replacement
 passes the same conformance vectors without changing BAF, provider, or protocol
 contracts.
 
-## SD-008 RDSAAD-style ingress
+## Optional SD-008 RDSAAD-style envelope
 
-SD-008 supersedes handle-first ingress for the MVP. XRDP implements `PROTOCOL_RDSAAD` negotiation, Server Nonce, Authentication Request parsing, `rdp_assertion` extraction, BAF validation, trusted replay, and Authentication Result mapping through the pre-MCS sesman/sesexec bridge. `S_OK` MUST NOT be returned until live authorization/session-ready preauth state is complete. Trusted BAF runtime configuration is owned by sesman/xrdp-sesexec through the local `[BrokerAuth]` section and remains disabled by default.
+XRDP implements the SD-008 `PROTOCOL_RDSAAD` negotiation, Server Nonce,
+Authentication Request parsing, `rdp_assertion` extraction, BAF validation,
+trusted replay, and Authentication Result mapping through the pre-MCS
+sesman/sesexec bridge. This is an optional MS-RDPBCGR-compatible envelope, not
+Microsoft identity integration. A BAF-aware client or gateway is required;
+stock AAD/Entra support does not make a client BAF-compatible. `S_OK` MUST NOT
+be returned until live authorization/session-ready preauth state is complete.
+Broker-RDP Handle remains included, and selection against proposed SD-009 is
+unresolved. Trusted BAF runtime configuration is owned by
+sesman/xrdp-sesexec through the local `[BrokerAuth]` section and remains
+disabled by default.
 
 
-### RDSAAD production integration foundation
+### RDSAAD integration foundation
 
 The XRDP extension point for RDSAAD-style ingress is after TLS setup in the security layer and before MCS negotiation. This preserves classic TLS/RDP behavior for clients that do not request RDSAAD. Runtime-disabled or incomplete RDSAAD configuration fails closed rather than falling back to password login for the same RDSAAD request.
 
-## Phase 5 dual-mode RDSAAD ingress
+## Optional RDSAAD deployment roles
 
-Phase 5 defines two interoperability modes for the existing XRDP RDSAAD ingress:
-Mode A native RDSAAD client mode and Mode B broker gateway RDSAAD mode. In both
-modes XRDP receives the same RDSAAD Authentication Request carrying
-`rdp_assertion`; the difference is whether the endpoint client sends it directly
-or a broker-controlled gateway sends it southbound to XRDP.
+The optional XRDP RDSAAD envelope can be exercised by a BAF-aware endpoint
+client or by a broker-controlled gateway acting as the southbound client. In
+both cases XRDP receives the same Authentication Request carrying
+`rdp_assertion`.
 
-XRDP core remains broker-neutral. UDS is a reference broker, not a core
-dependency. Mode B is the preferred fallback when RD Core / IGEL cannot inject a
-custom `rdp_assertion`. CredSSP/NLA, smartcard redirection, WebAuthn redirection,
-and LoadBalanceInfo are supporting or alternative mechanisms, not primary BAF
-assertion ingress.
+XRDP core remains broker-neutral. Keycloak/OIDC validation occurs at the broker,
+which issues a distinct BAF assertion. This deployment description does not
+claim arbitrary `rdp_assertion` injection by stock clients and does not select
+RDSAAD over Broker-RDP Handle.

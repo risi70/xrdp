@@ -98,7 +98,7 @@ secure_erase_bytes(char *data, size_t length)
 /**
  * Run the shared BAF authorization chain on a raw assertion.
  *
- * Covers the trusted replay service, JWT validation, NSS/SSSD identity
+ * Covers the trusted replay service, JWT validation, system NSS identity
  * binding, UID 0 rejection, PAM account preconditions and the group access
  * policy. Callers gate on the trusted runtime configuration first; this
  * function does not check ingress enablement.
@@ -443,7 +443,7 @@ authenticate_and_authorize_connection(const char *supplied_username,
             if (g_strcmp(username, supplied_username) != 0)
             {
                 /*
-                 * If using a federated naming service (e.g. AD), the username
+                 * If using an aliased naming service, the username
                  * supplied may not match that name mapped to by the UID. We
                  * will generate a warning in this instance so the user can see
                  * what is being used

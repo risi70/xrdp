@@ -2,7 +2,10 @@
 
 ## Goal
 
-Bridge RDSAAD pre-logon assertion authorization from libxrdp into xrdp/sesman/sesexec safely, without custom client behavior and without username/password assertion overloading.
+Bridge an enabled BAF ingress from libxrdp into xrdp/sesman/sesexec safely,
+without username/password assertion overloading. RDSAAD is an optional
+MS-RDPBCGR-compatible envelope; Broker-RDP Handle remains included, and this
+acceptance file does not resolve SD-008 versus proposed SD-009.
 
 ## Required deliverables
 
@@ -10,7 +13,7 @@ Bridge RDSAAD pre-logon assertion authorization from libxrdp into xrdp/sesman/se
 - Dedicated SCP/EICP BAF/RDSAAD login request dispatch, or equivalent explicitly named request path.
 - BAF-capable `login_info` or equivalent session-ready authorization object.
 - Trusted replay service enforcement for live activation.
-- NSS/SSSD identity binding before session startup.
+- System NSS identity binding before session startup.
 - PAM account/session lifecycle enforcement.
 - Authentication Result `S_OK` only after full authorization.
 - Tests covering success, failure, replay, PAM failure, and classic login preservation.
@@ -26,7 +29,7 @@ A live RDSAAD/BAF session may start only after:
 5. `rdp_assertion` was extracted and size-checked.
 6. Assertion was validated by the BAF JWT provider.
 7. Replay was reserved through the trusted replay service.
-8. Linux identity was resolved through NSS/SSSD-compatible lookup.
+8. Linux identity was resolved through system NSS.
 9. UID 0 was rejected by default.
 10. PAM account approval succeeded.
 11. Required PAM credential/session lifecycle can run.
@@ -41,5 +44,7 @@ A live RDSAAD/BAF session may start only after:
 - Classic SYS/UDS login behavior remains unchanged.
 - No username/password assertion overloading exists.
 - No custom IGEL client, FreeRDP plugin, DVC, or endpoint helper is required.
+- No stock AAD/Entra client is assumed capable of carrying a BAF assertion.
+- No LDAP, SSSD, Active Directory, Kerberos, domain-join, or Microsoft Entra lab dependency is required.
 - No raw assertion logging exists.
 - All BAF-specific tests pass.

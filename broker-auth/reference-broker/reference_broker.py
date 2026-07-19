@@ -69,7 +69,7 @@ class AuthContext:
 
 @dataclass
 class LocalAuthorizationPolicy:
-    """Small deterministic stand-in for NSS/SSSD and PAM contract tests.
+    """Small deterministic stand-in for system NSS and PAM contract tests.
 
     XRDP production authorization still happens in sesexec. This policy exists
     only so broker conformance tests can prove that an adapter cannot turn a

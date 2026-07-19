@@ -3,8 +3,8 @@
 ## 1. Purpose
 
 Containers provide deterministic control-plane services; KVM provides the
-systemd, PAM, SSSD, desktop, and kernel behavior containers cannot represent
-faithfully.
+systemd, system NSS, PAM, desktop, and kernel behavior containers cannot
+represent faithfully.
 
 ## 2. Topology
 
@@ -12,25 +12,22 @@ faithfully.
 flowchart LR
   subgraph Docker["Docker Compose control plane"]
     KC[Keycloak]
-    LDAP[389-DS / FreeIPA test LDAP]
     BR[Reference broker]
     IS[BAF assertion issuer]
     JW[JWKS HTTPS]
     RC[(Redis replay option)]
     TR[pytest controller]
-    KC --> LDAP
-    BR --> KC
+    BR -->|OIDC| KC
     BR --> IS
     IS --> JW
   end
   subgraph KVM["libvirt isolated network"]
-    VDI[Ubuntu 24.04 VDI\nxrdp/sesman/SSSD/PAM/desktop]
+    VDI[Ubuntu 24.04 VDI\nxrdp/sesman/NSS/PAM/desktop]
     CLI[Ubuntu client\nFreeRDP + automation]
   end
   TR --> BR
   TR --> CLI
   CLI -->|RDP TLS| VDI
-  VDI --> LDAP
   VDI --> JW
   VDI -. optional .-> RC
 ```
@@ -40,17 +37,17 @@ flowchart LR
 | Service | Image/function | Health condition |
 |---|---|---|
 | Keycloak | pinned upstream image, OIDC realm import | discovery and token endpoint ready |
-| LDAP | 389 Directory Server or FreeIPA-compatible test service | TLS bind and seeded search |
-| Reference broker | broker-independent test façade | OIDC login and target authorization |
+| Reference broker | broker-independent test façade | validates Keycloak/OIDC, authorizes target, and requests distinct BAF issuance |
 | Issuer | reference RS256 issuer; future PS256 fixture | assertion endpoint and rotation controls |
 | JWKS | HTTPS endpoint with programmable keys/cache headers | TLS and expected key set |
 | Replay cache | Redis only for clustered adapter testing | atomic SET NX + TTL |
 | Test runner | pinned Python image | can reach all lab endpoints |
 
 Images use immutable digests, non-production keys, read-only roots where
-possible, health checks, resource limits, and an isolated bridge. LDAP seeds
-users including normal, disabled, expired, alias, UID collision, and prohibited
-UID cases. Keycloak seeds MFA and low/high assurance flows.
+possible, health checks, resource limits, and an isolated bridge. Keycloak
+seeds normal, disabled, MFA, and low/high assurance flows. The VDI image creates
+deterministic system-NSS fixtures for normal, missing, ambiguous, and prohibited
+UID cases independently of Keycloak identities.
 
 ## 4. KVM images
 
@@ -58,13 +55,14 @@ UID cases. Keycloak seeds MFA and low/high assurance flows.
 
 Packer builds Ubuntu 24.04 from a verified ISO. cloud-init creates test-only
 administration, networking, CA trust, and SSH keys. Ansible installs the built
-XRDP packages, desktop environment, SSSD, PAM configuration, chrony or
-systemd-timesyncd, audit/journal forwarding, and test instrumentation.
+XRDP packages, desktop environment, system NSS test accounts, PAM
+configuration, chrony or systemd-timesyncd, audit/journal forwarding, and test
+instrumentation.
 
 The VM has snapshots:
 
 - `base`: patched Ubuntu;
-- `identity`: SSSD/PAM configured;
+- `identity`: system NSS/PAM configured;
 - `xrdp-classic`: classic package;
 - `xrdp-baf`: broker-enabled package.
 
@@ -80,12 +78,12 @@ files/FIFOs or client API.
 | Network | Members | Policy |
 |---|---|---|
 | management | runner, VMs | SSH/API only |
-| identity | Keycloak, LDAP, broker | no inbound VDI except LDAP/JWKS |
+| identity | Keycloak, broker | no inbound VDI; broker validates OIDC |
 | desktop | client, VDI | RDP only |
 | fault | proxy services | controllable delay/drop/reset/TLS faults |
 
 The VDI cannot access arbitrary Internet during tests. DNS is deterministic.
-Test CA issues service and RDP certificates. Fault proxies simulate JWKS/LDAP
+Test CA issues service and RDP certificates. Fault proxies simulate JWKS
 latency, stale responses, and partition.
 
 ## 6. Provisioning workflow
@@ -135,3 +133,10 @@ The lab is acceptable when a clean invocation provisions without manual steps,
 runs ST-001 through ST-003 and security scenarios, captures JUnit/journals/
 pcaps/metrics with token redaction, destroys secrets, and reproduces from
 documented pinned versions on a second runner.
+
+Acceptance must prove that the broker validates Keycloak/OIDC and issues a
+distinct BAF assertion, while XRDP validates only BAF and resolves Linux users
+through system NSS before PAM. LDAP provisioning or synchronization, SSSD
+configuration or availability, Active Directory, Kerberos, domain join, and
+Microsoft Entra are not lab services or gates. A deployment may add a Linux
+directory synchronized with Keycloak, but that topology is outside this lab.
