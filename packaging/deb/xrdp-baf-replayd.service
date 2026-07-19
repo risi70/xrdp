@@ -7,8 +7,10 @@ Before=xrdp-sesman.service
 Type=simple
 User=root
 Group=xrdp
+# 0755 matches the mode xrdp-sesman enforces on the shared socket root;
+# the service sockets themselves are created mode 0660.
 RuntimeDirectory=xrdp
-RuntimeDirectoryMode=0750
+RuntimeDirectoryMode=0755
 RuntimeDirectoryPreserve=yes
 UMask=0007
 ExecStart=/usr/sbin/xrdp-baf-replayd -s /run/xrdp/baf-replay.sock

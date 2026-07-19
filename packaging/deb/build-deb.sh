@@ -54,7 +54,6 @@ VERSION="$(
 )"
 [[ -n "$VERSION" ]] || { printf 'unable to determine XRDP version\n' >&2; exit 1; }
 ARCH="$(dpkg-architecture -qDEB_HOST_ARCH)"
-MULTIARCH="$(dpkg-architecture -qDEB_HOST_MULTIARCH)"
 DATE="$(date -u -d "@$SOURCE_DATE_EPOCH" +%Y%m%d)"
 PACKAGE_VERSION="${VERSION}+baf1.${DATE}.${SHORT_COMMIT}"
 

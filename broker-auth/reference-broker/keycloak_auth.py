@@ -158,6 +158,9 @@ class KeycloakAuthenticator:
         username = _required_string(claims, "preferred_username")
         if any(ord(ch) < 32 or ord(ch) == 127 for ch in username):
             raise KeycloakError("preferred_username contains control characters")
+        # Keycloak can emit duplicate leaf names when the Group Membership
+        # mapper has "Full group path" disabled, so deduplicate instead of
+        # rejecting; roles and amr stay strict below.
         groups = _string_list(claims.get("groups"), "groups")
 
         realm_roles: tuple[str, ...] = ()

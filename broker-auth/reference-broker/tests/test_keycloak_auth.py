@@ -166,6 +166,25 @@ class KeycloakTests(unittest.TestCase):
         with self.assertRaises(KeycloakError):
             self.authenticator.validate_token(self.token(amr=["pwd", "pwd"]))
 
+    def test_duplicate_groups_are_deduplicated(self):
+        # Keycloak emits duplicate leaf names when "Full group path" is
+        # disabled and same-named subgroups exist; this must not deny login.
+        identity = self.authenticator.validate_token(
+            self.token(groups=["/vdi/users", "/vdi/users"])
+        )
+        self.assertEqual(identity.groups, ("/vdi/users",))
+
+    def test_symmetric_and_disabled_algorithms_are_rejected(self):
+        for algorithms in (("none",), ("HS256",), ("RS256", "HS256"), ()):
+            with self.subTest(algorithms=algorithms), \
+                    self.assertRaises(KeycloakError):
+                KeycloakAuthenticator(
+                    "https://keycloak.example.test",
+                    "vdi",
+                    "baf-broker",
+                    algorithms=algorithms,
+                )
+
     def test_subject_binding_includes_issuer(self):
         claims = {
             "sub": "same-subject",

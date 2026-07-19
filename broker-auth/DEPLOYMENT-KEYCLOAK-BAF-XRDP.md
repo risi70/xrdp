@@ -37,11 +37,13 @@ Build on the same Debian or Ubuntu release used by the target desktop:
 
 ```sh
 sudo apt-get install build-essential autoconf automake libtool pkg-config \
-    dpkg-dev binutils tar gzip libssl-dev libpam0g-dev libx11-dev \
+    dpkg-dev binutils tar libssl-dev libpam0g-dev libx11-dev \
     libxfixes-dev libxrandr-dev libxkbfile-dev libpixman-1-dev libsm-dev \
     libice-dev libjwt-dev libjansson-dev nasm
 packaging/deb/build-deb.sh
 ```
+
+Keep this dependency list in sync with the copy in `packaging/deb/README.md`.
 
 The build stages tracked files from the current Git commit and verifies the
 focused BAF test suite before producing `packaging/deb/out/xrdp-baf_*.deb`.
@@ -67,6 +69,11 @@ under `/etc/xrdp` as conffiles. It installs these disabled services:
 
 Neither service is enabled automatically. BAF also remains disabled in
 `xrdp.ini` and `sesman.ini`.
+
+Installation creates the system group `xrdp` if it does not exist and
+generates host-local `/etc/xrdp/rsakeys.ini` plus a self-signed
+`key.pem`/`cert.pem` pair when missing. Replace the self-signed TLS
+certificate before production use.
 
 ## 3. Configure Keycloak and the broker
 
@@ -120,6 +127,7 @@ deployment values:
 ```ini
 [BrokerAuth]
 BrokerAuthEnabled=true
+RDSAADEnabled=false
 AllowSessionStart=true
 Issuer=https://broker.example.invalid/baf
 KeyId=baf-signing-key-01
@@ -131,6 +139,11 @@ ReplaySocket=/run/xrdp/baf-replay.sock
 ModeCOneTimeCredential=true
 HandleSocket=/run/xrdp/baf-handle.sock
 ```
+
+`RDSAADEnabled` gates the native pre-MCS RDSAAD bridge and stays `false`
+for the Handle ingress shown here. When both `BrokerAuthEnabled` and
+`RDSAADEnabled` are true, `TrustAnchor`, `ExpectedAudience`, `LocalTarget`,
+and `ReplaySocket` are mandatory.
 
 The trust anchor must be root-owned and not writable by the XRDP service
 account. Missing, ambiguous, or malformed configuration fails closed.
@@ -184,8 +197,10 @@ production OpenUDS transport plugin.
 Before enabling production traffic:
 
 ```sh
+sudo apt-get install python3-pytest
 make -C tests/baf check
-python3 -m unittest discover -s broker-auth -p 'test_*.py'
+PYTHONPATH=broker-auth python3 -m pytest broker-auth/tests \
+    broker-auth/gateway/tests broker-auth/reference-broker/tests
 systemctl is-active xrdp-baf-replayd.service
 systemctl is-active xrdp-baf-handled.service
 ```

@@ -17,6 +17,16 @@ if str(REFERENCE_ISSUER) not in sys.path:
 from broker_issuer import build_claims, sign_claims
 
 
+def _split_csv_items(values: Sequence[str]) -> list[str]:
+    """Split comma-separated entries so CLI and config forms behave alike."""
+    return [
+        part.strip()
+        for value in values
+        for part in value.split(",")
+        if part.strip()
+    ]
+
+
 def _load_simple_config(path: Path | None) -> dict[str, Any]:
     """Load a minimal YAML-like key/value config without external deps."""
     if path is None:
@@ -31,7 +41,7 @@ def _load_simple_config(path: Path | None) -> dict[str, Any]:
         key, value = line.split(":", 1)
         value = value.strip().strip('"').strip("'")
         if "," in value:
-            result[key.strip()] = [item.strip() for item in value.split(",")]
+            result[key.strip()] = _split_csv_items([value])
         else:
             result[key.strip()] = value
     return result
@@ -74,15 +84,18 @@ def main(argv: Sequence[str] | None = None) -> int:
     if private_key_path is None:
         raise SystemExit("--private-key or private_key config is required")
 
+    # A plain string audience stays a string: build_claims() emits "aud"
+    # unchanged, and collapsing str/list would alter the token shape.
     audience = args.audience if args.audience else config.get("audience")
-    if isinstance(audience, str) and "," in audience:
-        audience = [item.strip() for item in audience.split(",")]
+    if isinstance(audience, list):
+        audience = _split_csv_items(audience)
 
     auth_method = args.auth_method if args.auth_method else config.get(
         "auth_method", ["broker"]
     )
-    if isinstance(auth_method, str):
-        auth_method = [item.strip() for item in auth_method.split(",")]
+    auth_method = _split_csv_items(
+        [auth_method] if isinstance(auth_method, str) else auth_method
+    )
 
     now = _value(args, config, "now")
     now = int(time.time()) if now is None else int(now)

@@ -32,8 +32,8 @@ ISSUER="${BAF_ISSUER:-https://openuds-broker.xrdp-baf.test/baf}"
 AUDIENCE="${BAF_AUDIENCE:-xrdp://ubuntu-vdi-01}"
 TARGET="${BAF_TARGET:-ubuntu-vdi-01}"
 KID="${BAF_KID:-lab-key-1}"
-REPLAY_SOCK="${BAF_REPLAY_SOCKET:-/run/xrdp-baf/replay.sock}"
-HANDLE_SOCK="${BAF_HANDLE_SOCKET:-/run/xrdp-baf/handle.sock}"
+REPLAY_SOCK="${BAF_REPLAY_SOCKET:-/run/xrdp/baf-replay.sock}"
+HANDLE_SOCK="${BAF_HANDLE_SOCKET:-/run/xrdp/baf-handle.sock}"
 TRUST_PUB="/etc/xrdp/baf/reference-broker.pub"
 TRUST_PRIV="/etc/xrdp/baf/reference-broker.key"   # lab issuer key; never ship
 SESMAN_INI="${SESMAN_INI:-/etc/xrdp/sesman.ini}"
@@ -42,9 +42,12 @@ HANDLED_BIN="$(command -v xrdp-baf-handled || echo /usr/local/sbin/xrdp-baf-hand
 REPLAYD_BIN="$(command -v xrdp-baf-replayd || echo /usr/local/sbin/xrdp-baf-replayd)"
 TOOL="$ROOT/test-lab/broker-rdp-handle/baf_handle_tool"
 
-WORK="$(mktemp -d)"; PIDS=()
+WORK="$(mktemp -d)"; PIDS=(); STOPPED_UNITS=()
 cleanup() {
     for p in "${PIDS[@]:-}"; do kill "$p" 2>/dev/null || true; done
+    for u in "${STOPPED_UNITS[@]:-}"; do
+        systemctl start "$u" 2>/dev/null || true
+    done
     rm -rf "$WORK"
 }
 trap cleanup EXIT
@@ -62,7 +65,7 @@ if [ ! -x "$TOOL" ]; then
 fi
 
 # --- trusted lab issuer key + trust anchor -------------------------------
-mkdir -p /etc/xrdp/baf /run/xrdp-baf
+mkdir -p /etc/xrdp/baf "$(dirname "$REPLAY_SOCK")" "$(dirname "$HANDLE_SOCK")"
 if [ ! -f "$TRUST_PRIV" ]; then
     echo "== generating lab issuer key pair =="
     python3 - "$TRUST_PRIV" "$TRUST_PUB" "$ROOT" <<'PY'
@@ -119,6 +122,15 @@ grep -qE '^enable_dynamic_resizing' "$XRDP_INI" || \
 
 # --- start trusted daemons -----------------------------------------------
 echo "== starting replay and handle services =="
+# The packaged units bind the same default socket paths; stop them for the
+# duration of the test so the lab daemons do not orphan their sockets, and
+# let cleanup() restart whatever was active.
+for unit in xrdp-baf-replayd.service xrdp-baf-handled.service; do
+    if systemctl is-active --quiet "$unit" 2>/dev/null; then
+        systemctl stop "$unit"
+        STOPPED_UNITS+=("$unit")
+    fi
+done
 rm -f "$REPLAY_SOCK" "$HANDLE_SOCK"
 "$REPLAYD_BIN" -s "$REPLAY_SOCK" & PIDS+=($!)
 "$HANDLED_BIN" -s "$HANDLE_SOCK" & PIDS+=($!)

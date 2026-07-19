@@ -12,10 +12,13 @@ production UDS integration.
 
 ```sh
 sudo apt-get install build-essential autoconf automake libtool pkg-config \
-    dpkg-dev binutils tar gzip libssl-dev libpam0g-dev libx11-dev \
+    dpkg-dev binutils tar libssl-dev libpam0g-dev libx11-dev \
     libxfixes-dev libxrandr-dev libxkbfile-dev libpixman-1-dev libsm-dev \
     libice-dev libjwt-dev libjansson-dev nasm
 ```
+
+Keep this dependency list in sync with the copy in
+`broker-auth/DEPLOYMENT-KEYCLOAK-BAF-XRDP.md`.
 
 ## Build
 
