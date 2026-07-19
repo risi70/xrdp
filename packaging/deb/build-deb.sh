@@ -10,7 +10,7 @@ SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-$(git -C "$ROOT" show -s --format=%ct "$
 export SOURCE_DATE_EPOCH
 
 required=(autoconf automake libtoolize pkg-config make gcc git tar dpkg-deb
-          dpkg-shlibdeps dpkg-architecture readelf sha256sum)
+          dpkg-shlibdeps dpkg-architecture readelf sha256sum grep)
 for command_name in "${required[@]}"; do
     command -v "$command_name" >/dev/null 2>&1 || {
         printf 'missing build command: %s\n' "$command_name" >&2
@@ -79,6 +79,24 @@ printf 'Building xrdp-baf %s for %s from %s\n' \
     make DESTDIR="$STAGE" install
 )
 
+# Upstream install creates host credentials. Never distribute build-time keys.
+rm -f "$STAGE/etc/xrdp/rsakeys.ini" \
+    "$STAGE/etc/xrdp/cert.pem" \
+    "$STAGE/etc/xrdp/key.pem"
+
+# This is a runtime package, not an SDK.
+find "$STAGE/usr" -type f \( -name '*.a' -o -name '*.la' \) -delete
+rm -rf "$STAGE/usr/include" "$STAGE/usr/lib/pkgconfig"
+
+while IFS= read -r -d '' packaged_file; do
+    if grep -Iq . "$packaged_file" && \
+       grep -Eq 'BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY' "$packaged_file"; then
+        printf 'refusing to package private key material: %s\n' \
+            "$packaged_file" >&2
+        exit 1
+    fi
+done < <(find "$STAGE" -type f -print0)
+
 install -D -m 0644 "$HERE/xrdp-baf-replayd.service" \
     "$STAGE/lib/systemd/system/xrdp-baf-replayd.service"
 install -D -m 0644 "$HERE/xrdp-baf-handled.service" \
@@ -131,7 +149,7 @@ Version: $PACKAGE_VERSION
 Architecture: $ARCH
 Maintainer: XRDP BAF maintainers <xrdp-devel@googlegroups.com>
 Installed-Size: $installed_size
-Depends: $dependencies, adduser
+Depends: $dependencies, adduser, openssl
 Recommends: xorgxrdp
 Provides: xrdp
 Conflicts: xrdp

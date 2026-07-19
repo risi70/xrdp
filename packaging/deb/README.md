@@ -27,6 +27,11 @@ Output is written to `packaging/deb/out/`, with a SHA-256 checksum and a text
 manifest beside the package. Build on the target Debian or Ubuntu release so
 the generated shared-library dependencies match that release.
 
+Upstream's install target creates TLS and legacy RSA credentials. The package
+builder removes those generated files, rejects any remaining private-key
+markers, and the package creates fresh host-local credentials during
+installation. No build-time private key is distributed.
+
 Install `xorgxrdp` from the target distribution separately. This workflow does
 not fetch or package external source code.
 
