@@ -59,6 +59,29 @@
 
 extern char g_display_str[]; /* in chansrv.c */
 
+/* Validate fixed and variable response fields before decoding them. */
+
+/* Sanity cap on the GetStatusChange reader array (pcsc-lite uses 16). */
+#define SCARD_MAX_READERS 64
+
+/* [MS-RDPESC] Transmit_Return.cbRecvLength range(0, 66560). */
+#define SCARD_MAX_RECV_BYTES 66560
+
+/* The limit accommodates a TRANSMIT carrying an extended APDU. */
+#define SCARD_MAX_MSG_SIZE   (128 * 1024)
+
+/* Require _n more bytes in response stream _s before decoding. */
+#define SCARD_NEED(_s, _n)                                                   \
+    do                                                                       \
+    {                                                                        \
+        if ((int)(_n) < 0 ||                                                 \
+                !s_check_rem_and_log((_s), (_n),                                 \
+                                     "[MS-RDPESC] truncated smart-card response"))\
+        {                                                                    \
+            return 1;                                                        \
+        }                                                                    \
+    } while (0)
+
 static int g_autoinc = 0; /* general purpose autoinc */
 
 struct pcsc_card /* item for list of open cards in one context */
@@ -452,6 +475,7 @@ scard_process_establish_context(struct trans *con, struct stream *in_s)
 
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_establish_context:");
     uds_client = (struct pcsc_uds_client *) (con->callback_data);
+    SCARD_NEED(in_s, 4);
     in_uint32_le(in_s, dwScope);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_establish_context: dwScope 0x%8.8x", dwScope);
     user_data = (void *) (tintptr) (uds_client->uds_client_id);
@@ -493,15 +517,16 @@ scard_function_establish_context_return(void *user_data,
     g_memset(context, 0, 16);
     if (status == 0)
     {
+        SCARD_NEED(in_s, 28 + 4);
         in_uint8s(in_s, 28);
         in_uint32_le(in_s, context_bytes);
-        if (context_bytes > 16)
+        if (context_bytes < 0 || context_bytes > 16)
         {
             LOG(LOG_LEVEL_ERROR, "scard_function_establish_context_return: opps "
                 "context_bytes %d", context_bytes);
-            LOG_DEVEL_HEXDUMP(LOG_LEVEL_TRACE, "", in_s->p, context_bytes);
             return 1;
         }
+        SCARD_NEED(in_s, context_bytes);
         in_uint8a(in_s, context, context_bytes);
         lcontext = uds_client_add_context(uds_client, context, context_bytes);
         app_context = lcontext->app_context;
@@ -536,6 +561,7 @@ scard_process_release_context(struct trans *con, struct stream *in_s)
 
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_release_context:");
     uds_client = (struct pcsc_uds_client *) (con->callback_data);
+    SCARD_NEED(in_s, 4);
     in_uint32_le(in_s, hContext);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_release_context: hContext 0x%8.8x", hContext);
     user_data = (void *) (tintptr) (uds_client->uds_client_id);
@@ -624,6 +650,7 @@ scard_process_list_readers(struct trans *con, struct stream *in_s)
 
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_list_readers:");
     uds_client = (struct pcsc_uds_client *) (con->callback_data);
+    SCARD_NEED(in_s, 4 + 4);
     in_uint32_le(in_s, hContext);
     in_uint32_le(in_s, bytes_groups);
     if (bytes_groups > (sizeof(groups) - 1))
@@ -632,8 +659,10 @@ scard_process_list_readers(struct trans *con, struct stream *in_s)
             bytes_groups);
         return 1;
     }
+    SCARD_NEED(in_s, bytes_groups);
     in_uint8a(in_s, groups, bytes_groups);
     groups[bytes_groups] = '\0';
+    SCARD_NEED(in_s, 4);
     in_uint32_le(in_s, cchReaders);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_list_readers: hContext 0x%8.8x cchReaders %d",
               hContext, cchReaders);
@@ -760,13 +789,14 @@ scard_function_list_readers_return(void *user_data,
     llen = 0;
     if (status == 0)
     {
-        // Skip [C706] PDU Header
+        // Skip [C706] PDU Header (16) + up to the multistring length (12 + 4)
+        SCARD_NEED(in_s, 16 + 12 + 4);
         in_uint8s(in_s, 16);
         // Move to length of multistring in bytes
         in_uint8s(in_s, 12);
 
         in_uint32_le(in_s, llen);
-        if (cchReaders > 0)
+        if (len > 0 && cchReaders > 0)
         {
             // Convert the wide multistring to a UTF-8 multistring
             unsigned int u8len;
@@ -786,7 +816,8 @@ scard_function_list_readers_return(void *user_data,
         }
     }
 
-    out_s = trans_get_out_s(con, 8192);
+    /* each reader is emitted as a fixed 100-byte record; size accordingly */
+    out_s = trans_get_out_s(con, 8192 + readers * 100);
     if (out_s == NULL)
     {
         rv = 1;
@@ -840,6 +871,7 @@ scard_process_connect(struct trans *con, struct stream *in_s)
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_connect:");
     uds_client = (struct pcsc_uds_client *) (con->callback_data);
     g_memset(&rs, 0, sizeof(rs));
+    SCARD_NEED(in_s, 4 + 100 + 4 + 4);
     in_uint32_le(in_s, hContext);
     in_uint8a(in_s, rs.reader_name, 100);
     in_uint32_le(in_s, rs.dwShareMode);
@@ -895,11 +927,21 @@ scard_function_connect_return(void *user_data,
     hCard = 0;
     if (status == 0)
     {
+        SCARD_NEED(in_s, 36 + 4);
         in_uint8s(in_s, 36);
         in_uint32_le(in_s, dwActiveProtocol);
         if (len > 40)
         {
+            SCARD_NEED(in_s, 4);
             in_uint32_le(in_s, card_bytes);
+            /* card is copied into a fixed 16-byte buffer by context_add_card */
+            if (card_bytes < 0 || card_bytes > 16)
+            {
+                LOG(LOG_LEVEL_ERROR, "scard_function_connect_return: "
+                    "bad card_bytes %d", card_bytes);
+                return 1;
+            }
+            SCARD_NEED(in_s, card_bytes);
             in_uint8p(in_s, card, card_bytes);
             lcard = context_add_card(uds_client, uds_client->connect_context,
                                      card, card_bytes);
@@ -943,6 +985,7 @@ scard_process_disconnect(struct trans *con, struct stream *in_s)
 
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_disconnect:");
     uds_client = (struct pcsc_uds_client *) (con->callback_data);
+    SCARD_NEED(in_s, 4 + 4);
     in_uint32_le(in_s, hCard);
     in_uint32_le(in_s, dwDisposition);
     user_data = (void *) (tintptr) (uds_client->uds_client_id);
@@ -1012,6 +1055,7 @@ scard_process_begin_transaction(struct trans *con, struct stream *in_s)
 
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_begin_transaction:");
     uds_client = (struct pcsc_uds_client *) (con->callback_data);
+    SCARD_NEED(in_s, 4);
     in_uint32_le(in_s, hCard);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_begin_transaction: hCard 0x%8.8x", hCard);
     user_data = (void *) (tintptr) (uds_client->uds_client_id);
@@ -1083,6 +1127,7 @@ scard_process_end_transaction(struct trans *con, struct stream *in_s)
 
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_end_transaction:");
     uds_client = (struct pcsc_uds_client *) (con->callback_data);
+    SCARD_NEED(in_s, 4 + 4);
     in_uint32_le(in_s, hCard);
     in_uint32_le(in_s, dwDisposition);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_end_transaction: hCard 0x%8.8x", hCard);
@@ -1180,17 +1225,24 @@ scard_process_transmit(struct trans *con, struct stream *in_s)
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_transmit:");
     uds_client = (struct pcsc_uds_client *) (con->callback_data);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_transmit:");
+    SCARD_NEED(in_s, 4 + 4 + 4 + 4);
     in_uint32_le(in_s, hCard);
     in_uint32_le(in_s, send_ior.dwProtocol);
     in_uint32_le(in_s, send_ior.cbPciLength);
     in_uint32_le(in_s, send_ior.extra_bytes);
+    SCARD_NEED(in_s, send_ior.extra_bytes);
     in_uint8p(in_s, send_ior.extra_data, send_ior.extra_bytes);
+    SCARD_NEED(in_s, 4);
     in_uint32_le(in_s, send_bytes);
+    SCARD_NEED(in_s, send_bytes);
     in_uint8p(in_s, send_data, send_bytes);
+    SCARD_NEED(in_s, 4 + 4 + 4);
     in_uint32_le(in_s, recv_ior.dwProtocol);
     in_uint32_le(in_s, recv_ior.cbPciLength);
     in_uint32_le(in_s, recv_ior.extra_bytes);
+    SCARD_NEED(in_s, recv_ior.extra_bytes);
     in_uint8p(in_s, recv_ior.extra_data, recv_ior.extra_bytes);
+    SCARD_NEED(in_s, 4);
     in_uint32_le(in_s, recv_bytes);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_transmit: send dwProtocol %d cbPciLength %d "
               "recv dwProtocol %d cbPciLength %d send_bytes %d ",
@@ -1240,6 +1292,9 @@ scard_function_transmit_return(void *user_data,
     LOG_DEVEL(LOG_LEVEL_DEBUG, "  status 0x%8.8x", status);
     pcscTransmit = (struct pcsc_transmit *) user_data;
     recv_ior = pcscTransmit->recv_ior;
+    /* Optional response PCI data must be supplied by this response. */
+    recv_ior.extra_bytes = 0;
+    recv_ior.extra_data = NULL;
     uds_client = (struct pcsc_uds_client *)
                  get_uds_client_by_id(pcscTransmit->uds_client_id);
     g_free(pcscTransmit);
@@ -1255,11 +1310,13 @@ scard_function_transmit_return(void *user_data,
     recvBuf = 0;
     if (status == 0)
     {
+        SCARD_NEED(in_s, 20 + 4);
         in_uint8s(in_s, 20);
         in_uint32_le(in_s, val);
         if (val != 0)
         {
             /* pioRecvPci */
+            SCARD_NEED(in_s, 8 + 4 + 4 + 4);
             in_uint8s(in_s, 8);
             in_uint32_le(in_s, recv_ior.dwProtocol);
             in_uint32_le(in_s, recv_ior.cbPciLength);
@@ -1267,21 +1324,33 @@ scard_function_transmit_return(void *user_data,
             in_uint32_le(in_s, recv_ior.extra_bytes);
             if (recv_ior.extra_bytes > 0)
             {
+                SCARD_NEED(in_s, recv_ior.extra_bytes);
                 in_uint8p(in_s, recv_ior.extra_data, recv_ior.extra_bytes);
             }
         }
 
+        SCARD_NEED(in_s, 4 + 4);
         in_uint8s(in_s, 4);
         in_uint32_le(in_s, val);
         if (val != 0)
         {
+            SCARD_NEED(in_s, 4);
             in_uint32_le(in_s, cbRecvLength);
+            /* [MS-RDPESC] 2.2.3.11: cbRecvLength range(0, 66560) */
+            if (cbRecvLength > SCARD_MAX_RECV_BYTES)
+            {
+                LOG(LOG_LEVEL_ERROR, "scard_function_transmit_return: "
+                    "cbRecvLength %d exceeds [MS-RDPESC] max", cbRecvLength);
+                return 1;
+            }
+            SCARD_NEED(in_s, cbRecvLength);
             in_uint8p(in_s, recvBuf, cbRecvLength);
         }
 
     }
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_function_transmit_return: cbRecvLength %d", cbRecvLength);
-    out_s = trans_get_out_s(con, 8192);
+    /* Size the reply from validated response lengths. */
+    out_s = trans_get_out_s(con, 8192 + recv_ior.extra_bytes + cbRecvLength);
     if (out_s == NULL)
     {
         return 1;
@@ -1290,9 +1359,15 @@ scard_function_transmit_return(void *user_data,
     out_uint32_le(out_s, recv_ior.dwProtocol);
     out_uint32_le(out_s, recv_ior.cbPciLength);
     out_uint32_le(out_s, recv_ior.extra_bytes);
-    out_uint8a(out_s, recv_ior.extra_data, recv_ior.extra_bytes);
+    if (recv_ior.extra_bytes > 0 && recv_ior.extra_data != NULL)
+    {
+        out_uint8a(out_s, recv_ior.extra_data, recv_ior.extra_bytes);
+    }
     out_uint32_le(out_s, cbRecvLength);
-    out_uint8a(out_s, recvBuf, cbRecvLength);
+    if (cbRecvLength > 0 && recvBuf != NULL)
+    {
+        out_uint8a(out_s, recvBuf, cbRecvLength);
+    }
     out_uint32_le(out_s, status); /* SCARD_S_SUCCESS status */
     s_mark_end(out_s);
     bytes = (int) (out_s->end - out_s->data);
@@ -1321,10 +1396,13 @@ scard_process_control(struct trans *con, struct stream *in_s)
     uds_client = (struct pcsc_uds_client *) (con->callback_data);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_control:");
 
+    SCARD_NEED(in_s, 4 + 4 + 4);
     in_uint32_le(in_s, hCard);
     in_uint32_le(in_s, control_code);
     in_uint32_le(in_s, send_bytes);
+    SCARD_NEED(in_s, send_bytes);
     in_uint8p(in_s, send_data, send_bytes);
+    SCARD_NEED(in_s, 4);
     in_uint32_le(in_s, recv_bytes);
 
     user_data = (void *) (tintptr) (uds_client->uds_client_id);
@@ -1375,19 +1453,32 @@ scard_function_control_return(void *user_data,
     recvBuf = 0;
     if (status == 0)
     {
+        SCARD_NEED(in_s, 28 + 4);
         in_uint8s(in_s, 28);
         in_uint32_le(in_s, cbRecvLength);
+        /* Apply the [MS-RDPESC] Control_Return range. */
+        if (cbRecvLength > SCARD_MAX_RECV_BYTES)
+        {
+            LOG(LOG_LEVEL_ERROR, "scard_function_control_return: "
+                "cbRecvLength %d exceeds [MS-RDPESC] max", cbRecvLength);
+            return 1;
+        }
+        SCARD_NEED(in_s, cbRecvLength);
         in_uint8p(in_s, recvBuf, cbRecvLength);
     }
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_function_control_return: cbRecvLength %d", cbRecvLength);
-    out_s = trans_get_out_s(con, 8192);
+    /* Size the reply from the validated response length. */
+    out_s = trans_get_out_s(con, 8192 + cbRecvLength);
     if (out_s == NULL)
     {
         return 1;
     }
     s_push_layer(out_s, iso_hdr, 8);
     out_uint32_le(out_s, cbRecvLength);
-    out_uint8a(out_s, recvBuf, cbRecvLength);
+    if (cbRecvLength > 0 && recvBuf != NULL)
+    {
+        out_uint8a(out_s, recvBuf, cbRecvLength);
+    }
     out_uint32_le(out_s, status); /* SCARD_S_SUCCESS status */
     s_mark_end(out_s);
     bytes = (int) (out_s->end - out_s->data);
@@ -1420,6 +1511,7 @@ scard_process_status(struct trans *con, struct stream *in_s)
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_status:");
     uds_client = (struct pcsc_uds_client *) (con->callback_data);
 
+    SCARD_NEED(in_s, 4 + 4 + 4);
     in_uint32_le(in_s, hCard);
     in_uint32_le(in_s, cchReaderLen);
     in_uint32_le(in_s, cbAtrLen);
@@ -1543,15 +1635,24 @@ scard_function_status_return(void *user_data,
     lreader_name[0] = 0;
     if (status == 0)
     {
+        /* 16 hdr + 4 rc + 4 readerlen + 4 referent + 4 state + 4 proto
+         * + 32 attr + 4 atrlen */
+        SCARD_NEED(in_s, 16 + 4 + 4 + 4 + 4 + 4 + 32 + 4);
         in_uint8s(in_s, 16); // Skip [C706] PDU Header
         in_uint8s(in_s, 4);  // ReturnCode
         in_uint32_le(in_s, dwReaderLen);
         in_uint8s(in_s, 4); // Referent Identifier
         in_uint32_le(in_s, dwState);
-        dwState = g_ms2pc[dwState % 6];
+        /* Normalize the wire value to the table's defined range. */
+        dwState = g_ms2pc[((unsigned int)dwState) % 6];
         in_uint32_le(in_s, dwProtocol);
         in_uint8a(in_s, attr, 32);
         in_uint32_le(in_s, dwAtrLen);
+        /* attr is a fixed 32-byte buffer; never echo more than we read */
+        if (dwAtrLen < 0 || dwAtrLen > 32)
+        {
+            dwAtrLen = 32;
+        }
 
         // Length of multistring and multistring data
         if (dwReaderLen <= 0)
@@ -1560,6 +1661,7 @@ scard_function_status_return(void *user_data,
         }
         else
         {
+            SCARD_NEED(in_s, 4);
             in_uint8s(in_s, 4);  // Skip length of msz in bytes
 
             // TODO: why are we just returning the first name of the card?
@@ -1608,6 +1710,7 @@ scard_process_get_status_change(struct trans *con, struct stream *in_s)
 
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_get_status_change:");
     uds_client = (struct pcsc_uds_client *) (con->callback_data);
+    SCARD_NEED(in_s, 4 + 4 + 4);
     in_uint32_le(in_s, hContext);
     in_uint32_le(in_s, dwTimeout);
     in_uint32_le(in_s, cReaders);
@@ -1616,6 +1719,8 @@ scard_process_get_status_change(struct trans *con, struct stream *in_s)
         LOG(LOG_LEVEL_ERROR, "scard_process_get_status_change: bad cReaders %d", cReaders);
         return 1;
     }
+    /* Validate all fixed-width reader records before allocation and dispatch. */
+    SCARD_NEED(in_s, cReaders * 148);
     rsa = (READER_STATE *) g_malloc(sizeof(READER_STATE) * cReaders, 1);
 
     for (index = 0; index < cReaders; index++)
@@ -1687,7 +1792,24 @@ scard_function_get_status_change_return(void *user_data,
     }
     con = uds_client->con;
 
-    out_s = trans_get_out_s(con, 8192);
+    /* Validate the complete fixed-width reader array before decoding it. */
+    cReaders = 0;
+    if (status == 0)
+    {
+        SCARD_NEED(in_s, 28 + 4);
+        in_uint8s(in_s, 28);
+        in_uint32_le(in_s, cReaders);
+        LOG_DEVEL(LOG_LEVEL_DEBUG, "  cReaders %d", cReaders);
+        if (cReaders < 0 || cReaders > SCARD_MAX_READERS)
+        {
+            LOG(LOG_LEVEL_ERROR, "scard_function_get_status_change_return: "
+                "bad cReaders %d", cReaders);
+            return 1;
+        }
+        SCARD_NEED(in_s, cReaders * 48); /* 4 + 4 + 4 + 36 per reader */
+    }
+
+    out_s = trans_get_out_s(con, 8192 + cReaders * 48);
     if (out_s == NULL)
     {
         return 1;
@@ -1700,23 +1822,17 @@ scard_function_get_status_change_return(void *user_data,
     }
     else
     {
-        in_uint8s(in_s, 28);
-        in_uint32_le(in_s, cReaders);
-        LOG_DEVEL(LOG_LEVEL_DEBUG, "  cReaders %d", cReaders);
         out_uint32_le(out_s, cReaders);
-        if (cReaders > 0)
+        for (index = 0; index < cReaders; index++)
         {
-            for (index = 0; index < cReaders; index++)
-            {
-                in_uint32_le(in_s, current_state);
-                out_uint32_le(out_s, current_state);
-                in_uint32_le(in_s, event_state);
-                out_uint32_le(out_s, event_state);
-                in_uint32_le(in_s, atr_len);
-                out_uint32_le(out_s, atr_len);
-                in_uint8a(in_s, atr, 36);
-                out_uint8a(out_s, atr, 36);
-            }
+            in_uint32_le(in_s, current_state);
+            out_uint32_le(out_s, current_state);
+            in_uint32_le(in_s, event_state);
+            out_uint32_le(out_s, event_state);
+            in_uint32_le(in_s, atr_len);
+            out_uint32_le(out_s, atr_len);
+            in_uint8a(in_s, atr, 36);
+            out_uint8a(out_s, atr, 36);
         }
         out_uint32_le(out_s, status); /* SCARD_S_SUCCESS status */
     }
@@ -1741,6 +1857,7 @@ scard_process_cancel(struct trans *con, struct stream *in_s)
 
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_cancel:");
     uds_client = (struct pcsc_uds_client *) (con->callback_data);
+    SCARD_NEED(in_s, 4);
     in_uint32_le(in_s, hContext);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "scard_process_cancel: hContext 0x%8.8x", hContext);
     user_data = (void *) (tintptr) (uds_client->uds_client_id);
@@ -1929,6 +2046,12 @@ my_pcsc_trans_data_in(struct trans *trans)
     in_uint32_le(s, size);
     in_uint32_le(s, command);
     LOG_DEVEL(LOG_LEVEL_DEBUG, "my_pcsc_trans_data_in: size %d command %d", size, command);
+    /* Validate the framed body length before reading it. */
+    if (size < 0 || size > SCARD_MAX_MSG_SIZE)
+    {
+        LOG(LOG_LEVEL_ERROR, "my_pcsc_trans_data_in: bad message size %d", size);
+        return 1;
+    }
     error = trans_force_read(trans, size);
     if (error == 0)
     {
