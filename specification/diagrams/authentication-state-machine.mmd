@@ -1,0 +1,23 @@
+stateDiagram-v2
+  [*] --> SelectMode
+  SelectMode --> Password: classic
+  SelectMode --> BrokerAssertion: broker
+  Password --> PamAuthenticate
+  BrokerAssertion --> ValidateJWS
+  ValidateJWS --> ReserveReplay: cryptographic + policy success
+  ReserveReplay --> MapNSS
+  MapNSS --> PamAccount
+  PamAuthenticate --> PamAccount: success
+  PamAccount --> OpenPamSession: success
+  OpenPamSession --> StartDesktop
+  StartDesktop --> Running
+  Running --> ClosePamSession
+  ClosePamSession --> [*]
+  PamAuthenticate --> Denied: failure
+  ValidateJWS --> Denied: failure
+  ReserveReplay --> Denied: replay
+  MapNSS --> Denied: failure
+  PamAccount --> Denied: failure
+  OpenPamSession --> Denied: failure
+  StartDesktop --> Denied: failure
+  Denied --> [*]

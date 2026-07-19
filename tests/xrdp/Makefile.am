@@ -76,7 +76,6 @@ test_xrdp_LDADD = \
     $(top_builddir)/xrdp/xrdp_tconfig.o \
     $(top_builddir)/xrdp/xrdp_main_utils.o \
     $(top_builddir)/libpainter/src/libpainter.la \
-    $(top_builddir)/librfxcodec/src/librfxencode.la \
     $(top_builddir)/libipm/libipm.la \
     $(top_builddir)/common/libcommon.la \
     $(top_builddir)/third_party/tomlc99/libtoml.la \
@@ -84,6 +83,11 @@ test_xrdp_LDADD = \
     $(IMLIB2_LIBS) \
     @CHECK_LIBS@ \
     @CMOCKA_LIBS@
+
+if XRDP_RFXCODEC
+test_xrdp_LDADD += \
+    $(top_builddir)/librfxcodec/src/librfxencode.la
+endif
 
 if XRDP_X264
 AM_CPPFLAGS += -DXRDP_X264 $(XRDP_X264_CFLAGS)

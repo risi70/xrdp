@@ -3296,6 +3296,21 @@ xrdp_mm_connect(struct xrdp_mm *self)
         }
     }
 
+#if defined(ENABLE_BROKER_AUTH)
+    if (self->wm->pro_layer->baf_preauth_authorized &&
+            self->wm->pro_layer->baf_preauth_sesman_trans != NULL)
+    {
+        self->use_sesman = 1;
+        self->use_chansrv = 1;
+        self->uid = self->wm->pro_layer->baf_preauth_uid;
+        self->sesman_trans = self->wm->pro_layer->baf_preauth_sesman_trans;
+        self->wm->pro_layer->baf_preauth_sesman_trans = NULL;
+        self->sesman_trans->trans_data_in = xrdp_mm_scp_data_in;
+        self->sesman_trans->callback_data = self;
+        self->connect_state = MMCS_CREATE_SESSION;
+    }
+#endif
+
     xrdp_mm_connect_sm(self);
 }
 

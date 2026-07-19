@@ -60,6 +60,11 @@ msgno_to_str(unsigned short n)
         (n == E_SCP_LIST_SESSIONS_RESPONSE) ? "SCP_LIST_SESSIONS_RESPONSE" :
 
         (n == E_SCP_CLOSE_CONNECTION_REQUEST) ? "SCP_CLOSE_CONNECTION_REQUEST" :
+#if defined(ENABLE_BROKER_AUTH)
+        (n == E_SCP_CAPABILITIES_REQUEST) ? "SCP_CAPABILITIES_REQUEST" :
+        (n == E_SCP_CAPABILITIES_RESPONSE) ? "SCP_CAPABILITIES_RESPONSE" :
+        (n == E_SCP_BROKER_LOGIN_REQUEST_V1) ? "SCP_BROKER_LOGIN_REQUEST_V1" :
+#endif
         NULL;
 }
 
@@ -922,3 +927,98 @@ scp_send_close_connection_request(struct trans *trans)
                (int)E_SCP_CLOSE_CONNECTION_REQUEST,
                NULL);
 }
+
+#if defined(ENABLE_BROKER_AUTH)
+int scp_send_capabilities_request(struct trans *trans)
+{
+    return libipm_msg_out_simple_send(trans, E_SCP_CAPABILITIES_REQUEST, NULL);
+}
+int scp_send_capabilities_response(struct trans *trans, unsigned int capabilities)
+{
+    return libipm_msg_out_simple_send(trans, E_SCP_CAPABILITIES_RESPONSE,
+                                      "u", capabilities);
+}
+int scp_get_capabilities_response(struct trans *trans, unsigned int *capabilities)
+{
+    uint32_t value;
+    int rv = libipm_msg_in_parse(trans, "u", &value);
+    if (rv == 0)
+    {
+        *capabilities = value;
+    }
+    return rv;
+}
+int
+scp_send_broker_login_request_v1(struct trans *trans,
+                                 unsigned short profile_version,
+                                 unsigned short credential_kind,
+                                 const unsigned char *assertion,
+                                 unsigned int assertion_length,
+                                 const char *client_address,
+                                 const char *server_nonce,
+                                 const unsigned char correlation_id[SCP_BAF_CORRELATION_ID_BYTES])
+{
+    struct libipm_fsb assertion_desc = {(void *)assertion, assertion_length};
+    struct libipm_fsb correlation_desc = {(void *)correlation_id,
+        SCP_BAF_CORRELATION_ID_BYTES
+    };
+    int rv = libipm_msg_out_simple_send(trans, E_SCP_BROKER_LOGIN_REQUEST_V1,
+                                        "qquBssB", profile_version,
+                                        credential_kind,
+                                        assertion_length, &assertion_desc,
+                                        client_address == NULL ? "" : client_address,
+                                        server_nonce == NULL ? "" : server_nonce,
+                                        &correlation_desc);
+    libipm_msg_out_erase(trans);
+    return rv;
+}
+int
+scp_get_broker_login_request_v1(struct trans *trans,
+                                unsigned short *profile_version,
+                                unsigned short *credential_kind,
+                                unsigned char *assertion,
+                                unsigned int *assertion_length,
+                                const char **client_address,
+                                const char **server_nonce,
+                                unsigned char correlation_id[SCP_BAF_CORRELATION_ID_BYTES])
+{
+    uint16_t version;
+    uint16_t kind;
+    uint32_t wire_length;
+    struct libipm_fsb assertion_desc = {assertion, *assertion_length};
+    struct libipm_fsb correlation_desc = {correlation_id,
+               SCP_BAF_CORRELATION_ID_BYTES
+    };
+    int rv;
+    libipm_set_flags(trans, LIBIPM_E_MSG_IN_ERASE_AFTER_USE);
+    rv = libipm_msg_in_parse(trans, "qqu", &version, &kind, &wire_length);
+    if (rv == 0 && (wire_length == 0 || wire_length > *assertion_length ||
+                    wire_length > 65535U ||
+                    (kind != SCP_BROKER_CREDENTIAL_ASSERTION &&
+                     kind != SCP_BROKER_CREDENTIAL_HANDLE) ||
+                    (kind == SCP_BROKER_CREDENTIAL_HANDLE &&
+                     wire_length != SCP_BROKER_HANDLE_TEXT_LENGTH)))
+    {
+        rv = 1;
+    }
+    if (rv == 0)
+    {
+        assertion_desc.datalen = wire_length;
+        rv = libipm_msg_in_parse(trans, "BssB", &assertion_desc,
+                                 client_address, server_nonce,
+                                 &correlation_desc);
+    }
+    if (rv == 0 &&
+            strlen(*server_nonce) > SCP_BAF_MAX_SERVER_NONCE_BYTES)
+    {
+        rv = 1;
+    }
+    if (rv == 0)
+    {
+        *profile_version = version;
+        *credential_kind = kind;
+        *assertion_length = wire_length;
+    }
+    return rv;
+}
+#endif

@@ -24,6 +24,7 @@
 
 #include "libxrdp.h"
 #include "ms-rdpbcgr.h"
+#include "rdsaad.h"
 #include "log.h"
 #include "ssl_calls.h"
 #include "string_calls.h"
@@ -49,10 +50,19 @@ xrdp_rdp_read_config(const char *xrdp_ini, struct xrdp_client_info *client_info)
     int pos;
     char *tmp = NULL;
     int tmp_length;
+    int broker_auth_requested = 0;
 
     client_info->xrdp_keyboard_overrides.type = -1;
     client_info->xrdp_keyboard_overrides.subtype = -1;
     client_info->xrdp_keyboard_overrides.layout = -1;
+
+    client_info->broker_auth_reject_uid0 = 1;
+    client_info->broker_auth_allow_session_start = 0;
+    client_info->broker_auth_max_assertion_size = RDSAAD_MAX_ASSERTION_BYTES;
+    g_strncpy(client_info->broker_auth_provider, "jwt",
+              sizeof(client_info->broker_auth_provider) - 1);
+    g_strncpy(client_info->broker_auth_replay_backend, "service",
+              sizeof(client_info->broker_auth_replay_backend) - 1);
 
     /* initialize (zero out) local variables: */
     items = list_create();
@@ -144,6 +154,64 @@ xrdp_rdp_read_config(const char *xrdp_ini, struct xrdp_client_info *client_info)
         else if (g_strcasecmp(item, "enable_token_login") == 0)
         {
             client_info->enable_token_login = g_text2bool(value);
+        }
+        else if (g_strcasecmp(item, "broker_auth_enabled") == 0)
+        {
+            client_info->broker_auth_enabled = g_text2bool(value);
+            broker_auth_requested = 1;
+        }
+        else if (g_strcasecmp(item, "broker_auth_rdsaad_enabled") == 0 ||
+                 g_strcasecmp(item, "broker_auth_rdsad_enabled") == 0)
+        {
+            client_info->broker_auth_rdsaad_enabled = g_text2bool(value);
+            broker_auth_requested = 1;
+        }
+        else if (g_strcasecmp(item, "broker_auth_modec_ingress_enabled") == 0)
+        {
+            client_info->broker_auth_modec_ingress_enabled =
+                g_text2bool(value);
+        }
+        else if (g_strcasecmp(item, "broker_auth_provider") == 0)
+        {
+            g_strncpy(client_info->broker_auth_provider, value,
+                      sizeof(client_info->broker_auth_provider) - 1);
+        }
+        else if (g_strcasecmp(item, "broker_auth_trust_anchor") == 0)
+        {
+            g_strncpy(client_info->broker_auth_trust_anchor, value,
+                      sizeof(client_info->broker_auth_trust_anchor) - 1);
+        }
+        else if (g_strcasecmp(item, "broker_auth_expected_audience") == 0)
+        {
+            g_strncpy(client_info->broker_auth_expected_audience, value,
+                      sizeof(client_info->broker_auth_expected_audience) - 1);
+        }
+        else if (g_strcasecmp(item, "broker_auth_local_target") == 0)
+        {
+            g_strncpy(client_info->broker_auth_local_target, value,
+                      sizeof(client_info->broker_auth_local_target) - 1);
+        }
+        else if (g_strcasecmp(item, "broker_auth_replay_backend") == 0)
+        {
+            g_strncpy(client_info->broker_auth_replay_backend, value,
+                      sizeof(client_info->broker_auth_replay_backend) - 1);
+        }
+        else if (g_strcasecmp(item, "broker_auth_replay_socket") == 0)
+        {
+            g_strncpy(client_info->broker_auth_replay_socket, value,
+                      sizeof(client_info->broker_auth_replay_socket) - 1);
+        }
+        else if (g_strcasecmp(item, "broker_auth_max_assertion_size") == 0)
+        {
+            client_info->broker_auth_max_assertion_size = g_atoi(value);
+        }
+        else if (g_strcasecmp(item, "broker_auth_reject_uid0") == 0)
+        {
+            client_info->broker_auth_reject_uid0 = g_text2bool(value);
+        }
+        else if (g_strcasecmp(item, "broker_auth_allow_session_start") == 0)
+        {
+            client_info->broker_auth_allow_session_start = g_text2bool(value);
         }
         else if (g_strcasecmp(item, "use_fastpath") == 0)
         {
@@ -306,6 +374,26 @@ xrdp_rdp_read_config(const char *xrdp_ini, struct xrdp_client_info *client_info)
 
     list_delete(items);
     list_delete(values);
+
+    client_info->broker_auth_config_valid =
+        client_info->broker_auth_enabled &&
+        client_info->broker_auth_rdsaad_enabled &&
+        g_strcasecmp(client_info->broker_auth_provider, "jwt") == 0 &&
+        g_strcasecmp(client_info->broker_auth_replay_backend, "service") == 0 &&
+        client_info->broker_auth_trust_anchor[0] != '\0' &&
+        client_info->broker_auth_expected_audience[0] != '\0' &&
+        client_info->broker_auth_local_target[0] != '\0' &&
+        client_info->broker_auth_replay_socket[0] != '\0' &&
+        client_info->broker_auth_reject_uid0 &&
+        client_info->broker_auth_max_assertion_size > 0 &&
+        client_info->broker_auth_max_assertion_size <= RDSAAD_MAX_ASSERTION_BYTES;
+
+    if (broker_auth_requested && !client_info->broker_auth_config_valid)
+    {
+        LOG(LOG_LEVEL_WARNING,
+            "Broker-auth RDSAAD mode was requested but is incomplete or "
+            "invalid; RDSAAD negotiation will fail closed");
+    }
     return 0;
 }
 

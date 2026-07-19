@@ -67,6 +67,46 @@ struct xrdp_rdp;
 struct xrdp_orders;
 struct xrdp_process;
 
+
+#define XRDP_CALLBACK_RDSAAD_PREAUTH 0x52445041
+
+enum xrdp_rdsaad_preauth_status
+{
+    XRDP_RDSAAD_PREAUTH_AUTHORIZED = 0,
+    XRDP_RDSAAD_PREAUTH_DENIED,
+    XRDP_RDSAAD_PREAUTH_MALFORMED,
+    XRDP_RDSAAD_PREAUTH_REPLAY,
+    XRDP_RDSAAD_PREAUTH_CONFIG_ERROR,
+    XRDP_RDSAAD_PREAUTH_SERVICE_UNAVAILABLE,
+    XRDP_RDSAAD_PREAUTH_INTERNAL_ERROR
+};
+
+enum xrdp_broker_credential_kind
+{
+    /* assertion holds a raw compact JWS BAF assertion */
+    XRDP_BROKER_CREDENTIAL_ASSERTION = 0,
+    /* assertion holds a single-use Broker-RDP Handle; the real assertion
+     * stays server-side in the trusted handle service */
+    XRDP_BROKER_CREDENTIAL_HANDLE = 1
+};
+
+struct xrdp_rdsaad_preauth_request
+{
+    const unsigned char *assertion;
+    unsigned int assertion_length;
+    const char *client_address;
+    const char *local_target;
+    const char *server_nonce;
+    enum xrdp_broker_credential_kind credential_kind;
+};
+
+struct xrdp_rdsaad_preauth_response
+{
+    enum xrdp_rdsaad_preauth_status status;
+    int uid;
+    char username[256];
+};
+
 struct xrdp_session
 {
     struct xrdp_process *id;

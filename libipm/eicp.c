@@ -45,6 +45,9 @@ msgno_to_str(unsigned short n)
 
         (n == E_EICP_CREATE_SESSION_REQUEST) ? "EICP_CREATE_SESSION_REQUEST" :
         (n == E_EICP_CREATE_SESSION_RESPONSE) ? "EICP_CREATE_SESSION_RESPONSE" :
+#if defined(ENABLE_BROKER_AUTH)
+        (n == E_EICP_BROKER_LOGIN_REQUEST_V1) ? "EICP_BROKER_LOGIN_REQUEST_V1" :
+#endif
 
         NULL;
 }
@@ -384,3 +387,68 @@ eicp_get_create_session_response(struct trans *trans,
 
     return rv;
 }
+
+#if defined(ENABLE_BROKER_AUTH)
+int
+eicp_send_broker_login_request_v1(struct trans *trans,
+                                  unsigned short profile_version,
+                                  unsigned short credential_kind,
+                                  const unsigned char *assertion,
+                                  unsigned int assertion_length,
+                                  const char *client_address,
+                                  const char *server_nonce,
+                                  const unsigned char correlation_id[16],
+                                  int scp_fd)
+{
+    struct libipm_fsb assertion_desc = {(void *)assertion, assertion_length};
+    struct libipm_fsb correlation_desc = {(void *)correlation_id, 16};
+    int rv = libipm_msg_out_simple_send(trans, E_EICP_BROKER_LOGIN_REQUEST_V1,
+                                        "qquBssBh", profile_version,
+                                        credential_kind,
+                                        assertion_length, &assertion_desc,
+                                        client_address == NULL ? "" : client_address,
+                                        server_nonce == NULL ? "" : server_nonce,
+                                        &correlation_desc, scp_fd);
+    libipm_msg_out_erase(trans);
+    return rv;
+}
+int
+eicp_get_broker_login_request_v1(struct trans *trans,
+                                 unsigned short *profile_version,
+                                 unsigned short *credential_kind,
+                                 unsigned char *assertion,
+                                 unsigned int *assertion_length,
+                                 const char **client_address,
+                                 const char **server_nonce,
+                                 unsigned char correlation_id[16],
+                                 int *scp_fd)
+{
+    uint16_t version;
+    uint16_t kind;
+    uint32_t wire_length;
+    struct libipm_fsb assertion_desc = {assertion, *assertion_length};
+    struct libipm_fsb correlation_desc = {correlation_id, 16};
+    int rv;
+    libipm_set_flags(trans, LIBIPM_E_MSG_IN_ERASE_AFTER_USE);
+    rv = libipm_msg_in_parse(trans, "qqu", &version, &kind, &wire_length);
+    if (rv == 0 && (wire_length == 0 || wire_length > *assertion_length ||
+                    wire_length > 65535U))
+    {
+        rv = 1;
+    }
+    if (rv == 0)
+    {
+        assertion_desc.datalen = wire_length;
+        rv = libipm_msg_in_parse(trans, "BssBh", &assertion_desc,
+                                 client_address, server_nonce,
+                                 &correlation_desc, scp_fd);
+    }
+    if (rv == 0)
+    {
+        *profile_version = version;
+        *credential_kind = kind;
+        *assertion_length = wire_length;
+    }
+    return rv;
+}
+#endif

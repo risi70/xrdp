@@ -40,6 +40,9 @@
 #include "sesman_access.h"
 #include "sesman_auth.h"
 #include "sesman_config.h"
+#if defined(ENABLE_BROKER_AUTH)
+#include "baf_runtime_config.h"
+#endif
 #include "os_calls.h"
 #include "set_int.h"
 #include "scp_list.h"
@@ -47,6 +50,19 @@
 #include "sesexec_control.h"
 #include "string_calls.h"
 #include "xrdp_sockets.h"
+
+
+#if defined(ENABLE_BROKER_AUTH)
+static void
+secure_erase_bytes(char *data, size_t length)
+{
+    volatile char *p = data;
+    while (length-- > 0)
+    {
+        *p++ = 0;
+    }
+}
+#endif
 
 /******************************************************************************/
 
@@ -159,6 +175,95 @@ process_sys_login_request(struct scp_list_item *sli)
 }
 
 /******************************************************************************/
+
+
+#if defined(ENABLE_BROKER_AUTH)
+/******************************************************************************/
+static int
+process_broker_login_request(struct scp_list_item *sli)
+{
+    unsigned short profile_version;
+    unsigned short credential_kind;
+    unsigned char assertion[BAF_RUNTIME_MAX_ASSERTION_BYTES];
+    unsigned int assertion_length = g_cfg->baf.max_assertion_size;
+    const char *client_address = NULL;
+    const char *server_nonce = NULL;
+    unsigned char correlation_id[SCP_BAF_CORRELATION_ID_BYTES];
+    enum scp_login_status errorcode = E_SCP_LOGIN_GENERAL_ERROR;
+    int send_client_reply = 1;
+    int rv;
+
+    if (assertion_length == 0 ||
+            assertion_length > BAF_RUNTIME_MAX_ASSERTION_BYTES)
+    {
+        assertion_length = BAF_RUNTIME_MAX_ASSERTION_BYTES;
+    }
+
+    rv = scp_get_broker_login_request_v1(sli->client_trans,
+                                         &profile_version, &credential_kind,
+                                         assertion, &assertion_length,
+                                         &client_address, &server_nonce,
+                                         correlation_id);
+    if (rv == 0)
+    {
+        /* Handle credentials gate on Broker-RDP Handle config; raw assertions gate
+         * on the RDSAAD live config. Both fail closed. */
+        enum baf_runtime_config_status config_status =
+            credential_kind == SCP_BROKER_CREDENTIAL_HANDLE ?
+            baf_runtime_config_validate_mode_c(&g_cfg->baf) :
+            baf_runtime_config_validate_live(&g_cfg->baf);
+
+        if (config_status != BAF_RUNTIME_CONFIG_OK)
+        {
+            LOG(LOG_LEVEL_WARNING,
+                "Rejected BAF preauth request because trusted live config is disabled");
+            errorcode = E_SCP_LOGIN_NOT_AUTHORIZED;
+        }
+        else if (sli->login_state != E_SLI_LOGIN_NOT_LOGGED_IN)
+        {
+            errorcode = E_SCP_LOGIN_ALREADY_LOGGED_IN;
+        }
+        else
+        {
+            g_snprintf(sli->start_ip_addr, sizeof(sli->start_ip_addr),
+                       "%s", client_address == NULL ? "" : client_address);
+            if (sesexec_start(sli) != 0)
+            {
+                LOG(LOG_LEVEL_ERROR,
+                    "Can't start sesexec to authorize BAF preauth");
+                errorcode = E_SCP_LOGIN_GENERAL_ERROR;
+            }
+            else if (eicp_send_broker_login_request_v1(
+                         sli->sesexec_trans, profile_version,
+                         credential_kind,
+                         assertion, assertion_length, client_address,
+                         server_nonce, correlation_id,
+                         sli->client_trans->sck) != 0)
+            {
+                LOG(LOG_LEVEL_ERROR,
+                    "Can't ask sesexec to authorize BAF preauth");
+                errorcode = E_SCP_LOGIN_GENERAL_ERROR;
+            }
+            else
+            {
+                send_client_reply = 0;
+                sli->broker_login_in_progress = 1;
+                sli->dispatcher_action = E_SLD_REMOVE_CLIENT_TRANS;
+            }
+        }
+
+        if (send_client_reply)
+        {
+            rv = scp_send_login_response(sli->client_trans, errorcode, 1, -1);
+            sli->dispatcher_action = E_SLD_TERMINATE_SCP_CONN;
+        }
+    }
+
+    secure_erase_bytes((char *)assertion, sizeof(assertion));
+    secure_erase_bytes((char *)correlation_id, sizeof(correlation_id));
+    return rv;
+}
+#endif
 
 /**
  * Authenticate and authorize a UDS connection
@@ -773,6 +878,12 @@ scp_process(struct scp_list_item *sli)
         case E_SCP_SYS_LOGIN_REQUEST:
             rv = process_sys_login_request(sli);
             break;
+
+#if defined(ENABLE_BROKER_AUTH)
+        case E_SCP_BROKER_LOGIN_REQUEST_V1:
+            rv = process_broker_login_request(sli);
+            break;
+#endif
 
         case E_SCP_UDS_LOGIN_REQUEST:
             rv = process_uds_login_request(sli);

@@ -1,0 +1,11 @@
+# Example gateway skeleton config. Not production-ready.
+
+listen: 127.0.0.1:9443
+xrdp_host: ubuntu-vdi-01.example.test
+xrdp_port: 3389
+require_rdsaad: true
+tls_verify_xrdp: true
+trusted_broker_issuer: https://broker.example.test
+max_assertion_size: 8192
+log_raw_assertions: false
+allow_username_password_assertion_fallback: false

@@ -1,0 +1,2 @@
+-r ../../reference-issuer/requirements.txt
+pytest>=7.0

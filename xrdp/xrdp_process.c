@@ -24,7 +24,149 @@
 
 #include "xrdp.h"
 
+#if defined(ENABLE_BROKER_AUTH)
+#include "rdsaad.h"
+#include "scp.h"
+#include "string_calls.h"
+#endif
+
+
+#if defined(ENABLE_BROKER_AUTH)
+static void
+secure_erase_bytes(char *data, size_t length)
+{
+    volatile char *p = data;
+    while (length-- > 0)
+    {
+        *p++ = 0;
+    }
+}
+#endif
+
 static int g_session_id = 0;
+
+
+#if defined(ENABLE_BROKER_AUTH)
+static void
+xrdp_process_get_sesman_port(char *port, int port_bytes)
+{
+    int fd;
+    int index;
+    char cfg_file[256];
+    struct list *names;
+    struct list *values;
+
+    strlcpy(port, "3350", port_bytes);
+    g_snprintf(cfg_file, sizeof(cfg_file), "%s/sesman.ini", XRDP_CFG_PATH);
+    fd = g_file_open_ro(cfg_file);
+    if (fd < 0)
+    {
+        return;
+    }
+
+    names = list_create();
+    values = list_create();
+    names->auto_free = 1;
+    values->auto_free = 1;
+    if (file_read_section(fd, "Globals", names, values) == 0)
+    {
+        for (index = 0; index < names->count; ++index)
+        {
+            const char *name = (const char *)list_get_item(names, index);
+            const char *value = (const char *)list_get_item(values, index);
+            int port_value;
+
+            if (name != NULL && value != NULL &&
+                    g_strcasecmp(name, "ListenPort") == 0)
+            {
+                port_value = g_atoi(value);
+                if (port_value > 0 && port_value < 65000)
+                {
+                    strlcpy(port, value, port_bytes);
+                }
+                break;
+            }
+        }
+    }
+    list_delete(names);
+    list_delete(values);
+    g_file_close(fd);
+}
+
+int
+xrdp_process_rdsaad_preauth(struct xrdp_process *self,
+                            const struct xrdp_rdsaad_preauth_request *request,
+                            struct xrdp_rdsaad_preauth_response *response)
+{
+    struct trans *sesman_trans;
+    char port[128];
+    unsigned char correlation_id[SCP_BAF_CORRELATION_ID_BYTES];
+    enum scp_login_status login_result;
+    int server_closed;
+    int uid;
+    int rv = 1;
+
+    if (self == NULL || request == NULL || response == NULL ||
+            request->assertion == NULL || request->assertion_length == 0 ||
+            request->assertion_length > RDSAAD_MAX_ASSERTION_BYTES ||
+            (request->credential_kind == XRDP_BROKER_CREDENTIAL_HANDLE &&
+             request->assertion_length != SCP_BROKER_HANDLE_TEXT_LENGTH) ||
+            (request->credential_kind != XRDP_BROKER_CREDENTIAL_ASSERTION &&
+             request->credential_kind != XRDP_BROKER_CREDENTIAL_HANDLE) ||
+            self->baf_preauth_authorized)
+    {
+        if (response != NULL)
+        {
+            response->status = XRDP_RDSAAD_PREAUTH_MALFORMED;
+        }
+        return 1;
+    }
+
+    g_random((char *)correlation_id, sizeof(correlation_id));
+    xrdp_process_get_sesman_port(port, sizeof(port));
+    sesman_trans = scp_connect(port, "xrdp-rdsaad", g_is_term);
+    if (sesman_trans == NULL)
+    {
+        response->status = XRDP_RDSAAD_PREAUTH_SERVICE_UNAVAILABLE;
+        return 1;
+    }
+
+    if (scp_send_broker_login_request_v1(sesman_trans, 1,
+                                         (unsigned short)request->credential_kind,
+                                         request->assertion,
+                                         request->assertion_length,
+                                         request->client_address,
+                                         request->server_nonce,
+                                         correlation_id) != 0 ||
+            scp_msg_in_wait_available(sesman_trans) != 0 ||
+            scp_msg_in_get_msgno(sesman_trans) != E_SCP_LOGIN_RESPONSE ||
+            scp_get_login_response(sesman_trans, &login_result,
+                                   &server_closed, &uid) != 0)
+    {
+        response->status = XRDP_RDSAAD_PREAUTH_INTERNAL_ERROR;
+        goto out;
+    }
+
+    if (login_result != E_SCP_LOGIN_OK)
+    {
+        response->status = XRDP_RDSAAD_PREAUTH_DENIED;
+        goto out;
+    }
+
+    self->baf_preauth_sesman_trans = sesman_trans;
+    self->baf_preauth_uid = uid;
+    self->baf_preauth_authorized = 1;
+    response->status = XRDP_RDSAAD_PREAUTH_AUTHORIZED;
+    response->uid = (int)uid;
+    rv = 0;
+    sesman_trans = NULL;
+
+out:
+    trans_delete(sesman_trans);
+    secure_erase_bytes((char *)correlation_id, sizeof(correlation_id));
+    return rv;
+}
+#endif
 
 /*****************************************************************************/
 /* always called from xrdp_listen thread */
@@ -59,6 +201,9 @@ xrdp_process_delete(struct xrdp_process *self)
     g_delete_wait_obj(self->self_term_event);
     libxrdp_exit(self->session);
     xrdp_wm_delete(self->wm);
+#if defined(ENABLE_BROKER_AUTH)
+    trans_delete(self->baf_preauth_sesman_trans);
+#endif
     trans_delete(self->server_trans);
     g_free(self);
 }

@@ -39,6 +39,22 @@
 #include "sesexec.h"
 #include "sesexec_discover.h"
 #include "session.h"
+#if defined(ENABLE_BROKER_AUTH)
+#include "baf_runtime_config.h"
+#endif
+
+
+#if defined(ENABLE_BROKER_AUTH)
+static void
+secure_erase_bytes(char *data, size_t length)
+{
+    volatile char *p = data;
+    while (length-- > 0)
+    {
+        *p++ = 0;
+    }
+}
+#endif
 
 /******************************************************************************/
 static int
@@ -132,6 +148,69 @@ handle_uds_login_request(struct trans *self)
 }
 
 /******************************************************************************/
+
+#if defined(ENABLE_BROKER_AUTH)
+/******************************************************************************/
+static int
+handle_broker_login_request(struct trans *self)
+{
+    unsigned short profile_version;
+    unsigned short credential_kind;
+    unsigned char assertion[BAF_RUNTIME_MAX_ASSERTION_BYTES];
+    unsigned int assertion_length = BAF_RUNTIME_MAX_ASSERTION_BYTES;
+    const char *client_address = NULL;
+    const char *server_nonce = NULL;
+    unsigned char correlation_id[16];
+    int scp_fd;
+    int rv;
+
+    rv = eicp_get_broker_login_request_v1(self, &profile_version,
+                                          &credential_kind,
+                                          assertion, &assertion_length,
+                                          &client_address, &server_nonce,
+                                          correlation_id, &scp_fd);
+    if (rv == 0)
+    {
+        struct trans *scp_trans;
+        scp_trans = scp_init_trans_from_fd(scp_fd, TRANS_TYPE_SERVER,
+                                           sesexec_is_term);
+        if (scp_trans == NULL)
+        {
+            LOG(LOG_LEVEL_ERROR, "Can't create SCP trans for BAF preauth");
+            g_file_close(scp_fd);
+            rv = 1;
+        }
+        else
+        {
+            if (g_login_info != NULL)
+            {
+                LOG(LOG_LEVEL_WARNING,
+                    "Asked to BAF preauth when a login has already been made");
+                login_info_free(g_login_info);
+            }
+            g_login_info = login_info_baf_preauth_user(scp_trans,
+                           credential_kind,
+                           assertion, assertion_length, client_address,
+                           server_nonce);
+            if (g_login_info != NULL)
+            {
+                rv = eicp_send_sys_login_response(self, 1,
+                                                  g_login_info->uid, scp_fd);
+            }
+            else
+            {
+                rv = eicp_send_sys_login_response(self, 0, (uid_t) -1, 0);
+            }
+            trans_delete(scp_trans);
+        }
+    }
+
+    secure_erase_bytes((char *)assertion, sizeof(assertion));
+    secure_erase_bytes((char *)correlation_id, sizeof(correlation_id));
+    return rv;
+}
+#endif
+
 static int
 handle_logout_request(struct trans *self)
 {
@@ -244,6 +323,12 @@ eicp_server(struct trans *self)
         case E_EICP_UDS_LOGIN_REQUEST:
             rv = handle_uds_login_request(self);
             break;
+
+#if defined(ENABLE_BROKER_AUTH)
+        case E_EICP_BROKER_LOGIN_REQUEST_V1:
+            rv = handle_broker_login_request(self);
+            break;
+#endif
 
         case E_EICP_LOGOUT_REQUEST:
             rv = handle_logout_request(self);

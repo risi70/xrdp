@@ -86,6 +86,17 @@ AC_ARG_ENABLE(pam, AS_HELP_STRING([--enable-pam],
               [Build PAM support (default: yes)]),
               [], [enable_pam=yes])
 AM_CONDITIONAL(SESMAN_NOPAM, [test x$enable_pam != xyes])
+AC_ARG_ENABLE(broker-auth,
+              AS_HELP_STRING([--enable-broker-auth],
+              [Build the BAF JWT assertion validator (default: no)]),
+              [], [enable_broker_auth=no])
+AM_CONDITIONAL(ENABLE_BROKER_AUTH,
+               [test x$enable_broker_auth = xyes])
+AS_IF([test x$enable_broker_auth = xyes],
+      [PKG_CHECK_MODULES([BROKER_AUTH], [libjwt >= 1.15 jansson >= 2.7], [],
+         [AC_MSG_ERROR([broker authentication requires libjwt-dev and libjansson-dev])])
+       AC_DEFINE([ENABLE_BROKER_AUTH], [1],
+                 [Build the BAF JWT assertion validator])])
 AC_ARG_ENABLE(vsock, AS_HELP_STRING([--enable-vsock],
               [Build AF_VSOCK support (default: no)]),
               [], [enable_vsock=no])
@@ -659,10 +670,12 @@ AC_CONFIG_FILES([
   sesman/sesexec/Makefile
   sesman/tools/Makefile
   tests/Makefile
+  tests/baf/Makefile
   tests/common/Makefile
   tests/libipm/Makefile
   tests/libxrdp/Makefile
   tests/memtest/Makefile
+  tests/sesman/Makefile
   tests/xrdp/Makefile
   tools/Makefile
   tools/devel/Makefile

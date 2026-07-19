@@ -34,6 +34,7 @@
 #define PROTOCOL_HYBRID                0x00000002
 #define PROTOCOL_RDSTLS                0x00000004
 #define PROTOCOL_HYBRID_EX             0x00000008
+#define PROTOCOL_RDSAAD                0x00000010
 
 /* Negotiation request packet flags (2.2.1.1.1) */
 #define RESTRICTED_ADMIN_MODE_REQUIRED          0x00000001

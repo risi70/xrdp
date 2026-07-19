@@ -1,0 +1,34 @@
+flowchart TB
+  subgraph Untrusted["TB-1 Untrusted client"]
+    C[RDP client / assertion holder]
+  end
+  subgraph Issuer["TB-2 Broker and identity control plane"]
+    B[Broker issuer]
+    K[Keycloak]
+    D[LDAP / AD / FreeIPA]
+  end
+  subgraph Front["TB-3 Unprivileged XRDP"]
+    X[xrdp]
+  end
+  subgraph Control["TB-4 sesman control"]
+    S[xrdp-sesman]
+  end
+  subgraph Priv["TB-5 Privileged validation/login"]
+    E[xrdp-sesexec]
+    V[BAF validator]
+    R[(Replay state)]
+  end
+  subgraph Identity["TB-6 Local identity/policy"]
+    N[NSS/SSSD]
+    P[PAM]
+  end
+  subgraph Session["TB-7 User session"]
+    L[Display + WM + chansrv]
+  end
+  C --> X --> S --> E
+  B --> C
+  B --> K --> D
+  E --> V --> R
+  E --> N --> D
+  E --> P --> N
+  E --> L

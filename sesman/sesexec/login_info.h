@@ -84,6 +84,16 @@ login_info_sys_login_user(struct trans *scp_trans,
 struct login_info *
 login_info_uds_login_user(struct trans *scp_trans);
 
+#if defined(ENABLE_BROKER_AUTH)
+struct login_info *
+login_info_baf_preauth_user(struct trans *scp_trans,
+                            unsigned short credential_kind,
+                            const unsigned char *assertion,
+                            unsigned int assertion_length,
+                            const char *client_address,
+                            const char *server_nonce);
+#endif
+
 /**
  * Free a struct login_info
  */

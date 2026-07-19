@@ -41,7 +41,8 @@ enum sli_login_state
 {
     E_SLI_LOGIN_NOT_LOGGED_IN = 0,
     E_SLI_LOGIN_SYS,
-    E_SLI_LOGIN_UDS
+    E_SLI_LOGIN_UDS,
+    E_SLI_LOGIN_BAF
 };
 
 /**
@@ -86,6 +87,7 @@ struct scp_list_item
     char start_ip_addr[MAX_PEER_ADDRSTRLEN];
     char xrdp_instance_name[MAX_XRDP_INSTANCE_NAMELEN]; ///< Instance name associated with session
     int is_admin;
+    int broker_login_in_progress; ///< Handling a broker preauth login
     int create_session_in_progress; ///< Already handling a create_session
     /// X11 display allocated for session (-1 if N/A)
     int session_x11_display;

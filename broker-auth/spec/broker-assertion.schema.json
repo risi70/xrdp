@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xrdp.example/spec/baf-assertion-1.0.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "iss",
+    "aud",
+    "sub",
+    "preferred_username",
+    "groups",
+    "roles",
+    "auth_method",
+    "assurance_level",
+    "broker_session_id",
+    "target",
+    "iat",
+    "nbf",
+    "exp",
+    "jti",
+    "device_trust"
+  ],
+  "properties": {
+    "iss": {
+      "type": "string",
+      "format": "uri",
+      "minLength": 1
+    },
+    "aud": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      ]
+    },
+    "sub": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255
+    },
+    "preferred_username": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255,
+      "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+    },
+    "groups": {
+      "type": "array",
+      "maxItems": 256,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 255
+      }
+    },
+    "roles": {
+      "type": "array",
+      "maxItems": 256,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 255
+      }
+    },
+    "auth_method": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 64
+      }
+    },
+    "assurance_level": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255
+    },
+    "broker_session_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255
+    },
+    "target": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255
+    },
+    "iat": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "nbf": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "exp": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "jti": {
+      "type": "string",
+      "minLength": 16,
+      "maxLength": 255
+    },
+    "device_trust": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "trusted",
+            "untrusted",
+            "unknown"
+          ]
+        },
+        "device_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "provider": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "evaluated_at": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "evidence": {
+          "type": "object"
+        }
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "format": "uri"
+      },
+      "additionalProperties": true
+    }
+  }
+}

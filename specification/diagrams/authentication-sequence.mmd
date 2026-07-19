@@ -1,0 +1,25 @@
+sequenceDiagram
+  participant C as Client
+  participant B as Broker
+  participant K as Keycloak
+  participant X as xrdp
+  participant S as sesman
+  participant E as sesexec
+  participant V as Validator/replay
+  participant N as NSS/SSSD
+  participant P as PAM
+  B->>K: Authenticate user (OIDC)
+  K-->>B: Identity + auth context
+  B-->>C: Signed target-bound BAF assertion
+  C->>X: RDP TLS + assertion
+  X->>S: SCP broker login
+  S->>E: EICP broker login
+  E->>V: Validate and reserve JTI
+  V-->>E: Opaque validated capability
+  E->>N: Forward and reverse identity lookup
+  N-->>E: UID + canonical username
+  E->>P: pam_start + pam_acct_mgmt
+  P-->>E: Account accepted
+  E->>P: pam_setcred + pam_open_session
+  E->>E: Existing session_start
+  E-->>C: Desktop session

@@ -47,6 +47,19 @@ struct auth_info *
 auth_userpass(const char *user, const char *pass,
               const char *client_ip, enum scp_login_status *errorcode);
 
+
+/**
+ * Creates an authentication handle for a locally validated broker identity.
+ *
+ * PAM builds skip only pam_authenticate(). Account management remains
+ * mandatory, and auth_start_session()/auth_end() retain credential and
+ * session open/close ownership. Non-PAM authentication modules fail closed.
+ */
+struct auth_info *
+auth_prevalidated_broker(const char *user,
+                         const char *client_ip,
+                         enum scp_login_status *errorcode);
+
 /**
  *
  * @brief Gets an auth handle for a UDS login

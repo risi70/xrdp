@@ -57,6 +57,7 @@ protocol_mask_to_str(int protocol, char *buff, int bufflen)
         { PROTOCOL_HYBRID, "HYBRID" },
         { PROTOCOL_RDSTLS, "RDSTLS" },
         { PROTOCOL_HYBRID_EX, "HYBRID_EX"},
+        { PROTOCOL_RDSAAD, "RDSAAD"},
         BITMASK_STRING_END_OF_LIST
     };
 
@@ -127,6 +128,12 @@ xrdp_iso_negotiate_security(struct xrdp_iso *self)
     {
         security_type_mask = PROTOCOL_SSL;
     }
+#if defined(ENABLE_BROKER_AUTH)
+    if (client_info->broker_auth_config_valid)
+    {
+        security_type_mask |= PROTOCOL_RDSAAD;
+    }
+#endif
     /* But VMConnect mode supports everything. */
     if (client_info->vmconnect)
     {
@@ -140,7 +147,22 @@ xrdp_iso_negotiate_security(struct xrdp_iso *self)
         protostr);
     security_type_mask &= self->requestedProtocol;
 
-    if (security_type_mask & PROTOCOL_HYBRID_EX)
+    if ((self->requestedProtocol & PROTOCOL_RDSAAD) != 0 &&
+            (security_type_mask & PROTOCOL_RDSAAD) == 0)
+    {
+        LOG(LOG_LEVEL_ERROR,
+            "Client requested RDSAAD security, but broker-auth RDSAAD "
+            "mode is not runtime-enabled with valid configuration");
+        self->failureCode = SSL_WITH_USER_AUTH_REQUIRED_BY_SERVER;
+        rv = 1;
+    }
+    else if (security_type_mask & PROTOCOL_RDSAAD)
+    {
+        LOG(LOG_LEVEL_INFO, "Selected RDSAAD security");
+        self->selectedProtocol = PROTOCOL_RDSAAD;
+        got_protocol = 1;
+    }
+    else if (security_type_mask & PROTOCOL_HYBRID_EX)
     {
         /* Currently supported by VMConnect mode only */
         LOG(LOG_LEVEL_INFO, "Selected HYBRID_EX security");
@@ -259,14 +281,16 @@ xrdp_iso_process_rdp_neg_req(struct xrdp_iso *self, struct stream *s)
 
     in_uint32_le(s, self->requestedProtocol); /* requestedProtocols */
 
-    /* TODO: why is requestedProtocols flag value bigger than 0xb invalid? */
-    if (self->requestedProtocol > 0xb)
+    if ((self->requestedProtocol & ~(PROTOCOL_SSL | PROTOCOL_HYBRID |
+                                     PROTOCOL_RDSTLS | PROTOCOL_HYBRID_EX |
+                                     PROTOCOL_RDSAAD)) != 0)
     {
         LOG(LOG_LEVEL_ERROR,
             "Unknown requested protocol flag [MS-RDPBCGR] RDP_NEG_REQ, "
             "requestedProtocol 0x%8.8x", self->requestedProtocol);
         return 1;
     }
+
     LOG_DEVEL(LOG_LEVEL_TRACE, "Received struct [MS-RDPBCGR] RDP_NEG_REQ "
               "flags 0x%2.2x, length 8, requestedProtocol 0x%8.8x",
               flags, self->requestedProtocol);
@@ -504,7 +528,61 @@ xrdp_iso_send_cc(struct xrdp_iso *self)
  * - If the optional cookie field is present it MUST be ignored.
  * - If both the routingToken and cookie fields are present, the server
  *   SHOULD continue with the connection.
+ *
+ * Broker-RDP Handle ingress is a configuration-gated exception to the
+ * "MUST be ignored" rules above: a routing token of the exact form
+ * "Cookie: msts=<64 lowercase hex>" is captured as a single-use broker
+ * handle for the post-TLS pre-MCS authorization hook.
  *****************************************************************************/
+
+#if defined(ENABLE_BROKER_AUTH)
+/*****************************************************************************/
+static void
+xrdp_iso_capture_broker_handle(struct xrdp_iso *self,
+                               const char *token_line,
+                               unsigned int token_length)
+{
+    static const char prefix[] = "Cookie: msts=";
+    const struct xrdp_client_info *client_info =
+        &(self->mcs_layer->sec_layer->rdp_layer->client_info);
+    const char *handle;
+    unsigned int i;
+
+    if (!client_info->broker_auth_enabled ||
+            !client_info->broker_auth_modec_ingress_enabled ||
+            self->broker_handle[0] != '\0')
+    {
+        return;
+    }
+    /* Strip the trailing CR left by the line reader */
+    if (token_length > 0 && token_line[token_length - 1] == 0x0D)
+    {
+        --token_length;
+    }
+    if (token_length != sizeof(prefix) - 1 + XRDP_BROKER_HANDLE_TEXT_LENGTH ||
+            g_memcmp((const void *)token_line, (const void *)prefix,
+                     sizeof(prefix) - 1) != 0)
+    {
+        return;
+    }
+    handle = token_line + sizeof(prefix) - 1;
+    for (i = 0; i < XRDP_BROKER_HANDLE_TEXT_LENGTH; ++i)
+    {
+        char c = handle[i];
+        if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f')))
+        {
+            return;
+        }
+    }
+    g_memcpy(self->broker_handle, handle, XRDP_BROKER_HANDLE_TEXT_LENGTH);
+    self->broker_handle[XRDP_BROKER_HANDLE_TEXT_LENGTH] = '\0';
+    LOG(LOG_LEVEL_INFO,
+        "Captured Broker-RDP Handle from X.224 routing token");
+}
+#else
+#define xrdp_iso_capture_broker_handle(self, token_line, token_length)
+#endif
+
 /* returns error */
 int
 xrdp_iso_incoming(struct xrdp_iso *self)
@@ -591,13 +669,31 @@ xrdp_iso_incoming(struct xrdp_iso *self)
                           "(all fields ignored)");
                 break;
             case 'C': /* Cookie or routingToken */
+            {
                 /* The routingToken and cookie fields are both ASCII
                  * strings starting with the word 'Cookie: ' and
-                 * ending with CR+LF. We ignore both, so we do
-                 * not need to distinguish them  */
+                 * ending with CR+LF. Both are normally ignored, but when
+                 * Broker-RDP Handle ingress is enabled a token that strictly
+                 * parses as a single-use broker handle is captured for
+                 * the post-TLS pre-MCS authorization hook. */
+                char token_line[256];
+                unsigned int token_length = 0;
+                int token_overflow = 0;
+
+                token_line[0] = 'C';
+                ++token_length;
                 while (s_check_rem(s, 1))
                 {
                     in_uint8(s, cc_type);
+                    if (token_length < sizeof(token_line) - 1)
+                    {
+                        token_line[token_length] = (char)cc_type;
+                        ++token_length;
+                    }
+                    else
+                    {
+                        token_overflow = 1;
+                    }
                     if (cc_type == 0x0D && s_check_rem(s, 1))
                     {
                         in_uint8(s, cc_type);
@@ -605,12 +701,27 @@ xrdp_iso_incoming(struct xrdp_iso *self)
                         {
                             break;
                         }
+                        if (token_length < sizeof(token_line) - 1)
+                        {
+                            token_line[token_length] = (char)cc_type;
+                            ++token_length;
+                        }
+                        else
+                        {
+                            token_overflow = 1;
+                        }
                     }
                 }
+                token_line[token_length] = '\0';
+                if (!token_overflow)
+                {
+                    xrdp_iso_capture_broker_handle(self, token_line,
+                                                   token_length);
+                }
                 LOG_DEVEL(LOG_LEVEL_TRACE,
-                          "Received struct [MS-RDPBCGR] routingToken or cookie "
-                          "(ignored)");
-                break;
+                          "Received struct [MS-RDPBCGR] routingToken or cookie");
+            }
+            break;
         }
     }
 

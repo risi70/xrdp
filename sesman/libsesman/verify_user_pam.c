@@ -362,6 +362,37 @@ auth_userpass(const char *user, const char *pass,
     return auth_info;
 }
 
+
+/******************************************************************************/
+struct auth_info *
+auth_prevalidated_broker(const char *user,
+                         const char *client_ip,
+                         enum scp_login_status *errorcode)
+{
+    struct auth_info *auth_info;
+    enum scp_login_status status;
+
+    auth_info = g_new0(struct auth_info, 1);
+    if (auth_info == NULL)
+    {
+        status = E_SCP_LOGIN_NO_MEMORY;
+    }
+    else
+    {
+        status = common_pam_login(auth_info, user, NULL, client_ip, 0);
+        if (status != E_SCP_LOGIN_OK)
+        {
+            g_free(auth_info);
+            auth_info = NULL;
+        }
+    }
+    if (errorcode != NULL)
+    {
+        *errorcode = status;
+    }
+    return auth_info;
+}
+
 /******************************************************************************/
 
 struct auth_info *

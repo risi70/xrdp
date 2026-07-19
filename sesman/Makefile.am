@@ -14,6 +14,14 @@ AM_CPPFLAGS = \
 sbin_PROGRAMS = \
   xrdp-sesman
 
+if ENABLE_BROKER_AUTH
+sbin_PROGRAMS += xrdp-baf-replayd xrdp-baf-handled
+xrdp_baf_replayd_SOURCES = baf_replayd.c
+xrdp_baf_replayd_LDADD = $(top_builddir)/sesman/libsesman/libsesman.la
+xrdp_baf_handled_SOURCES = baf_handled.c
+xrdp_baf_handled_LDADD = $(top_builddir)/sesman/libsesman/libsesman.la
+endif
+
 xrdp_sesman_SOURCES = \
   display_utils.c \
   display_utils.h \

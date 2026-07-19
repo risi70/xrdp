@@ -40,6 +40,20 @@ AM_CPPFLAGS = \
 module_LTLIBRARIES = \
   libsesman.la
 
+if ENABLE_BROKER_AUTH
+AM_CPPFLAGS += $(BROKER_AUTH_CFLAGS)
+BROKER_AUTH_SOURCES = \
+  auth_provider.c \
+  auth_provider_null.c \
+  auth_provider_jwt.c \
+  baf_authorization.c \
+  baf_handle_service.c \
+  baf_identity.c \
+  baf_transport.c \
+  replay_cache.c \
+  replay_cache_service.c
+endif
+
 # Possible authentication modules
 # See https://www.gnu.org/software/automake/manual/html_node/Conditional-Sources.html
 EXTRA_libsesman_la_SOURCES = \
@@ -51,6 +65,20 @@ EXTRA_libsesman_la_SOURCES = \
 libsesman_la_DEPENDENCIES = $(AUTHMOD_OBJ)
 
 libsesman_la_SOURCES = \
+  auth_provider.h \
+  auth_provider_jwt.h \
+  auth_provider_jwt_private.h \
+  auth_provider_null.h \
+  auth_provider_private.h \
+  baf_identity.h \
+  baf_handle_service.h \
+  baf_runtime_config.c \
+  baf_runtime_config.h \
+  baf_transport.h \
+  replay_cache.h \
+  replay_cache_service.h \
+  replay_service_protocol.h \
+  $(BROKER_AUTH_SOURCES) \
   sesman_access.h \
   sesman_access.c \
   sesman_auth.h \
@@ -63,4 +91,6 @@ libsesman_la_LIBADD = \
   $(AUTHMOD_OBJ) \
   $(top_builddir)/libipm/libipm.la \
   $(top_builddir)/common/libcommon.la \
-  $(AUTHMOD_LIB)
+  $(AUTHMOD_LIB) \
+  $(BROKER_AUTH_LIBS) \
+  $(OPENSSL_LIBS)

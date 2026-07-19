@@ -1,0 +1,99 @@
+# Phase 5 - Reference Broker and Interoperability
+
+## Implemented
+
+Phase 5 validates two interoperability modes:
+
+- Mode A: native RDSAAD client;
+- Mode B: broker gateway RDSAAD.
+
+RDSAAD remains the common XRDP-side ingress for both modes. XRDP core remains
+broker-neutral. UDS is a reference broker, not a core dependency. Mode B is the
+preferred fallback when RD Core / IGEL cannot inject a custom `rdp_assertion`.
+
+CredSSP/NLA, smartcard redirection, WebAuthn redirection, and LoadBalanceInfo
+are supporting or alternative mechanisms, not the primary BAF assertion ingress.
+
+Phase 5 adds a broker-neutral reference broker under
+`broker-auth/reference-broker/`.
+
+The reference broker implements:
+
+- `create_session_assertion(user, target, broker_session_id, auth_context)`;
+- `list_targets(user)`;
+- `assign_target(user, target)`;
+- `launch_connection(user, target)`;
+- `revoke_session(broker_session_id)`.
+
+It issues BAF-compatible RS256 JWT/JWS assertions using the existing reference
+issuer and assertion schema. Assertions are short-lived, target-bound,
+audience-bound, contain `jti` for replay enforcement, and are carried in the
+RDSAAD Authentication Request `rdp_assertion` field.
+
+The UDS reference integration is a simulator adapter in
+`broker-auth/reference-broker/uds-adapter/`. It maps UDS-like
+user/session/resource objects into broker-neutral BAF users, targets, and auth
+context. It is not imported by XRDP core code.
+
+## Tests
+
+`tests/baf/test_reference_broker_contract.py` covers:
+
+- valid assertion issuance and conformance verification;
+- wrong audience rejection;
+- wrong target rejection;
+- expired assertion rejection;
+- replay rejection by the reference replay ledger;
+- unknown local user rejection;
+- unsafe username rejection;
+- UID 0 rejection;
+- PAM-denied user rejection;
+- RDSAAD Authentication Request creation with no password field;
+- UDS simulator adapter isolation from XRDP core.
+
+Run:
+
+```sh
+make -C tests/baf check TESTS=test_reference_broker_contract.py
+```
+
+or the full BAF suite:
+
+```sh
+make -C tests/baf check
+```
+
+## Isolation Rules
+
+UDS-specific behavior remains outside:
+
+- `libxrdp`;
+- `xrdp`;
+- `sesman`;
+- `sesexec`;
+- `libipm`;
+- BAF validator;
+- RDSAAD parser.
+
+No username/password assertion overloading, custom IGEL client, FreeRDP plugin,
+dynamic virtual channel, raw assertion logging, token UID/GID trust, or token
+group-to-Unix-group trust is introduced.
+
+## Deferred
+
+- Production UDS API adapter implementation.
+- JWKS rotation service for the reference broker.
+- Full external wire-level RDSAAD client automation.
+- Mode A proof with actual IGEL / RD Core client behavior.
+- Mode B production gateway implementation.
+- Cluster-wide replay policy.
+- Production packaging and operational hardening.
+
+## Phase 6 Handoff
+
+Phase 5 broker-neutral artifacts are now consumed by the Phase 6 KVM lab under
+`test-lab/`. Phase 6 uses OpenUDS as the broker target through an isolated
+OpenUDS-compatible reference mode and keeps XRDP core broker-neutral. The lab
+validates host-side `xfreerdp` reachability, broker assertion boundaries, trusted
+replay/NSS/PAM expectations, and explicit skip behavior when stock `xfreerdp`
+cannot inject arbitrary `rdp_assertion`.
