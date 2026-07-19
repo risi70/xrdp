@@ -1,0 +1,121 @@
+# BAF RDP transport portal strings.
+# Regenerate with tools/update-locales.py after editing
+# transport.py; msgids are extracted from the source.
+msgid ""
+msgstr ""
+"Project-Id-Version: xrdp-baf-openuds\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "BAF Broker"
+msgstr "Courtier BAF"
+
+msgid "The desktop service is not configured correctly. Please contact your administrator."
+msgstr "Le service de bureau n'est pas correctement configuré. Veuillez contacter votre administrateur."
+
+msgid "The sign-on service is temporarily unavailable. Please try again in a moment."
+msgstr "Le service d'authentification est temporairement indisponible. Veuillez réessayer dans un instant."
+
+msgid "You are not authorized to open this desktop."
+msgstr "Vous n'êtes pas autorisé à ouvrir ce bureau."
+
+msgid "The desktop could not be prepared for your session. Please try again or contact your administrator."
+msgstr "Le bureau n'a pas pu être préparé pour votre session. Veuillez réessayer ou contacter votre administrateur."
+
+msgid "The requested desktop is not available."
+msgstr "Le bureau demandé n'est pas disponible."
+
+msgid "An unexpected error occurred while starting your desktop."
+msgstr "Une erreur inattendue s'est produite au démarrage de votre bureau."
+
+msgid "RDP (BAF broker)"
+msgstr "RDP (courtier BAF)"
+
+msgid "RDP protected by the XRDP Broker Authentication Framework: single-use handles issued by a trusted broker replace passwords."
+msgstr "RDP protégé par le Broker Authentication Framework de XRDP : des identifiants à usage unique émis par un courtier de confiance remplacent les mots de passe."
+
+msgid "Broker issuance URL"
+msgstr "URL d'émission du courtier"
+
+msgid "HTTPS endpoint of the trusted BAF broker issuance API"
+msgstr "Point de terminaison HTTPS de l'API d'émission du courtier BAF de confiance"
+
+msgid "Broker CA bundle"
+msgstr "Bundle CA du courtier"
+
+msgid "Path to the CA bundle that authenticates the broker"
+msgstr "Chemin du bundle CA qui authentifie le courtier"
+
+msgid "Client certificate"
+msgstr "Certificat client"
+
+msgid "Path to this server's mutual-TLS client certificate"
+msgstr "Chemin du certificat client TLS mutuel de ce serveur"
+
+msgid "Client private key"
+msgstr "Clé privée du client"
+
+msgid "Path to this server's mutual-TLS private key"
+msgstr "Chemin de la clé privée TLS mutuelle de ce serveur"
+
+msgid "Handle registration backend"
+msgstr "Backend d'enregistrement des handles"
+
+msgid "How the assertion is registered with the desktop host"
+msgstr "Comment l'assertion est enregistrée auprès de l'hôte de bureau"
+
+msgid "SSH identity file"
+msgstr "Fichier d'identité SSH"
+
+msgid "Dedicated private key for the registration account; pair it with a forced command on the desktop host"
+msgstr "Clé privée dédiée au compte d'enregistrement ; à associer à une commande forcée sur l'hôte de bureau"
+
+msgid "SSH known_hosts file"
+msgstr "Fichier known_hosts SSH"
+
+msgid "Pinned host keys of the desktop hosts"
+msgstr "Clés d'hôte épinglées des hôtes de bureau"
+
+msgid "SSH user"
+msgstr "Utilisateur SSH"
+
+msgid "Registration account on the desktop host"
+msgstr "Compte d'enregistrement sur l'hôte de bureau"
+
+msgid "Handle socket path"
+msgstr "Chemin du socket de handles"
+
+msgid "Handle service socket for the socket backend"
+msgstr "Socket du service de handles pour le backend socket"
+
+msgid "Ingress channel"
+msgstr "Canal d'entrée"
+
+msgid "How the single-use handle reaches the desktop host"
+msgstr "Comment le handle à usage unique atteint l'hôte de bureau"
+
+msgid "Handle lifetime (seconds)"
+msgstr "Durée de vie du handle (secondes)"
+
+msgid "Validity window of the single-use handle (1-120)"
+msgstr "Fenêtre de validité du handle à usage unique (1-120)"
+
+msgid "Fixed BAF target"
+msgstr "Cible BAF fixe"
+
+msgid "Optional fixed target identifier; when empty the machine name of the assigned desktop is used"
+msgstr "Identifiant de cible fixe facultatif ; si vide, le nom de machine du bureau attribué est utilisé"
+
+msgid "SSH to the desktop host"
+msgstr "SSH vers l'hôte de bureau"
+
+msgid "Local or forwarded socket"
+msgstr "Socket local ou redirigé"
+
+msgid "One-time credential (password field)"
+msgstr "Identifiant à usage unique (champ mot de passe)"
+
+msgid "Routing token (load-balance-info)"
+msgstr "Jeton de routage (load-balance-info)"

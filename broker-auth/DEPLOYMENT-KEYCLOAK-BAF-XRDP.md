@@ -95,7 +95,9 @@ At minimum, configure the broker with:
 
 Keep the BAF private signing key on the broker. Copy only its public trust
 anchor to the XRDP host. A Keycloak access token must never be accepted as a
-BAF assertion.
+BAF assertion. The complete key and certificate inventory for the chain,
+including the mutual-TLS and SSH material used by the `integrations/`
+components, is listed in `DEPLOYMENT-PKI-CREDENTIALS.md`.
 
 ## 4. Configure trusted XRDP services
 
@@ -191,6 +193,11 @@ assertion only on a file descriptor, registers it with the trusted Handle
 service, and returns a one-time handle. It does not authenticate users,
 validate Keycloak tokens, issue assertions, hold a signing key, or implement a
 production OpenUDS transport plugin.
+
+A production-grade OpenUDS / UDS Enterprise transport plugin with a
+multilingual portal experience is available separately in
+`integrations/openuds-baf/`; the matching broker-side issuance service (the
+broker-to-XRDP connector) is in `integrations/baf-broker-service/`.
 
 ## 8. Verification
 

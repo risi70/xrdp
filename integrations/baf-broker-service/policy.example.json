@@ -1,0 +1,16 @@
+{
+  "users": {
+    "bafuser": {
+      "targets": ["baflab-vdi-01"],
+      "roles": ["desktop-user"],
+      "groups": ["/vdi/users"]
+    },
+    "bafother": {
+      "targets": ["baflab-vdi-02"]
+    }
+  },
+  "targets": {
+    "baflab-vdi-01": {"audience": "xrdp://baflab-vdi-01"},
+    "baflab-vdi-02": {"audience": "xrdp://baflab-vdi-02"}
+  }
+}

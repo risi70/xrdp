@@ -113,7 +113,9 @@ optional isolated adapter example.
 
 Deliverables: broker-neutral reference interface, isolated UDS simulator adapter,
 conformance tests, IGEL/RDP flow documentation, and deployment notes. Container
-services, production UDS API integration, and JWKS rotation remain deferred. Dependencies: BAF 1.0 profile. Acceptance:
+services and JWKS rotation remain deferred; production OpenUDS integration is
+implemented outside XRDP core as the `integrations/openuds-baf/` transport
+plugin. Dependencies: BAF 1.0 profile. Acceptance:
 INT-001, IT-004, no reference-specific XRDP core code. Complexity M. Risks:
 examples mistaken for production defaults. Parallel: reference broker and
 issuer/vector work.

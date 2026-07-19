@@ -1,0 +1,26 @@
+# Configuration for baf-pki-setup.sh (shell key=value, no spaces).
+
+# FQDNs presented in TLS certificates (K2, K4, K6).
+BROKER_FQDN=broker.lab.test
+UDS_FQDN=uds.lab.test
+KEYCLOAK_FQDN=keycloak.lab.test
+
+# VDI hosts: one K9 certificate, TrustAnchor copy, and authorized_keys
+# snippet per entry (space-separated).
+VDI_HOSTS="baflab-vdi-01"
+
+# CN of the OpenUDS mTLS client certificate (K3); must match the
+# issuance service's allowed_client_cn.
+CLIENT_CN=uds-server
+
+# BAF signing key identifier (K1); must match sesman.ini KeyId and the
+# issuance service kid.
+KID=baf-signing-key-01
+
+# Registration account and handle TTL baked into the forced command.
+SSH_USER=baf-register
+HANDLE_TARGET_TTL=90
+
+# Certificate lifetimes in days (lab defaults).
+LEAF_DAYS=90
+CA_DAYS=3650

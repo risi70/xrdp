@@ -1,0 +1,26 @@
+# uds_policy_sync.py configuration (strict key: value lines).
+
+# OpenUDS admin REST endpoint and credentials. The account needs
+# read access to service pools and assigned services only.
+uds_url: https://uds.lab.test
+auth_label: keycloak
+username: baf-sync
+password_file: /etc/xrdp-baf/issuanced/uds-sync.password
+ca_file: /etc/xrdp-baf/issuanced/uds-ca.pem
+
+# Output: the issuance service's policy file. The running service
+# reloads it automatically (mtime-based).
+policy_file: /etc/xrdp-baf/issuanced/policy.json
+
+# How target names map to BAF audiences, and the grants attached to
+# every synchronized user.
+audience_template: xrdp://{target}
+roles: desktop-user
+# groups: /vdi/users
+
+# REST paths, overridable to absorb OpenUDS version differences.
+# auth_path: /uds/rest/auth
+# pools_path: /uds/rest/servicespools/overview
+# assigned_path_template: /uds/rest/servicespools/{pool_id}/assignedservices/overview
+
+timeout: 10

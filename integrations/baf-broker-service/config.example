@@ -1,0 +1,28 @@
+# BAF issuance service configuration (strict key: value lines).
+# All paths are read at startup; the service refuses to start on any
+# missing or malformed value.
+
+listen_address: 127.0.0.1
+listen_port: 8443
+
+# Server TLS identity presented to broker front ends.
+tls_cert: /etc/xrdp-baf/issuanced/server.pem
+tls_key: /etc/xrdp-baf/issuanced/server.key
+
+# CA that signs the client certificates of authorized front ends
+# (e.g. the OpenUDS server), plus the exact CNs accepted.
+client_ca: /etc/xrdp-baf/issuanced/clients-ca.pem
+allowed_client_cn: uds-server
+
+# BAF issuer identity: must match sesman.ini [BrokerAuth] Issuer/KeyId,
+# and private_key must pair with the TrustAnchor deployed on XRDP hosts.
+issuer: https://broker.example.invalid/baf
+kid: baf-signing-key-01
+private_key: /etc/xrdp-baf/issuanced/baf-signing.key
+
+# Per-user target allowlists and per-target audiences.
+policy_file: /etc/xrdp-baf/issuanced/policy.json
+
+# Assertion lifetime in seconds (30-300) and per-client rate limit.
+lifetime: 120
+rate_limit_per_minute: 120

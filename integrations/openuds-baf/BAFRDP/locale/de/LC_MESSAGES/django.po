@@ -1,0 +1,121 @@
+# BAF RDP transport portal strings.
+# Regenerate with tools/update-locales.py after editing
+# transport.py; msgids are extracted from the source.
+msgid ""
+msgstr ""
+"Project-Id-Version: xrdp-baf-openuds\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "BAF Broker"
+msgstr "BAF-Broker"
+
+msgid "The desktop service is not configured correctly. Please contact your administrator."
+msgstr "Der Desktop-Dienst ist nicht korrekt konfiguriert. Bitte wenden Sie sich an Ihre Administration."
+
+msgid "The sign-on service is temporarily unavailable. Please try again in a moment."
+msgstr "Der Anmeldedienst ist vorübergehend nicht verfügbar. Bitte versuchen Sie es gleich noch einmal."
+
+msgid "You are not authorized to open this desktop."
+msgstr "Sie sind nicht berechtigt, diesen Desktop zu öffnen."
+
+msgid "The desktop could not be prepared for your session. Please try again or contact your administrator."
+msgstr "Der Desktop konnte für Ihre Sitzung nicht vorbereitet werden. Bitte versuchen Sie es erneut oder wenden Sie sich an Ihre Administration."
+
+msgid "The requested desktop is not available."
+msgstr "Der angeforderte Desktop ist nicht verfügbar."
+
+msgid "An unexpected error occurred while starting your desktop."
+msgstr "Beim Starten Ihres Desktops ist ein unerwarteter Fehler aufgetreten."
+
+msgid "RDP (BAF broker)"
+msgstr "RDP (BAF-Broker)"
+
+msgid "RDP protected by the XRDP Broker Authentication Framework: single-use handles issued by a trusted broker replace passwords."
+msgstr "RDP, geschützt durch das XRDP Broker Authentication Framework: Einmal-Handles eines vertrauenswürdigen Brokers ersetzen Passwörter."
+
+msgid "Broker issuance URL"
+msgstr "Broker-Ausstellungs-URL"
+
+msgid "HTTPS endpoint of the trusted BAF broker issuance API"
+msgstr "HTTPS-Endpunkt der Ausstellungs-API des vertrauenswürdigen BAF-Brokers"
+
+msgid "Broker CA bundle"
+msgstr "CA-Bündel des Brokers"
+
+msgid "Path to the CA bundle that authenticates the broker"
+msgstr "Pfad zum CA-Bündel, das den Broker authentifiziert"
+
+msgid "Client certificate"
+msgstr "Client-Zertifikat"
+
+msgid "Path to this server's mutual-TLS client certificate"
+msgstr "Pfad zum Mutual-TLS-Client-Zertifikat dieses Servers"
+
+msgid "Client private key"
+msgstr "Privater Client-Schlüssel"
+
+msgid "Path to this server's mutual-TLS private key"
+msgstr "Pfad zum privaten Mutual-TLS-Schlüssel dieses Servers"
+
+msgid "Handle registration backend"
+msgstr "Backend für die Handle-Registrierung"
+
+msgid "How the assertion is registered with the desktop host"
+msgstr "Wie die Assertion beim Desktop-Host registriert wird"
+
+msgid "SSH identity file"
+msgstr "SSH-Identitätsdatei"
+
+msgid "Dedicated private key for the registration account; pair it with a forced command on the desktop host"
+msgstr "Dedizierter privater Schlüssel für das Registrierungskonto; mit einem erzwungenen Befehl (forced command) auf dem Desktop-Host kombinieren"
+
+msgid "SSH known_hosts file"
+msgstr "SSH-known_hosts-Datei"
+
+msgid "Pinned host keys of the desktop hosts"
+msgstr "Gepinnte Host-Schlüssel der Desktop-Hosts"
+
+msgid "SSH user"
+msgstr "SSH-Benutzer"
+
+msgid "Registration account on the desktop host"
+msgstr "Registrierungskonto auf dem Desktop-Host"
+
+msgid "Handle socket path"
+msgstr "Pfad des Handle-Sockets"
+
+msgid "Handle service socket for the socket backend"
+msgstr "Socket des Handle-Dienstes für das Socket-Backend"
+
+msgid "Ingress channel"
+msgstr "Ingress-Kanal"
+
+msgid "How the single-use handle reaches the desktop host"
+msgstr "Wie das Einmal-Handle den Desktop-Host erreicht"
+
+msgid "Handle lifetime (seconds)"
+msgstr "Handle-Gültigkeit (Sekunden)"
+
+msgid "Validity window of the single-use handle (1-120)"
+msgstr "Gültigkeitsfenster des Einmal-Handles (1-120)"
+
+msgid "Fixed BAF target"
+msgstr "Fester BAF-Zielname"
+
+msgid "Optional fixed target identifier; when empty the machine name of the assigned desktop is used"
+msgstr "Optionaler fester Zielbezeichner; wenn leer, wird der Maschinenname des zugewiesenen Desktops verwendet"
+
+msgid "SSH to the desktop host"
+msgstr "SSH zum Desktop-Host"
+
+msgid "Local or forwarded socket"
+msgstr "Lokaler oder weitergeleiteter Socket"
+
+msgid "One-time credential (password field)"
+msgstr "Einmal-Anmeldedaten (Passwortfeld)"
+
+msgid "Routing token (load-balance-info)"
+msgstr "Routing-Token (load-balance-info)"

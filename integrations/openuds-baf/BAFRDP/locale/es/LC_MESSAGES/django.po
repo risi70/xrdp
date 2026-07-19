@@ -1,0 +1,121 @@
+# BAF RDP transport portal strings.
+# Regenerate with tools/update-locales.py after editing
+# transport.py; msgids are extracted from the source.
+msgid ""
+msgstr ""
+"Project-Id-Version: xrdp-baf-openuds\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "BAF Broker"
+msgstr "Bróker BAF"
+
+msgid "The desktop service is not configured correctly. Please contact your administrator."
+msgstr "El servicio de escritorio no está configurado correctamente. Póngase en contacto con su administrador."
+
+msgid "The sign-on service is temporarily unavailable. Please try again in a moment."
+msgstr "El servicio de inicio de sesión no está disponible temporalmente. Inténtelo de nuevo en un momento."
+
+msgid "You are not authorized to open this desktop."
+msgstr "No está autorizado a abrir este escritorio."
+
+msgid "The desktop could not be prepared for your session. Please try again or contact your administrator."
+msgstr "No se pudo preparar el escritorio para su sesión. Inténtelo de nuevo o póngase en contacto con su administrador."
+
+msgid "The requested desktop is not available."
+msgstr "El escritorio solicitado no está disponible."
+
+msgid "An unexpected error occurred while starting your desktop."
+msgstr "Se ha producido un error inesperado al iniciar su escritorio."
+
+msgid "RDP (BAF broker)"
+msgstr "RDP (bróker BAF)"
+
+msgid "RDP protected by the XRDP Broker Authentication Framework: single-use handles issued by a trusted broker replace passwords."
+msgstr "RDP protegido por el Broker Authentication Framework de XRDP: identificadores de un solo uso emitidos por un bróker de confianza sustituyen a las contraseñas."
+
+msgid "Broker issuance URL"
+msgstr "URL de emisión del bróker"
+
+msgid "HTTPS endpoint of the trusted BAF broker issuance API"
+msgstr "Punto de acceso HTTPS de la API de emisión del bróker BAF de confianza"
+
+msgid "Broker CA bundle"
+msgstr "Paquete CA del bróker"
+
+msgid "Path to the CA bundle that authenticates the broker"
+msgstr "Ruta del paquete CA que autentica al bróker"
+
+msgid "Client certificate"
+msgstr "Certificado de cliente"
+
+msgid "Path to this server's mutual-TLS client certificate"
+msgstr "Ruta del certificado de cliente TLS mutuo de este servidor"
+
+msgid "Client private key"
+msgstr "Clave privada del cliente"
+
+msgid "Path to this server's mutual-TLS private key"
+msgstr "Ruta de la clave privada TLS mutua de este servidor"
+
+msgid "Handle registration backend"
+msgstr "Backend de registro de handles"
+
+msgid "How the assertion is registered with the desktop host"
+msgstr "Cómo se registra la aserción en el host de escritorio"
+
+msgid "SSH identity file"
+msgstr "Archivo de identidad SSH"
+
+msgid "Dedicated private key for the registration account; pair it with a forced command on the desktop host"
+msgstr "Clave privada dedicada a la cuenta de registro; combínela con un comando forzado en el host de escritorio"
+
+msgid "SSH known_hosts file"
+msgstr "Archivo known_hosts de SSH"
+
+msgid "Pinned host keys of the desktop hosts"
+msgstr "Claves de host fijadas de los hosts de escritorio"
+
+msgid "SSH user"
+msgstr "Usuario SSH"
+
+msgid "Registration account on the desktop host"
+msgstr "Cuenta de registro en el host de escritorio"
+
+msgid "Handle socket path"
+msgstr "Ruta del socket de handles"
+
+msgid "Handle service socket for the socket backend"
+msgstr "Socket del servicio de handles para el backend de socket"
+
+msgid "Ingress channel"
+msgstr "Canal de entrada"
+
+msgid "How the single-use handle reaches the desktop host"
+msgstr "Cómo llega el handle de un solo uso al host de escritorio"
+
+msgid "Handle lifetime (seconds)"
+msgstr "Vida del handle (segundos)"
+
+msgid "Validity window of the single-use handle (1-120)"
+msgstr "Ventana de validez del handle de un solo uso (1-120)"
+
+msgid "Fixed BAF target"
+msgstr "Destino BAF fijo"
+
+msgid "Optional fixed target identifier; when empty the machine name of the assigned desktop is used"
+msgstr "Identificador de destino fijo opcional; si está vacío se usa el nombre de máquina del escritorio asignado"
+
+msgid "SSH to the desktop host"
+msgstr "SSH al host de escritorio"
+
+msgid "Local or forwarded socket"
+msgstr "Socket local o reenviado"
+
+msgid "One-time credential (password field)"
+msgstr "Credencial de un solo uso (campo de contraseña)"
+
+msgid "Routing token (load-balance-info)"
+msgstr "Token de enrutamiento (load-balance-info)"
