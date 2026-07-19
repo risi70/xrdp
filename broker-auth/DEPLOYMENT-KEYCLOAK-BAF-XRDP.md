@@ -50,9 +50,25 @@ focused BAF test suite before producing `packaging/deb/out/xrdp-baf_*.deb`.
 Untracked lab files, private material, caches, and previous artifacts cannot
 enter the package.
 
-Install the matching distro `xorgxrdp` package separately. The package built by
-this repository contains XRDP and the BAF services; it does not build or bundle
-an external xorgxrdp source tree.
+Install a **matching** `xorgxrdp` separately. The package built by this
+repository contains XRDP and the BAF services; it does not build or bundle an
+external xorgxrdp source tree.
+
+> **xorgxrdp version requirement.** This XRDP tracks the 0.10 development
+> line, which negotiates a versioned module contract: xorgxrdp must advertise
+> `xup_client_info` version `20250528` (a capabilities message the xup module
+> checks at connect time, `xup/xup.c`). Older modules — including Ubuntu
+> 24.04's distro `xorgxrdp 0.9.19` — do not send it, so the module is rejected
+> fail-closed: Xorg starts, but no RandR output is created, `waitforx` finds
+> no outputs, and the session is closed even though PAM authentication
+> succeeded. The `xrdp-sesman` log shows an "incompatible xorgxrdp" error.
+> Build and install an xorgxrdp that matches this contract; a distro package
+> older than the contract will not work regardless of xrdp configuration.
+
+On Debian/Ubuntu the packaged `sesman.ini` uses `param=Xorg`, which resolves
+to the setuid `Xorg.wrap` that sesman cannot launch. The package `postinst`
+rewrites this to the non-suid `/usr/lib/xorg/Xorg` when the pristine default
+is still in place; operator-edited values are preserved.
 
 ## 2. Install XRDP
 

@@ -179,7 +179,15 @@ wait_for_module_caps_message(struct mod *mod)
 
         if (status < 0)
         {
-            LOG(LOG_LEVEL_ERROR, "No response from Xorg module before timeout");
+            LOG(LOG_LEVEL_ERROR,
+                "No capabilities message from the Xorg module before "
+                "timeout. This usually means xorgxrdp is too old for this "
+                "xrdp: it must advertise xup_client_info version %d. "
+                "No RandR output will appear and the session will be closed.",
+                XUP_CLIENT_INFO_CURRENT_VERSION);
+            mod->server_msg(mod,
+                            "incompatible xorgxrdp (no capabilities message); "
+                            "a matching xorgxrdp build is required", 0);
             return 1;
         }
 

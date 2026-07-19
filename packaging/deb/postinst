@@ -19,6 +19,21 @@ elif [ ! -f /etc/xrdp/cert.pem ]; then
         -subj /CN=xrdp-local >/dev/null 2>&1
 fi
 
+# On Debian/Ubuntu the bare "Xorg" resolves to the setuid /usr/bin/Xorg.wrap,
+# which sesman cannot launch for a session, so graphical startup fails. Point
+# the [Xorg] server at the non-suid binary when the packaged default is still
+# in place. Operator-edited values are left untouched (conffile-safe).
+if [ -f /etc/xrdp/sesman.ini ] \
+        && grep -qxF 'param=Xorg' /etc/xrdp/sesman.ini; then
+    for xorg_bin in /usr/lib/xorg/Xorg /usr/libexec/Xorg /usr/lib/Xorg; do
+        [ -x "$xorg_bin" ] || continue
+        sed -i "/^\[Xorg\]/,/^\[/ s|^param=Xorg\$|param=$xorg_bin|" \
+            /etc/xrdp/sesman.ini
+        printf 'Selected non-suid X server: %s\n' "$xorg_bin"
+        break
+    done
+fi
+
 if command -v systemctl >/dev/null 2>&1; then
     systemctl daemon-reload >/dev/null 2>&1 || true
 fi
